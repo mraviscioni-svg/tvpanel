@@ -30,9 +30,9 @@ Podés poner otra ruta relativa a la raíz del proyecto (ej. `"dataPath": "data"
 
 ## Despliegue en hosting
 
-1. Subí toda la carpeta del proyecto (o al menos `backend/`, `data/`, `uploads/`).
-2. Asegurate que la **raíz web** apunte a la carpeta donde está `backend/`, o que las URLs llamen a `https://tudominio.com/ruta/backend/login.php`, etc.
-3. Permisos de escritura: la carpeta `data/` y `uploads/ofertas/` deben ser escribibles por el usuario de PHP (chmod 755 o 775 según el servidor).
+1. Subí toda la carpeta del proyecto (o al menos `backend/`, `JSON/`, `IMG/`).
+2. La **raíz web** debe apuntar a la carpeta del proyecto (ej. TEST). Ejemplo: si el sitio es **https://tvpanel.tallerboedo.com.ar/** y esa raíz es la carpeta TEST, el backend se accede en **https://tvpanel.tallerboedo.com.ar/backend/**.
+3. Permisos de escritura: `JSON/` e `IMG/CORTES/` (y `IMG/CORTES/VIDEO/`) deben ser escribibles por PHP (chmod 755 o 775).
 
 ## Estructura de los JSON (referencia)
 
@@ -47,7 +47,7 @@ El login usa **username** y **password** de `users.json`. Roles: **admin** (acce
 
 ## Endpoints (API)
 
-Base: `https://tudominio.com/backend/` (o la ruta donde hayas subido los `.php`).
+Base: **https://tvpanel.tallerboedo.com.ar/backend/** (en este proyecto la raíz del sitio es TEST, y el subdominio apunta ahí).
 
 ### Auth
 
