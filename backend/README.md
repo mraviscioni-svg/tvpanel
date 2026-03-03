@@ -18,8 +18,9 @@ Podés poner otra ruta relativa a la raíz del proyecto (ej. `"dataPath": "data"
 
 ## Estructura
 
-- **JSON/** (o la carpeta que definas en `config.json`) — users.json, productos.json, ofertas.json, tvs.json
-- **uploads/ofertas/** — Imágenes y videos subidos en ofertas
+- **JSON/** (o la carpeta que definas en `config.json`) — users.json, productos.json, ofertas.json, tvs.json (misma altura que `backend/`)
+- **IMG/CORTES/** — Imágenes de promociones
+- **IMG/CORTES/VIDEO/** — Videos de promociones
 - **backend/** — Scripts PHP de la API y `config.json`
 
 ## Requisitos

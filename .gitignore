@@ -20,6 +20,16 @@ build/
 .env
 .env.local
 
-# Backend: archivos subidos (mantener carpeta)
+# Backend: archivos subidos (mantener carpetas)
 uploads/ofertas/*
 !uploads/ofertas/.gitkeep
+CORTES/*
+!CORTES/.gitkeep
+!CORTES/VIDEO/
+CORTES/VIDEO/*
+!CORTES/VIDEO/.gitkeep
+IMG/CORTES/*
+!IMG/CORTES/.gitkeep
+!IMG/CORTES/VIDEO/
+IMG/CORTES/VIDEO/*
+!IMG/CORTES/VIDEO/.gitkeep

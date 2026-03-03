@@ -16,6 +16,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Remove .git and data (no subir al FTP)
+        run: |
+          rm -rf .git
+          rm -rf data
+
+      - name: Listar qué se va a subir (debug)
+        run: find . -type f | head -80
+
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
@@ -23,8 +31,9 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          state-name: backend/.ftp-deploy-sync-state.json
           protocol: ftp
-          log-level: standard
+          log-level: verbose
           exclude: |
             .git
             .github

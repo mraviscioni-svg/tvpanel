@@ -1,15 +1,17 @@
 <?php
 /**
  * ABM Ofertas - graba en JSON/ofertas.json
- * Estructura: { updated, moneda, categorias: [ { nombre, items: [ { id?, nombre, unidad, precio, imagen1, imagen2 } ] } ] }
- * imagen1/imagen2: path (ej. VIDEO/xxx.mp4) o archivo subido (se guarda en uploads/ofertas/)
+ * Imágenes → IMG/CORTES/. Videos → IMG/CORTES/VIDEO/
  */
 require_once __DIR__ . '/helpers.php';
 
 requireLogin();
 
-if (!is_dir(UPLOADS_OFERTAS)) {
-    mkdir(UPLOADS_OFERTAS, 0755, true);
+if (!is_dir(CORTES_DIR)) {
+    mkdir(CORTES_DIR, 0755, true);
+}
+if (!is_dir(CORTES_VIDEO)) {
+    mkdir(CORTES_VIDEO, 0755, true);
 }
 
 $ALLOWED_IMAGE = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -35,19 +37,25 @@ function subirArchivoOferta($fileKey, $tipo = 'imagen') {
         $ext = $tipo === 'video' ? 'mp4' : 'jpg';
     }
     $nombre = $tipo . '_' . uniqid() . '.' . $ext;
-    $destino = UPLOADS_OFERTAS . '/' . $nombre;
+    if ($tipo === 'video') {
+        $destino = CORTES_VIDEO . '/' . $nombre;
+        $pathReturn = 'IMG/CORTES/VIDEO/' . $nombre;
+    } else {
+        $destino = CORTES_DIR . '/' . $nombre;
+        $pathReturn = 'IMG/CORTES/' . $nombre;
+    }
     if (!move_uploaded_file($f['tmp_name'], $destino)) {
         return null;
     }
-    return 'uploads/ofertas/' . $nombre;
+    return $pathReturn;
 }
 
 function eliminarArchivoOferta($path) {
     if (empty($path)) return;
-    if (strpos($path, 'uploads/ofertas/') === 0) {
+    if (strpos($path, 'IMG/CORTES/') === 0 || strpos($path, 'CORTES/') === 0) {
         $full = ROOT . '/' . $path;
     } else {
-        $full = UPLOADS_OFERTAS . '/' . basename($path);
+        $full = ROOT . '/IMG/CORTES/' . basename($path);
     }
     if (file_exists($full)) {
         @unlink($full);

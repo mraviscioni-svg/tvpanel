@@ -20,8 +20,9 @@ if (file_exists($configPath)) {
 }
 define('DATA_DIR', ROOT . '/' . $dataFolder);
 
-define('UPLOADS_DIR', ROOT . '/uploads');
-define('UPLOADS_OFERTAS', UPLOADS_DIR . '/ofertas');
+// Promociones: imágenes en IMG/CORTES/, videos en IMG/CORTES/VIDEO/
+define('CORTES_DIR', ROOT . '/IMG/CORTES');
+define('CORTES_VIDEO', CORTES_DIR . '/VIDEO');
 
 // Archivos JSON (nombres según tus archivos)
 define('FILE_USERS', DATA_DIR . '/users.json');

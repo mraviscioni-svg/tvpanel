@@ -38,9 +38,11 @@ Cada vez que hagas **push a la rama `main`**, GitHub Actions sube el proyecto a 
 | `FTP_SERVER`       | Servidor FTP (sin `ftp://`) | `ftp.midominio.com` o la IP |
 | `FTP_USERNAME`     | Usuario FTP                 | `tu_usuario` |
 | `FTP_PASSWORD`     | Contraseña FTP              | tu contraseña |
-| `FTP_SERVER_DIR`  | Carpeta remota (debe terminar en `/`) | `public_html/` o `public_html/tvpanel/` |
+| `FTP_SERVER_DIR`  | Carpeta remota (siempre terminar en `/`) | **Si al conectar ves la carpeta TALLERBOEDO y dentro está TEST**, usá **`TEST/`** (así los archivos van a TEST/backend, TEST/JSON, etc.). Si caés directo en TEST, usá `./` |
 
-Si tu hosting usa **FTP seguro (FTPS)**, editá el archivo `.github/workflows/deploy-ftp.yml` y cambiá `protocol: ftp` por `protocol: ftps`.
+**Resumen:** Al conectarte por FTP caés en un directorio raíz (tipo “public”). Ese es el lugar. Poné en `FTP_SERVER_DIR` esa ruta con `/` al final: si desplegás ahí mismo, usá `./`; si desplegás en una subcarpeta (ej. TEST), usá `TEST/`.
+
+Si tu hosting usa **FTP seguro (FTPS)**, editá `.github/workflows/deploy-ftp.yml` y cambiá `protocol: ftp` por `protocol: ftps`.
 
 ### Paso 2: Subir el workflow a GitHub
 
@@ -94,4 +96,30 @@ A partir de ese momento, **cada push a `main`** dispara el deploy a FTP.
 | Subir al hosting por FTP | El mismo push dispara el deploy. O en GitHub: Actions → Deploy to FTP → Run workflow |
 | Solo probar en el hosting sin push | Ejecutá el workflow manualmente (Actions → Deploy to FTP → Run workflow) después de haber hecho al menos un deploy exitoso |
 
-Si el deploy falla, revisá en **Actions** el log del workflow (el paso "Deploy to FTP") y comprobá que `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD` y `FTP_SERVER_DIR` estén bien configurados en los secretos del repo.
+---
+
+### Error FTP 553: "Can't open that file: No such file or directory"
+
+El servidor no puede crear o escribir el archivo. Hacé esto **en este orden**:
+
+1. **Crear la carpeta de deploy a mano (una sola vez)**  
+   Conectate por FTP (FileZilla, etc.) y en la raíz donde caés (tu “public”):
+   - Creá la carpeta donde va el proyecto (ej. `TEST` o usá la raíz).
+   - Dentro de esa carpeta, creá estas carpetas **vacías**:  
+     `backend`, `JSON`, `CORTES`, `VIDEO` (esta última dentro de `CORTES`), `uploads`, y dentro de `uploads` una carpeta `ofertas`.  
+   Así: `TEST/backend`, `TEST/JSON`, `TEST/CORTES`, `TEST/CORTES/VIDEO`, `TEST/uploads`, `TEST/uploads/ofertas`.
+
+2. **Permisos**  
+   Esa carpeta (ej. `TEST`) y las que creaste: **755** (o 775 si el hosting lo pide).
+
+3. **Secreto FTP_SERVER_DIR**  
+   En GitHub, el valor de `FTP_SERVER_DIR` tiene que ser **exactamente** esa carpeta, con `/` al final:
+   - Si desplegás en la raíz donde caés: `./` o `/`.
+   - Si desplegás en `TEST`: `TEST/`.
+   - Si caés en `public_html` y el proyecto va en `public_html/TEST`: `TEST/` o `public_html/TEST/` según cómo te muestre el FTP.
+
+4. **Volver a correr el deploy**  
+   Actions → Deploy to FTP → Run workflow. Con la estructura ya creada y permisos correctos, el 553 suele desaparecer.
+
+5. **Ver qué archivo falla**  
+   En el log del workflow, con `log-level: verbose` vas a ver el último archivo que intentaba subir cuando salió el 553; así podés ver si falla en la raíz o en una subcarpeta.
