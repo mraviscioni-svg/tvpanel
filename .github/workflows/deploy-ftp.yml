@@ -24,10 +24,12 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
           protocol: ftp
+          log-level: standard
           exclude: |
             .git
             .github
-            data
+            data/
+            data/**
             node_modules
             .gitignore
             PASOS-CONECTAR-GITHUB.md
