@@ -47,7 +47,9 @@ El login usa **username** y **password** de `users.json`. Roles: **admin** (acce
 
 ## Endpoints (API)
 
-Base: **https://tvpanel.tallerboedo.com.ar/backend/** (en este proyecto la raíz del sitio es TEST, y el subdominio apunta ahí).
+Base: **https://tvpanel.tallerboedo.com.ar/backend/** (raíz del sitio = TEST).
+
+**Panel de administración (ABM):** **https://tvpanel.tallerboedo.com.ar/admin/**
 
 ### Auth
 
