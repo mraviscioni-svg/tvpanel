@@ -1,0 +1,56 @@
+{
+  "header": {
+    "title": "Panel de TVs",
+    "hint": "Elegí una pantalla para abrir su cartelera"
+  },
+  "tvs": [
+    {
+      "id": "tv1",
+      "title": "TV 1",
+      "tag": "TV",
+      "description": "Televisor Cartelera 1",
+      "url": "index2.html?ppc=10&start=0&ppp=30&j=JSON/productos.json&theme=default",
+      "active": true
+    },
+    {
+      "id": "tv2",
+      "title": "TV 2",
+      "tag": "TV",
+      "description": "Televisor Cartelera 2",
+      "url": "index2.html?ppc=10&start=31&ppp=30&j=JSON/productos.json&p=2&stacks=1&theme=default",
+      "active": true
+    },
+    {
+      "id": "tv3",
+      "title": "TV 3",
+      "tag": "TV",
+      "description": "Televisor Cartelera 3",
+      "url": "index2.html?ppc=9&start=61&ppp=30&j=JSON/productos.json&theme=default",
+      "active": true
+    },
+    {
+      "id": "tv4",
+      "title": "TV 4",
+      "tag": "TV",
+      "description": "Se muestran las promociones y otros cortes",
+      "url": "index2.html?ppc=10&start=0&ppp=30&j=JSON/ofertas.json&theme=default",
+      "active": true
+    },
+    {
+      "id": "mostrador",
+      "title": "TV CAJA",
+      "tag": "TV",
+      "description": "Se muestran los precios de los congelados",
+      "url": "index2.html?ppc=8&start=0&ppp=30&j=JSON/congelados.json&cj=JSON/congelados-img.json&theme=default",
+      "active": true
+    },
+    {
+      "id": "Ofertas",
+      "title": "Oferta de vidriera",
+      "tag": "TV",
+      "description": "Se muestran los precios de los congelados",
+      "url": "promociones.html",
+      "active": true
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# Evitar que se lean los JSON directamente por URL (Apache)
+<Files "*.json">
+    Require all denied
+</Files>

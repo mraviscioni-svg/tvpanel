@@ -1,0 +1,21 @@
+{
+    "updated": "26-12-2025 05:57",
+    "users": [
+        {
+            "id": 1,
+            "username": "admin",
+            "password": "1234",
+            "name": "Marcelo",
+            "role": "admin",
+            "active": 1
+        },
+        {
+            "id": 2,
+            "username": "Estancia",
+            "password": "LosCardosos2025",
+            "name": "Estancia Cardoso",
+            "role": "editor",
+            "active": 1
+        }
+    ]
+}
