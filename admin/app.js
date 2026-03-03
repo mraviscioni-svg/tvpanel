@@ -575,7 +575,3 @@
   $('#modal-close').onclick = closeModal;
   $('#modal-backdrop').onclick = closeModal;
 })();
-</think>
-Eliminando código duplicado en `app.js` y corrigiendo la carga de datos en los modales de edición.
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-Read
