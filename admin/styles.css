@@ -711,6 +711,11 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   justify-content: space-between;
   gap: 0.4rem;
 }
+.tv-card-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
 .tv-status-pill {
   align-self: center;
   padding: 0.2rem 0.7rem;
@@ -734,16 +739,12 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 .tv-card-actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.35rem;
 }
 .tv-card-actions .btn {
   flex: 0 0 auto;
   padding: 0.3rem 0.55rem;
   font-size: var(--text-xs);
-}
-.tv-card-actions .btn-danger {
-  margin-left: auto;
 }
 .tv-link-btn {
   border-radius: 999px;

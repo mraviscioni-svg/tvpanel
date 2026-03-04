@@ -591,14 +591,16 @@
             <p class="tv-card-desc">${escapeHtml(desc || 'Sin descripción')}</p>
           </div>
           <footer class="tv-card-footer">
-            <button type="button"
-                    class="tv-status-pill ${t.active ? 'tv-status-on' : 'tv-status-off'}"
-                    data-toggle-tv="${escapeAttr(t.id)}"
-                    data-active="${t.active ? '1' : '0'}">
-              ${t.active ? 'Activo' : 'Inactivo'}
-            </button>
-            <div class="tv-card-actions">
+            <div class="tv-card-footer-left">
+              <button type="button"
+                      class="tv-status-pill ${t.active ? 'tv-status-on' : 'tv-status-off'}"
+                      data-toggle-tv="${escapeAttr(t.id)}"
+                      data-active="${t.active ? '1' : '0'}">
+                ${t.active ? 'Activo' : 'Inactivo'}
+              </button>
               ${url ? `<button type="button" class="btn btn-ghost btn-sm tv-link-btn" data-open-tv-url="${escapeAttr(url)}">Probar link</button>` : ''}
+            </div>
+            <div class="tv-card-actions">
               <button type="button" class="btn btn-ghost btn-sm" data-edit-tv="${escapeAttr(t.id)}">Editar</button>
               <button type="button" class="btn btn-danger btn-sm" data-delete-tv="${escapeAttr(t.id)}">Eliminar</button>
             </div>
