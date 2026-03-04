@@ -7,6 +7,7 @@
   let currentView = 'productos';
   let user = null;
   let productosData = null;
+  let ofertasData = null;
   let productosCategoriaFilter = 'ALL';
   const gridState = {
     productos: { page: 1, pageSize: 10, search: '' },
@@ -151,18 +152,20 @@
 
       const header = `
         <div class="toolbar">
-          <div class="toolbar-left">
-            <div class="field-inline">
-              <label>Categoría</label>
+          <div class="toolbar-bar">
+            <div class="search-wrap">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input type="text" id="productos-search" class="search-input" placeholder="Buscar por nombre, unidad, tag..." value="${escapeAttr(st.search)}">
+            </div>
+            <div class="filter-wrap">
+              <label for="productos-filter">Categoría</label>
               <select id="productos-filter" class="select">
                 <option value="ALL">Todas</option>
                 ${categoriaNames.map(n => `<option value="${escapeAttr(n)}" ${n === selected ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
               </select>
             </div>
-            <div class="field-inline search-wrap">
-              <label>Buscar</label>
-              <input type="text" id="productos-search" class="search-input" placeholder="Nombre, unidad, tag..." value="${escapeAttr(st.search)}">
-            </div>
+          </div>
+          <div class="toolbar-meta">
             <span class="pill">Actualizado: <span class="mono">${escapeHtml(String(data.updated || '-'))}</span></span>
           </div>
         </div>
@@ -232,6 +235,7 @@
 
   function loadOfertas(content) {
     api('/ofertas.php?action=list').then(({ data }) => {
+      ofertasData = data;
       if (!data.categorias || data.categorias.length === 0) {
         content.innerHTML = '<div class="empty-state"><p>No hay ofertas.</p></div>';
         return;
@@ -248,10 +252,10 @@
 
       const header = `
         <div class="toolbar">
-          <div class="toolbar-left">
-            <div class="field-inline search-wrap">
-              <label>Buscar</label>
-              <input type="text" id="ofertas-search" class="search-input" placeholder="Nombre, unidad, categoría..." value="${escapeAttr(st.search)}">
+          <div class="toolbar-bar">
+            <div class="search-wrap">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input type="text" id="ofertas-search" class="search-input" placeholder="Buscar por nombre, unidad, categoría..." value="${escapeAttr(st.search)}">
             </div>
           </div>
         </div>
@@ -311,10 +315,10 @@
       st.page = page;
       const header = `
         <div class="toolbar">
-          <div class="toolbar-left">
-            <div class="field-inline search-wrap">
-              <label>Buscar</label>
-              <input type="text" id="tvs-search" class="search-input" placeholder="ID, título, descripción..." value="${escapeAttr(st.search)}">
+          <div class="toolbar-bar">
+            <div class="search-wrap">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input type="text" id="tvs-search" class="search-input" placeholder="Buscar por ID, título, descripción..." value="${escapeAttr(st.search)}">
             </div>
           </div>
         </div>
@@ -369,10 +373,10 @@
       st.page = page;
       const header = `
         <div class="toolbar">
-          <div class="toolbar-left">
-            <div class="field-inline search-wrap">
-              <label>Buscar</label>
-              <input type="text" id="usuarios-search" class="search-input" placeholder="Usuario, nombre, rol..." value="${escapeAttr(st.search)}">
+          <div class="toolbar-bar">
+            <div class="search-wrap">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input type="text" id="usuarios-search" class="search-input" placeholder="Buscar por usuario, nombre, rol..." value="${escapeAttr(st.search)}">
             </div>
           </div>
         </div>
@@ -429,6 +433,10 @@
   function saveProducto(mode, id) {
     const d = getFormData(['f-categoria', 'f-nombre', 'f-unidad', 'f-precio', 'f-tag', 'f-estado']);
     d.estado = Number(d.estado);
+    const catEl = document.getElementById('f-categoria');
+    const catNuevaEl = document.getElementById('f-categoria-nueva');
+    d.categoria = (catEl && catEl.value === '__nueva__' && catNuevaEl) ? (catNuevaEl.value || '').trim() : (d.categoria || '');
+    if (!d.categoria) { alert('Elegí o ingresá una categoría.'); return; }
     const body = { action: mode === 'create' ? 'create' : 'update', categoria: d.categoria, nombre: d.nombre, unidad: d.unidad, precio: d.precio, tag: d.tag, estado: d.estado };
     if (mode === 'edit') body.id = id;
     apiPost('/productos.php', body).then(() => { closeModal(); setView('productos'); }).catch(err => alert(err.message));
@@ -436,6 +444,10 @@
 
   function saveOferta(mode, id) {
     const d = getFormData(['f-categoria', 'f-nombre', 'f-unidad', 'f-precio']);
+    const catEl = document.getElementById('f-categoria');
+    const catNuevaEl = document.getElementById('f-categoria-nueva');
+    d.categoria = (catEl && catEl.value === '__nueva__' && catNuevaEl) ? (catNuevaEl.value || '').trim() : (d.categoria || '');
+    if (!d.categoria) { alert('Elegí o ingresá una categoría.'); return; }
     const form = new FormData();
     form.append('action', mode === 'create' ? 'create' : 'update');
     form.append('categoria', d.categoria);
@@ -509,13 +521,25 @@
     modal.setAttribute('aria-hidden', 'false');
 
     if (view === 'productos') {
+      const catList = (productosData && productosData.categorias) ? productosData.categorias.map(c => c.nombre).filter(Boolean) : [];
+      const catSet = new Set(catList);
+      const currentCat = (row.categoria || row._categoria || '').trim();
+      if (currentCat && !catSet.has(currentCat)) catList.push(currentCat);
+      const catOptions = catList.map(n => `<option value="${escapeAttr(n)}" ${n === currentCat ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('');
       title.textContent = mode === 'create' ? 'Nuevo producto' : 'Editar producto';
       body.innerHTML = `
         <div class="form-grid">
-          <div class="field">
+          <div class="field span-2">
             <label>Categoría</label>
-            <input type="text" id="f-categoria" value="${escapeAttr(mode === 'create' ? '' : (row.categoria || ''))}" placeholder="Ej: Carne" autocomplete="off">
-            <div class="help">Tip: usá el mismo nombre para agrupar.</div>
+            <select id="f-categoria" class="select form-categoria-select">
+              <option value="">— Elegir categoría —</option>
+              ${catOptions}
+              <option value="__nueva__">+ Nueva categoría...</option>
+            </select>
+            <div class="field-nueva-cat hidden" id="wrap-categoria-nueva">
+              <input type="text" id="f-categoria-nueva" placeholder="Nombre de la nueva categoría" autocomplete="off">
+            </div>
+            <div class="help">Elegí una existente del listado de productos o creá una nueva.</div>
           </div>
           <div class="field">
             <label>Estado</label>
@@ -545,32 +569,89 @@
           <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
           <button type="button" class="btn btn-primary" data-modal-save>Guardar</button>
         </div>`;
-      const sel = body.querySelector('#f-estado');
-      if (sel) sel.value = row.estado === 0 ? '0' : '1';
+      const selEstado = body.querySelector('#f-estado');
+      if (selEstado) selEstado.value = row.estado === 0 ? '0' : '1';
+      const selCat = body.querySelector('#f-categoria');
+      const wrapNueva = body.querySelector('#wrap-categoria-nueva');
+      const inputNueva = body.querySelector('#f-categoria-nueva');
+      if (selCat && wrapNueva && inputNueva) {
+        selCat.onchange = function () {
+          const isNueva = this.value === '__nueva__';
+          wrapNueva.classList.toggle('hidden', !isNueva);
+          if (isNueva) inputNueva.focus();
+        };
+        if (selCat.value === '__nueva__') wrapNueva.classList.remove('hidden');
+      }
       body.querySelector('[data-modal-save]').onclick = () => saveProducto(mode, row.id);
     } else if (view === 'ofertas') {
+      const catList = (ofertasData && ofertasData.categorias) ? ofertasData.categorias.map(c => c.nombre).filter(Boolean) : [];
+      const catSet = new Set(catList);
+      const currentCat = (row.categoria || row._categoria || '').trim();
+      if (currentCat && !catSet.has(currentCat)) catList.push(currentCat);
+      const catOptions = catList.map(n => `<option value="${escapeAttr(n)}" ${n === currentCat ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('');
       title.textContent = mode === 'create' ? 'Nueva oferta' : 'Editar oferta';
       body.innerHTML = `
-        <div class="field"><label>Categoría</label><input type="text" id="f-categoria" value="${escapeAttr(row.categoria || '')}" placeholder="Ej: Ofertas"></div>
-        <div class="field"><label>Nombre</label><input type="text" id="f-nombre" value="${escapeAttr(row.nombre || '')}" required></div>
-        <div class="field"><label>Unidad</label><input type="text" id="f-unidad" value="${escapeAttr(row.unidad || '')}"></div>
-        <div class="field"><label>Precio</label><input type="number" id="f-precio" value="${row.precio ?? ''}" min="0"></div>
-        <div class="field"><label>Imagen 1 / Video</label><div class="file-upload"><input type="file" id="f-imagen1" accept="image/*,video/*"></div></div>
-        <div class="field"><label>Imagen 2</label><div class="file-upload"><input type="file" id="f-imagen2" accept="image/*"></div></div>
+        <div class="form-grid">
+          <div class="field span-2">
+            <label>Categoría</label>
+            <select id="f-categoria" class="select form-categoria-select">
+              <option value="">— Elegir categoría —</option>
+              ${catOptions}
+              <option value="__nueva__">+ Nueva categoría...</option>
+            </select>
+            <div class="field-nueva-cat hidden" id="wrap-categoria-nueva">
+              <input type="text" id="f-categoria-nueva" placeholder="Nombre de la nueva categoría" autocomplete="off">
+            </div>
+            <div class="help">Elegí una del listado de ofertas o creá una nueva.</div>
+          </div>
+          <div class="field span-2">
+            <label>Nombre</label>
+            <input type="text" id="f-nombre" value="${escapeAttr(row.nombre || '')}" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Unidad</label>
+            <input type="text" id="f-unidad" value="${escapeAttr(row.unidad || '')}" placeholder="kg, unidad..." autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Precio</label>
+            <input type="number" id="f-precio" value="${row.precio ?? ''}" min="0" inputmode="numeric">
+          </div>
+          <div class="field span-2">
+            <label>Imagen 1 / Video</label>
+            <div class="file-upload" id="wrap-imagen1"><input type="file" id="f-imagen1" accept="image/*,video/*"></div>
+          </div>
+          <div class="field span-2">
+            <label>Imagen 2</label>
+            <div class="file-upload" id="wrap-imagen2"><input type="file" id="f-imagen2" accept="image/*"></div>
+          </div>
+        </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
           <button type="button" class="btn btn-primary" data-modal-save>Guardar</button>
         </div>`;
+      const selCat = body.querySelector('#f-categoria');
+      const wrapNueva = body.querySelector('#wrap-categoria-nueva');
+      const inputNueva = body.querySelector('#f-categoria-nueva');
+      if (selCat && wrapNueva && inputNueva) {
+        selCat.onchange = function () {
+          const isNueva = this.value === '__nueva__';
+          wrapNueva.classList.toggle('hidden', !isNueva);
+          if (isNueva) inputNueva.focus();
+        };
+        if (selCat.value === '__nueva__') wrapNueva.classList.remove('hidden');
+      }
       body.querySelector('[data-modal-save]').onclick = () => saveOferta(mode, row.id);
     } else if (view === 'tvs') {
       title.textContent = mode === 'create' ? 'Nuevo televisor' : 'Editar televisor';
       body.innerHTML = `
-        <div class="field"><label>ID</label><input type="text" id="f-id" value="${escapeAttr(row.id || '')}" placeholder="tv1" ${mode === 'edit' ? 'readonly' : ''}></div>
-        <div class="field"><label>Título</label><input type="text" id="f-title" value="${escapeAttr(row.title || '')}" required></div>
-        <div class="field"><label>Tag</label><input type="text" id="f-tag" value="${escapeAttr(row.tag || 'TV')}"></div>
-        <div class="field"><label>Descripción</label><textarea id="f-description">${escapeHtml(row.description || '')}</textarea></div>
-        <div class="field"><label>URL</label><input type="text" id="f-url" value="${escapeAttr(row.url || '')}" placeholder="index2.html?j=JSON/productos.json"></div>
-        <div class="field"><label>Activo</label><select id="f-active"><option value="1">Sí</option><option value="0">No</option></select></div>
+        <div class="form-grid">
+          <div class="field"><label>ID</label><input type="text" id="f-id" value="${escapeAttr(row.id || '')}" placeholder="tv1" ${mode === 'edit' ? 'readonly' : ''}></div>
+          <div class="field"><label>Activo</label><select id="f-active" class="select"><option value="1">Sí</option><option value="0">No</option></select></div>
+          <div class="field span-2"><label>Título</label><input type="text" id="f-title" value="${escapeAttr(row.title || '')}" required></div>
+          <div class="field span-2"><label>Tag</label><input type="text" id="f-tag" value="${escapeAttr(row.tag || 'TV')}" placeholder="TV"></div>
+          <div class="field span-2"><label>Descripción</label><textarea id="f-description" placeholder="Descripción opcional">${escapeHtml(row.description || '')}</textarea></div>
+          <div class="field span-2"><label>URL</label><input type="text" id="f-url" value="${escapeAttr(row.url || '')}" placeholder="index2.html?j=JSON/productos.json"></div>
+        </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
           <button type="button" class="btn btn-primary" data-modal-save>Guardar</button>
@@ -580,11 +661,13 @@
     } else if (view === 'usuarios') {
       title.textContent = mode === 'create' ? 'Nuevo usuario' : 'Editar usuario';
       body.innerHTML = `
-        <div class="field"><label>Usuario (username)</label><input type="text" id="f-username" value="${escapeAttr(row.username || '')}" required></div>
-        <div class="field"><label>Nombre</label><input type="text" id="f-name" value="${escapeAttr(row.name || '')}"></div>
-        <div class="field"><label>Contraseña</label><input type="password" id="f-password" placeholder="${mode === 'edit' ? 'Dejar en blanco para no cambiar' : ''}"></div>
-        <div class="field"><label>Rol</label><select id="f-role"><option value="admin">admin</option><option value="editor">editor</option></select></div>
-        <div class="field"><label>Activo</label><select id="f-active"><option value="1">Sí</option><option value="0">No</option></select></div>
+        <div class="form-grid">
+          <div class="field"><label>Usuario (login)</label><input type="text" id="f-username" value="${escapeAttr(row.username || row._username || '')}" required autocomplete="off"></div>
+          <div class="field"><label>Nombre</label><input type="text" id="f-name" value="${escapeAttr(row.name || '')}" placeholder="Nombre completo"></div>
+          <div class="field span-2"><label>Contraseña</label><input type="password" id="f-password" placeholder="${mode === 'edit' ? 'Dejar en blanco para no cambiar' : 'Requerida'}"></div>
+          <div class="field"><label>Rol</label><select id="f-role" class="select"><option value="admin">admin</option><option value="editor">editor</option></select></div>
+          <div class="field"><label>Activo</label><select id="f-active" class="select"><option value="1">Sí</option><option value="0">No</option></select></div>
+        </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
           <button type="button" class="btn btn-primary" data-modal-save>Guardar</button>
