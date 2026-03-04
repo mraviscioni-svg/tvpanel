@@ -534,7 +534,7 @@
             </thead>
             <tbody>`;
       rows.forEach(it => {
-        const modRaw = it.updated_at || data.updated || '';
+        const modRaw = it.updated_at || '';
         const modRel = formatRelativeDate(modRaw);
         const tagTimeClass = 'tag-time' + (modRel.isToday ? ' tag-today' : '');
         html += `<tr>
