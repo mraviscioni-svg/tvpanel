@@ -75,6 +75,27 @@ if (!isset($data['categorias']) || !is_array($data['categorias'])) {
 }
 if (empty($data['moneda'])) $data['moneda'] = 'ARS';
 
+// Normalizar estructura: asegurar id y estado en todas las ofertas existentes
+$changed = false;
+$nextId = nextIdEnCategorias($data);
+foreach ($data['categorias'] as $ci => $cat) {
+    if (empty($cat['items']) || !is_array($cat['items'])) continue;
+    foreach ($cat['items'] as $ii => $item) {
+        if (!isset($item['id']) || $item['id'] === '') {
+            $data['categorias'][$ci]['items'][$ii]['id'] = (string)$nextId++;
+            $changed = true;
+        }
+        if (!isset($item['estado'])) {
+            $data['categorias'][$ci]['items'][$ii]['estado'] = 1;
+            $changed = true;
+        }
+    }
+}
+if ($changed) {
+    $data['updated'] = updatedTimestamp();
+    writeJson(FILE_OFERTAS, $data);
+}
+
 function findItemOfertas($data, $id) {
     $idStr = (string)$id;
     foreach ($data['categorias'] as $ci => $cat) {
@@ -129,6 +150,7 @@ switch ($action) {
             'precio' => (int)(float)($input['precio'] ?? 0),
             'imagen1' => $imagen1 ?? '',
             'imagen2' => $imagen2 ?? '',
+            'estado' => isset($input['estado']) ? (int)(bool)$input['estado'] : 1,
             'updated_at' => updatedTimestamp(),
         ];
         $catIdx = null;
@@ -163,6 +185,7 @@ switch ($action) {
         if (isset($input['nombre'])) $data['categorias'][$ci]['items'][$ii]['nombre'] = trim($input['nombre']);
         if (array_key_exists('unidad', $input)) $data['categorias'][$ci]['items'][$ii]['unidad'] = trim($input['unidad']);
         if (array_key_exists('precio', $input)) $data['categorias'][$ci]['items'][$ii]['precio'] = (int)(float)$input['precio'];
+        if (array_key_exists('estado', $input)) $data['categorias'][$ci]['items'][$ii]['estado'] = (int)(bool)$input['estado'];
         $up1 = subirArchivoOferta('imagen1', 'imagen') ?? subirArchivoOferta('imagen', 'imagen');
         if ($up1) {
             eliminarArchivoOferta($data['categorias'][$ci]['items'][$ii]['imagen1'] ?? '');

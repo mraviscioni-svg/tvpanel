@@ -621,7 +621,15 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 .table-wrap th.th-sort:hover { color: var(--text); }
 .table-wrap th.th-sort-active { color: var(--primary); }
 .table-wrap th .th-sort-icon { opacity: 0.8; margin-left: 0.2rem; }
-.table-wrap td .precio { font-variant-numeric: tabular-nums; }
+.table-wrap td .precio {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.02em;
+  display: inline-block;
+  min-width: 80px;
+  text-align: right;
+}
 .table-wrap tr:last-child td { border-bottom: none; }
 .table-wrap tr:hover td { background: rgba(255,255,255,0.03); }
 .table-actions { display: flex; gap: 0.35rem; }

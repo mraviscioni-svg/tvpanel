@@ -529,18 +529,22 @@
       let html = header + `
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Categoría</th><th>Nombre</th><th>Unidad</th><th>Precio</th><th>Imagen/Vídeo</th><th></th></tr></thead>
+            <thead><tr><th>Categoría</th><th>Nombre</th><th>Unidad</th><th>Precio</th><th>Imagen/Vídeo</th><th>Estado</th><th></th></tr></thead>
             <tbody>`;
       rows.forEach(it => {
-        const media = (it.imagen1 || it.imagen2 || '-');
+        const media1 = it.imagen1 || '';
+        const media2 = it.imagen2 || '';
+        const hasMedia = !!(media1 || media2);
         html += `<tr>
           <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
           <td>${escapeHtml(it.nombre)}</td>
           <td>${escapeHtml(it.unidad)}</td>
-          <td><code>${escapeHtml(String(it.precio))}</code></td>
-          <td><span class="text-muted">${escapeHtml(String(media).slice(0, 30))}</span></td>
+          <td><code class="precio">${escapeHtml(formatPrecio(it.precio))}</code></td>
+          <td>${hasMedia ? `<button type="button" class="btn btn-ghost btn-sm media-preview-btn" data-media1="${escapeAttr(media1)}" data-media2="${escapeAttr(media2)}" title="Ver imagen/vídeo">👁</button>` : '<span class="text-muted">—</span>'}</td>
+          <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
           <td class="table-actions">
             <button type="button" class="btn btn-ghost btn-sm" data-edit-oferta="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle-oferta="${escapeAttr(it.id)}" data-estado="${it.estado ? '1' : '0'}">${it.estado ? 'Desactivar' : 'Activar'}</button>
             <button type="button" class="btn btn-danger btn-sm" data-delete-oferta="${escapeAttr(it.id)}">Eliminar</button>
           </td>
         </tr>`;
@@ -549,8 +553,33 @@
       content.innerHTML = html;
       renderPagination(content, 'ofertas', total, page, totalPages, pageSize, () => loadOfertas(content));
       bindSearchWithClear(content, 'ofertas-search', 'ofertas', () => loadOfertas(content));
+      content.querySelectorAll('.media-preview-btn').forEach(btn => {
+        btn.onclick = () => {
+          const m1 = btn.dataset.media1 || '';
+          const m2 = btn.dataset.media2 || '';
+          openMediaPreview(m1 || m2);
+        };
+      });
       content.querySelectorAll('[data-edit-oferta]').forEach(btn => {
         btn.onclick = () => openModalOfertaEdit(btn.dataset.editOferta, btn.dataset.cat);
+      });
+      content.querySelectorAll('[data-toggle-oferta]').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.dataset.toggleOferta;
+          const estadoActual = btn.dataset.estado === '1';
+          const nuevoEstado = estadoActual ? 0 : 1;
+          showConfirmDelete({
+            title: 'Cambiar estado',
+            message: `¿Seguro que querés ${estadoActual ? 'desactivar' : 'activar'} esta oferta?`,
+            confirmLabel: 'Sí',
+            cancelLabel: 'No',
+            onConfirm: () => {
+              apiPost('/ofertas.php', { action: 'update', id: String(id), estado: nuevoEstado })
+                .then(() => { showToast('Estado actualizado.', 'success'); loadOfertas(content); })
+                .catch(err => showToast(err.message || 'Error al cambiar estado', 'error'));
+            }
+          });
+        };
       });
       content.querySelectorAll('[data-delete-oferta]').forEach(btn => {
         btn.onclick = () => deleteOferta(btn.dataset.deleteOferta);
@@ -809,6 +838,29 @@
       message: '¿Eliminar esta oferta? Esta acción no se puede deshacer.',
       onConfirm: () => apiPost('/ofertas.php', { action: 'delete', id: String(id) }).then(() => { setView('ofertas'); showToast('Oferta eliminada.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'))
     });
+  }
+
+  function openMediaPreview(src) {
+    if (!src) return;
+    const modal = $('#modal');
+    const title = $('#modal-title');
+    const body = $('#modal-body');
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    title.textContent = 'Previsualización';
+    const isVideo = /\.mp4$|\.webm$|\.mov$/i.test(src);
+    const safeSrc = escapeAttr(src);
+    body.innerHTML = `
+      <div class="media-preview">
+        ${isVideo
+          ? `<video src="${safeSrc}" controls autoplay muted playsinline style="max-width:100%;border-radius:4px;"></video>`
+          : `<img src="${safeSrc}" alt="Previsualización" style="max-width:100%;border-radius:4px;">`
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-modal-cancel>Cerrar</button>
+      </div>`;
+    body.querySelector('[data-modal-cancel]').onclick = closeModal;
   }
 
   function deleteTV(id) {
