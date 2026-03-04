@@ -20,6 +20,7 @@
   let ofertasData = null;
   let tvsData = null;
   let usuariosData = null;
+  let mediaConfig = { mediaImagesPath: 'IMG/CORTES', mediaVideosPath: 'IMG/CORTES/VIDEO' };
   let productosCategoriaFilter = 'ALL';
   const gridState = {
     productos: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
@@ -664,7 +665,10 @@
   }
 
   function loadOfertas(content) {
-    api('/ofertas.php?action=list').then(({ data }) => {
+    api('/config-media.php').then(data => {
+      mediaConfig.mediaImagesPath = data.mediaImagesPath || 'IMG/CORTES';
+      mediaConfig.mediaVideosPath = data.mediaVideosPath || 'IMG/CORTES/VIDEO';
+    }).catch(() => {}).then(() => api('/ofertas.php?action=list')).then(({ data }) => {
       ofertasData = data;
       if (!data.categorias || data.categorias.length === 0) {
         content.innerHTML = '<div class="empty-state"><p>No hay ofertas.</p></div>';
@@ -778,7 +782,7 @@
         btn.onclick = () => {
           const m1 = btn.dataset.media1 || '';
           const m2 = btn.dataset.media2 || '';
-          openMediaPreview(m1 || m2);
+          openMediaPreview(buildOfertaMediaUrl(m1 || m2));
         };
       });
       content.querySelectorAll('[data-edit-oferta]').forEach(btn => {
@@ -1303,6 +1307,19 @@
     return origin ? (origin.replace(/\/$/, '') + '/' + path) : '/' + path;
   }
 
+  /** Para ofertas: resuelve la URL usando las rutas de configuración (imágenes/videos). */
+  function buildOfertaMediaUrl(src) {
+    if (!src || typeof src !== 'string') return '';
+    const s = src.trim();
+    if (/^https?:\/\//i.test(s)) return s;
+    if (s.indexOf('/') !== -1) return buildMediaUrl(s);
+    const ext = (s.split('.').pop() || '').toLowerCase();
+    const isVideo = ['mp4', 'webm', 'mov'].indexOf(ext) !== -1;
+    const base = isVideo ? (mediaConfig.mediaVideosPath || 'IMG/CORTES/VIDEO') : (mediaConfig.mediaImagesPath || 'IMG/CORTES');
+    const path = base.replace(/\/$/, '') + '/' + s;
+    return buildMediaUrl(path);
+  }
+
   function deleteTV(id) {
     showConfirmDelete({
       title: 'Eliminar televisor',
@@ -1480,7 +1497,7 @@
         mediaPreview.innerHTML = '';
         if (!src) { mediaPreview.textContent = 'Sin archivo seleccionado'; return; }
         const isBlob = typeof src === 'string' && src.startsWith('blob:');
-        const resolved = isBlob ? src : buildMediaUrl(src);
+        const resolved = isBlob ? src : buildOfertaMediaUrl(src);
         const isVideo = isBlob ? /\.(mp4|webm|mov)$/i.test(src) || (fImg && fImg.files && fImg.files[0] && fImg.files[0].type.startsWith('video/')) : /\.mp4$|\.webm$|\.mov$/i.test(resolved);
         mediaPreview.innerHTML = isVideo
           ? `<video src="${escapeAttr(resolved)}" controls muted playsinline style="max-width:100%;max-height:180px;border-radius:4px;"></video>`
