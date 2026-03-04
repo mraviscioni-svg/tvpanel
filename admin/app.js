@@ -535,12 +535,14 @@
         const media1 = it.imagen1 || '';
         const media2 = it.imagen2 || '';
         const hasMedia = !!(media1 || media2);
+        const isVideo = /(\.mp4|\.webm|\.mov)$/i.test(media1 || media2 || '');
+        const mediaIcon = isVideo ? '▶' : '🖼';
         html += `<tr>
           <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
           <td>${escapeHtml(it.nombre)}</td>
           <td>${escapeHtml(it.unidad)}</td>
           <td><code class="precio">${escapeHtml(formatPrecio(it.precio))}</code></td>
-          <td>${hasMedia ? `<button type="button" class="btn btn-ghost btn-sm media-preview-btn" data-media1="${escapeAttr(media1)}" data-media2="${escapeAttr(media2)}" title="Ver imagen/vídeo">👁</button>` : '<span class="text-muted">—</span>'}</td>
+          <td>${hasMedia ? `<button type="button" class="btn btn-ghost btn-sm media-preview-btn" data-media1="${escapeAttr(media1)}" data-media2="${escapeAttr(media2)}" title="Ver imagen/vídeo">${mediaIcon}</button>` : '<span class="text-muted">—</span>'}</td>
           <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
           <td class="table-actions">
             <button type="button" class="btn btn-ghost btn-sm" data-edit-oferta="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
@@ -787,7 +789,10 @@
 
   function saveOferta(mode, id) {
     const d = getFormData(['f-categoria', 'f-nombre', 'f-unidad', 'f-precio']);
-    d.categoria = 'Ofertas';
+    const catEl = document.getElementById('f-categoria');
+    const catNuevaEl = document.getElementById('f-categoria-nueva');
+    d.categoria = (catEl && catEl.value === '__nueva__' && catNuevaEl) ? (catNuevaEl.value || '').trim() : (d.categoria || '');
+    if (!d.categoria) { alert('Elegí o ingresá una categoría.'); return; }
     const form = new FormData();
     form.append('action', mode === 'create' ? 'create' : 'update');
     form.append('categoria', d.categoria);
@@ -796,7 +801,9 @@
     form.append('precio', d.precio);
     if (mode === 'edit') form.append('id', id);
     const f1 = document.getElementById('f-imagen1');
+    const f2 = document.getElementById('f-imagen2');
     if (f1 && f1.files[0]) form.append('imagen1', f1.files[0]);
+    if (f2 && f2.files[0]) form.append('imagen2', f2.files[0]);
     api('/ofertas.php', { method: 'POST', body: form, credentials: 'include' }).then(r => r.json()).then(data => {
       if (data.error) throw new Error(data.error);
       closeModal();
@@ -986,14 +993,30 @@
       }
       body.querySelector('[data-modal-save]').onclick = () => saveProducto(mode, row.id);
     } else if (view === 'ofertas') {
-      const currentCat = 'Ofertas';
+      const catList = (ofertasData && ofertasData.categorias) ? ofertasData.categorias.map(c => c.nombre).filter(Boolean) : [];
+      const catSet = new Set(catList);
+      const currentCat = (row.categoria || row._categoria || '').trim();
+      if (currentCat && !catSet.has(currentCat)) catList.push(currentCat);
+      const catOptionsHtml = catList.map(n => `<button type="button" class="custom-categoria-option" data-value="${escapeAttr(n)}">${escapeHtml(n)}</button>`).join('');
       title.textContent = mode === 'create' ? 'Nueva oferta' : 'Editar oferta';
       body.innerHTML = `
         <div class="form-grid">
           <div class="field span-2">
             <label>Categoría</label>
-            <input type="text" value="Ofertas" readonly class="input-readonly">
-            <input type="hidden" id="f-categoria" value="Ofertas">
+            <div class="custom-categoria">
+              <input type="hidden" id="f-categoria" value="${escapeAttr(currentCat)}">
+              <button type="button" class="custom-categoria-trigger" id="trigger-categoria">${escapeHtml(currentCat || 'Elegir categoría')}</button>
+              <div class="custom-categoria-dropdown hidden" id="dropdown-categoria">
+                <div class="custom-categoria-list">
+                  ${catOptionsHtml}
+                  <button type="button" class="custom-categoria-option nueva" data-value="__nueva__">+ Nueva categoría...</button>
+                </div>
+                <div class="field-nueva-cat hidden" id="wrap-categoria-nueva">
+                  <input type="text" id="f-categoria-nueva" placeholder="Nombre de la nueva categoría" autocomplete="off">
+                </div>
+              </div>
+            </div>
+            <div class="help">Elegí una del listado o creá una nueva.</div>
           </div>
           <div class="field span-2">
             <label>Nombre</label>
@@ -1008,14 +1031,47 @@
             <input type="number" id="f-precio" value="${row.precio ?? ''}" min="0" inputmode="numeric">
           </div>
           <div class="field span-2">
-            <label>Imagen / Video</label>
+            <label>Imagen 1 / Video</label>
             <div class="file-upload" id="wrap-imagen1"><input type="file" id="f-imagen1" accept="image/*,video/*"></div>
+          </div>
+          <div class="field span-2">
+            <label>Imagen 2</label>
+            <div class="file-upload" id="wrap-imagen2"><input type="file" id="f-imagen2" accept="image/*"></div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
           <button type="button" class="btn btn-primary" data-modal-save>Guardar</button>
         </div>`;
+      const triggerCat = body.querySelector('#trigger-categoria');
+      const dropdownCat = body.querySelector('#dropdown-categoria');
+      const hiddenCat = body.querySelector('#f-categoria');
+      const wrapNueva = body.querySelector('#wrap-categoria-nueva');
+      const inputNueva = body.querySelector('#f-categoria-nueva');
+      if (triggerCat && dropdownCat && hiddenCat) {
+        const closeDropdown = () => {
+          dropdownCat.classList.add('hidden');
+          triggerCat.classList.remove('open');
+          document.removeEventListener('click', closeDropdown);
+        };
+        triggerCat.onclick = function (e) {
+          e.stopPropagation();
+          const open = dropdownCat.classList.toggle('hidden');
+          triggerCat.classList.toggle('open', !open);
+          if (!open) document.addEventListener('click', closeDropdown);
+          else document.removeEventListener('click', closeDropdown);
+        };
+        body.querySelectorAll('.custom-categoria-option').forEach(opt => {
+          opt.onclick = function (e) {
+            e.stopPropagation();
+            const val = this.dataset.value;
+            hiddenCat.value = val;
+            if (val === '__nueva__') { wrapNueva.classList.remove('hidden'); triggerCat.textContent = 'Nueva categoría...'; inputNueva.focus(); }
+            else { wrapNueva.classList.add('hidden'); triggerCat.textContent = this.textContent.trim(); }
+            closeDropdown();
+          };
+        });
+      }
       body.querySelector('[data-modal-save]').onclick = () => saveOferta(mode, row.id);
     } else if (view === 'tvs') {
       title.textContent = mode === 'create' ? 'Nuevo televisor' : 'Editar televisor';
