@@ -5,6 +5,19 @@
  * Ruta de los JSON: configurable vía config.json (carpeta respecto a la raíz del proyecto)
  */
 
+// Cookie de sesión segura: nunca enviar credenciales por URL; solo por POST en cuerpo y sesión en cookie
+if (PHP_VERSION_ID >= 70300) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+} else {
+    $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    session_set_cookie_params(0, '/', '', $secure, true);
+}
 session_start();
 
 define('ROOT', dirname(__DIR__));

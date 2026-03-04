@@ -1,12 +1,16 @@
 <?php
 /**
  * Login: valida contra JSON/users.json (estructura: { users: [ { username, password, role, ... } ] })
+ * Seguridad: solo POST, credenciales solo en cuerpo (nunca en URL); respuesta no cacheable.
  */
 require_once __DIR__ . '/helpers.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método no permitido', 405);
 }
+
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Pragma: no-cache');
 
 $input = getInput();
 $usuario = trim($input['usuario'] ?? $input['username'] ?? '');

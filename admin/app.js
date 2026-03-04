@@ -8,9 +8,60 @@
   let user = null;
   let productosData = null;
   let productosCategoriaFilter = 'ALL';
+  const gridState = {
+    productos: { page: 1, pageSize: 10, search: '' },
+    ofertas: { page: 1, pageSize: 10, search: '' },
+    tvs: { page: 1, pageSize: 10, search: '' },
+    usuarios: { page: 1, pageSize: 10, search: '' }
+  };
 
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => el.querySelectorAll(sel);
+
+  function filterAndPaginate(rows, searchText, textFields, page, pageSize) {
+    const q = (searchText || '').trim().toLowerCase();
+    const filtered = q
+      ? rows.filter(r => textFields.some(f => String(r[f] || '').toLowerCase().includes(q)))
+      : rows;
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const p = Math.min(Math.max(1, page), totalPages);
+    const start = (p - 1) * pageSize;
+    return { rows: filtered.slice(start, start + pageSize), total, page: p, totalPages, pageSize };
+  }
+
+  function renderPagination(container, stateKey, total, page, totalPages, pageSize, onRefresh) {
+    const st = gridState[stateKey];
+    const html = `
+      <div class="pagination">
+        <div class="pagination-info">
+          <span class="pill">${total} resultado${total !== 1 ? 's' : ''}</span>
+          <label class="pagination-size">
+            Mostrar
+            <select class="select select-sm" data-page-size>
+              <option value="10" ${pageSize === 10 ? 'selected' : ''}>10</option>
+              <option value="25" ${pageSize === 25 ? 'selected' : ''}>25</option>
+              <option value="50" ${pageSize === 50 ? 'selected' : ''}>50</option>
+              <option value="100" ${pageSize === 100 ? 'selected' : ''}>100</option>
+            </select>
+          </label>
+        </div>
+        <div class="pagination-nav">
+          <button type="button" class="btn btn-ghost btn-sm" data-page-prev ${page <= 1 ? 'disabled' : ''}>← Anterior</button>
+          <span class="pagination-pages">Página <strong>${page}</strong> de <strong>${totalPages}</strong></span>
+          <button type="button" class="btn btn-ghost btn-sm" data-page-next ${page >= totalPages ? 'disabled' : ''}>Siguiente →</button>
+        </div>
+      </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+    const wrap = container.querySelector('.pagination');
+    wrap.querySelector('[data-page-prev]').onclick = () => { st.page = Math.max(1, st.page - 1); onRefresh(); };
+    wrap.querySelector('[data-page-next]').onclick = () => { st.page = Math.min(totalPages, st.page + 1); onRefresh(); };
+    wrap.querySelector('[data-page-size]').onchange = function () {
+      st.pageSize = Number(this.value);
+      st.page = 1;
+      onRefresh();
+    };
+  }
 
   function api(path, options = {}) {
     const url = path.startsWith('http') ? path : API + path;
@@ -81,63 +132,91 @@
         : 'ALL';
       productosCategoriaFilter = selected;
 
+      const flatRows = [];
+      categorias
+        .filter(cat => selected === 'ALL' ? true : cat.nombre === selected)
+        .forEach(cat => {
+          (cat.items || []).forEach(it => flatRows.push({ ...it, _categoria: cat.nombre }));
+        });
+
+      const st = gridState.productos;
+      const { rows, total, page, totalPages, pageSize } = filterAndPaginate(
+        flatRows,
+        st.search,
+        ['nombre', 'unidad', 'tag', '_categoria'],
+        st.page,
+        st.pageSize
+      );
+      st.page = page;
+
       const header = `
         <div class="toolbar">
           <div class="toolbar-left">
             <div class="field-inline">
-              <label>Filtrar</label>
+              <label>Categoría</label>
               <select id="productos-filter" class="select">
-                <option value="ALL">Todas las categorías</option>
+                <option value="ALL">Todas</option>
                 ${categoriaNames.map(n => `<option value="${escapeAttr(n)}" ${n === selected ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
               </select>
             </div>
-            <span class="pill">Última actualización: <span class="mono">${escapeHtml(String(data.updated || '-'))}</span></span>
+            <div class="field-inline search-wrap">
+              <label>Buscar</label>
+              <input type="text" id="productos-search" class="search-input" placeholder="Nombre, unidad, tag..." value="${escapeAttr(st.search)}">
+            </div>
+            <span class="pill">Actualizado: <span class="mono">${escapeHtml(String(data.updated || '-'))}</span></span>
           </div>
         </div>
       `;
 
-      let html = header;
-      categorias
-        .filter(cat => selected === 'ALL' ? true : cat.nombre === selected)
-        .forEach(cat => {
-        const items = cat.items || [];
-        html += `<div class="categoria-block">
-          <h3>${escapeHtml(cat.nombre)}</h3>
-          <div class="table-wrap items-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Unidad</th>
-                  <th>Precio</th>
-                  <th>Modificado</th>
-                  <th>Estado</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>`;
-        items.forEach(it => {
-          const mod = it.updated_at || data.updated || '-';
-          html += `<tr>
-            <td>${escapeHtml(it.nombre)}</td>
-            <td>${escapeHtml(it.unidad)}</td>
-            <td><code>${escapeHtml(String(it.precio))}</code></td>
-            <td><span class="pill mono">${escapeHtml(String(mod))}</span></td>
-            <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
-            <td class="table-actions">
-              <button type="button" class="btn btn-ghost btn-sm" data-edit-product="${escapeAttr(it.id)}" data-cat="${escapeAttr(cat.nombre)}">Editar</button>
-              <button type="button" class="btn btn-danger btn-sm" data-delete-product="${escapeAttr(it.id)}">Eliminar</button>
-            </td>
-          </tr>`;
-        });
-        html += '</tbody></table></div></div>';
+      let html = header + `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>Nombre</th>
+                <th>Unidad</th>
+                <th>Precio</th>
+                <th>Modificado</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>`;
+      rows.forEach(it => {
+        const mod = it.updated_at || data.updated || '-';
+        html += `<tr>
+          <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
+          <td>${escapeHtml(it.nombre)}</td>
+          <td>${escapeHtml(it.unidad)}</td>
+          <td><code>${escapeHtml(String(it.precio))}</code></td>
+          <td><span class="pill mono">${escapeHtml(String(mod))}</span></td>
+          <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
+          <td class="table-actions">
+            <button type="button" class="btn btn-ghost btn-sm" data-edit-product="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
+            <button type="button" class="btn btn-danger btn-sm" data-delete-product="${escapeAttr(it.id)}">Eliminar</button>
+          </td>
+        </tr>`;
       });
+      html += '</tbody></table></div>';
       content.innerHTML = html;
-      const filter = $('#productos-filter', content);
-      if (filter) {
-        filter.onchange = () => {
-          productosCategoriaFilter = filter.value;
-          loadProductos(content);
+      renderPagination(content, 'productos', total, page, totalPages, pageSize, () => loadProductos(content));
+
+      $('#productos-filter', content).onchange = function () {
+        productosCategoriaFilter = this.value;
+        gridState.productos.page = 1;
+        loadProductos(content);
+      };
+      const searchEl = $('#productos-search', content);
+      if (searchEl) {
+        let searchTimeout;
+        searchEl.oninput = function () {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            st.search = this.value;
+            st.page = 1;
+            loadProductos(content);
+          }, 280);
         };
       }
       content.querySelectorAll('[data-edit-product]').forEach(btn => {
@@ -157,26 +236,56 @@
         content.innerHTML = '<div class="empty-state"><p>No hay ofertas.</p></div>';
         return;
       }
-      let html = '';
+      const flatRows = [];
       data.categorias.forEach(cat => {
-        const items = cat.items || [];
-        html += `<div class="categoria-block"><h3>${escapeHtml(cat.nombre)}</h3><div class="table-wrap items-table"><table><thead><tr><th>Nombre</th><th>Unidad</th><th>Precio</th><th>Imagen/Vídeo</th><th></th></tr></thead><tbody>`;
-        items.forEach(it => {
-          const media = (it.imagen1 || it.imagen2 || '-');
-          html += `<tr>
-            <td>${escapeHtml(it.nombre)}</td>
-            <td>${escapeHtml(it.unidad)}</td>
-            <td><code>${escapeHtml(String(it.precio))}</code></td>
-            <td><span class="text-muted">${escapeHtml(String(media).slice(0, 30))}</span></td>
-            <td class="table-actions">
-              <button type="button" class="btn btn-ghost btn-sm" data-edit-oferta="${escapeAttr(it.id)}" data-cat="${escapeAttr(cat.nombre)}">Editar</button>
-              <button type="button" class="btn btn-danger btn-sm" data-delete-oferta="${escapeAttr(it.id)}">Eliminar</button>
-            </td>
-          </tr>`;
-        });
-        html += '</tbody></table></div></div>';
+        (cat.items || []).forEach(it => flatRows.push({ ...it, _categoria: cat.nombre }));
       });
+      const st = gridState.ofertas;
+      const { rows, total, page, totalPages, pageSize } = filterAndPaginate(
+        flatRows, st.search, ['nombre', 'unidad', '_categoria'], st.page, st.pageSize
+      );
+      st.page = page;
+
+      const header = `
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="field-inline search-wrap">
+              <label>Buscar</label>
+              <input type="text" id="ofertas-search" class="search-input" placeholder="Nombre, unidad, categoría..." value="${escapeAttr(st.search)}">
+            </div>
+          </div>
+        </div>
+      `;
+      let html = header + `
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Categoría</th><th>Nombre</th><th>Unidad</th><th>Precio</th><th>Imagen/Vídeo</th><th></th></tr></thead>
+            <tbody>`;
+      rows.forEach(it => {
+        const media = (it.imagen1 || it.imagen2 || '-');
+        html += `<tr>
+          <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
+          <td>${escapeHtml(it.nombre)}</td>
+          <td>${escapeHtml(it.unidad)}</td>
+          <td><code>${escapeHtml(String(it.precio))}</code></td>
+          <td><span class="text-muted">${escapeHtml(String(media).slice(0, 30))}</span></td>
+          <td class="table-actions">
+            <button type="button" class="btn btn-ghost btn-sm" data-edit-oferta="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
+            <button type="button" class="btn btn-danger btn-sm" data-delete-oferta="${escapeAttr(it.id)}">Eliminar</button>
+          </td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
       content.innerHTML = html;
+      renderPagination(content, 'ofertas', total, page, totalPages, pageSize, () => loadOfertas(content));
+      const searchEl = $('#ofertas-search', content);
+      if (searchEl) {
+        let searchTimeout;
+        searchEl.oninput = function () {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => { st.search = this.value; st.page = 1; loadOfertas(content); }, 280);
+        };
+      }
       content.querySelectorAll('[data-edit-oferta]').forEach(btn => {
         btn.onclick = () => openModalOfertaEdit(btn.dataset.editOferta, btn.dataset.cat);
       });
@@ -195,8 +304,23 @@
         content.innerHTML = '<div class="empty-state"><p>No hay televisores configurados.</p></div>';
         return;
       }
-      let html = '<div class="table-wrap"><table><thead><tr><th>ID</th><th>Título</th><th>Descripción</th><th>Activo</th><th></th></tr></thead><tbody>';
-      list.forEach(t => {
+      const st = gridState.tvs;
+      const { rows, total, page, totalPages, pageSize } = filterAndPaginate(
+        list, st.search, ['id', 'title', 'description'], st.page, st.pageSize
+      );
+      st.page = page;
+      const header = `
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="field-inline search-wrap">
+              <label>Buscar</label>
+              <input type="text" id="tvs-search" class="search-input" placeholder="ID, título, descripción..." value="${escapeAttr(st.search)}">
+            </div>
+          </div>
+        </div>
+      `;
+      let html = header + '<div class="table-wrap"><table><thead><tr><th>ID</th><th>Título</th><th>Descripción</th><th>Activo</th><th></th></tr></thead><tbody>';
+      rows.forEach(t => {
         html += `<tr>
           <td><code>${escapeHtml(t.id)}</code></td>
           <td>${escapeHtml(t.title)}</td>
@@ -210,6 +334,15 @@
       });
       html += '</tbody></table></div>';
       content.innerHTML = html;
+      renderPagination(content, 'tvs', total, page, totalPages, pageSize, () => loadTVs(content));
+      const searchEl = $('#tvs-search', content);
+      if (searchEl) {
+        let searchTimeout;
+        searchEl.oninput = function () {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => { st.search = this.value; st.page = 1; loadTVs(content); }, 280);
+        };
+      }
       content.querySelectorAll('[data-edit-tv]').forEach(btn => {
         btn.onclick = () => openModalTVEdit(btn.dataset.editTv);
       });
@@ -223,15 +356,31 @@
 
   function loadUsuarios(content) {
     api('/usuarios.php?action=list').then(({ data }) => {
-      const list = Array.isArray(data) ? data : [];
+      const raw = Array.isArray(data) ? data : (data && data.data ? data.data : []);
+      const list = raw.map(u => ({ ...u, _username: u.username || u.usuario || '' }));
       if (list.length === 0) {
         content.innerHTML = '<div class="empty-state"><p>No hay usuarios (solo Admin puede gestionarlos).</p></div>';
         return;
       }
-      let html = '<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr></thead><tbody>';
-      list.forEach(u => {
+      const st = gridState.usuarios;
+      const { rows, total, page, totalPages, pageSize } = filterAndPaginate(
+        list, st.search, ['_username', 'name', 'role'], st.page, st.pageSize
+      );
+      st.page = page;
+      const header = `
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="field-inline search-wrap">
+              <label>Buscar</label>
+              <input type="text" id="usuarios-search" class="search-input" placeholder="Usuario, nombre, rol..." value="${escapeAttr(st.search)}">
+            </div>
+          </div>
+        </div>
+      `;
+      let html = header + '<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr></thead><tbody>';
+      rows.forEach(u => {
         html += `<tr>
-          <td><code>${escapeHtml(u.username || u.usuario || '')}</code></td>
+          <td><code>${escapeHtml(u._username)}</code></td>
           <td>${escapeHtml(u.name || '-')}</td>
           <td><span class="badge">${escapeHtml(u.role || '')}</span></td>
           <td>${u.active ? '<span class="badge success">Sí</span>' : '<span class="badge danger">No</span>'}</td>
@@ -243,6 +392,15 @@
       });
       html += '</tbody></table></div>';
       content.innerHTML = html;
+      renderPagination(content, 'usuarios', total, page, totalPages, pageSize, () => loadUsuarios(content));
+      const searchEl = $('#usuarios-search', content);
+      if (searchEl) {
+        let searchTimeout;
+        searchEl.oninput = function () {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => { st.search = this.value; st.page = 1; loadUsuarios(content); }, 280);
+        };
+      }
       content.querySelectorAll('[data-edit-user]').forEach(btn => {
         btn.onclick = () => openModalUsuarioEdit(btn.dataset.editUser);
       });
@@ -461,146 +619,6 @@
     }).catch(err => alert(err.message));
   };
 
-  // Reasignar handlers de editar para que carguen datos
-  function loadProductos(content) {
-    api('/productos.php?action=list').then(({ data }) => {
-      if (!data.categorias || data.categorias.length === 0) {
-        content.innerHTML = '<div class="empty-state"><p>No hay productos. Agregá uno con + Nuevo.</p></div>';
-        return;
-      }
-      let html = '';
-      data.categorias.forEach(cat => {
-        const items = cat.items || [];
-        html += `<div class="categoria-block"><h3>${escapeHtml(cat.nombre)}</h3><div class="table-wrap items-table"><table><thead><tr><th>Nombre</th><th>Unidad</th><th>Precio</th><th>Estado</th><th></th></tr></thead><tbody>`;
-        items.forEach(it => {
-          html += `<tr>
-            <td>${escapeHtml(it.nombre)}</td>
-            <td>${escapeHtml(it.unidad)}</td>
-            <td><code>${escapeHtml(String(it.precio))}</code></td>
-            <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
-            <td class="table-actions">
-              <button type="button" class="btn btn-ghost btn-sm" data-edit-product="${escapeAttr(it.id)}" data-cat="${escapeAttr(cat.nombre)}">Editar</button>
-              <button type="button" class="btn btn-danger btn-sm" data-delete-product="${escapeAttr(it.id)}">Eliminar</button>
-            </td>
-          </tr>`;
-        });
-        html += '</tbody></table></div></div>';
-      });
-      content.innerHTML = html;
-      content.querySelectorAll('[data-edit-product]').forEach(btn => {
-        btn.onclick = () => openModalProductoEdit(btn.dataset.editProduct, btn.dataset.cat);
-      });
-      content.querySelectorAll('[data-delete-product]').forEach(btn => {
-        btn.onclick = () => deleteProducto(btn.dataset.deleteProduct);
-      });
-    }).catch(err => {
-      content.innerHTML = '<div class="empty-state"><p class="error-msg">' + escapeHtml(err.message) + '</p></div>';
-    });
-  }
-
-  function loadOfertas(content) {
-    api('/ofertas.php?action=list').then(({ data }) => {
-      if (!data.categorias || data.categorias.length === 0) {
-        content.innerHTML = '<div class="empty-state"><p>No hay ofertas.</p></div>';
-        return;
-      }
-      let html = '';
-      data.categorias.forEach(cat => {
-        const items = cat.items || [];
-        html += `<div class="categoria-block"><h3>${escapeHtml(cat.nombre)}</h3><div class="table-wrap items-table"><table><thead><tr><th>Nombre</th><th>Unidad</th><th>Precio</th><th>Imagen/Vídeo</th><th></th></tr></thead><tbody>`;
-        items.forEach(it => {
-          const media = (it.imagen1 || it.imagen2 || '-');
-          html += `<tr>
-            <td>${escapeHtml(it.nombre)}</td>
-            <td>${escapeHtml(it.unidad)}</td>
-            <td><code>${escapeHtml(String(it.precio))}</code></td>
-            <td><span class="text-muted">${escapeHtml(String(media).slice(0, 35))}</span></td>
-            <td class="table-actions">
-              <button type="button" class="btn btn-ghost btn-sm" data-edit-oferta="${escapeAttr(it.id)}" data-cat="${escapeAttr(cat.nombre)}">Editar</button>
-              <button type="button" class="btn btn-danger btn-sm" data-delete-oferta="${escapeAttr(it.id)}">Eliminar</button>
-            </td>
-          </tr>`;
-        });
-        html += '</tbody></table></div></div>';
-      });
-      content.innerHTML = html;
-      content.querySelectorAll('[data-edit-oferta]').forEach(btn => {
-        btn.onclick = () => openModalOfertaEdit(btn.dataset.editOferta, btn.dataset.cat);
-      });
-      content.querySelectorAll('[data-delete-oferta]').forEach(btn => {
-        btn.onclick = () => deleteOferta(btn.dataset.deleteOferta);
-      });
-    }).catch(err => {
-      content.innerHTML = '<div class="empty-state"><p class="error-msg">' + escapeHtml(err.message) + '</p></div>';
-    });
-  }
-
-  function loadTVs(content) {
-    api('/tvs.php?action=list').then(({ data }) => {
-      const list = data.tvs || [];
-      if (list.length === 0) {
-        content.innerHTML = '<div class="empty-state"><p>No hay televisores configurados.</p></div>';
-        return;
-      }
-      let html = '<div class="table-wrap"><table><thead><tr><th>ID</th><th>Título</th><th>Descripción</th><th>Activo</th><th></th></tr></thead><tbody>';
-      list.forEach(t => {
-        html += `<tr>
-          <td><code>${escapeHtml(t.id)}</code></td>
-          <td>${escapeHtml(t.title)}</td>
-          <td><span class="text-muted">${escapeHtml((t.description || '').slice(0, 45))}</span></td>
-          <td>${t.active ? '<span class="badge success">Sí</span>' : '<span class="badge danger">No</span>'}</td>
-          <td class="table-actions">
-            <button type="button" class="btn btn-ghost btn-sm" data-edit-tv="${escapeAttr(t.id)}">Editar</button>
-            <button type="button" class="btn btn-danger btn-sm" data-delete-tv="${escapeAttr(t.id)}">Eliminar</button>
-          </td>
-        </tr>`;
-      });
-      html += '</tbody></table></div>';
-      content.innerHTML = html;
-      content.querySelectorAll('[data-edit-tv]').forEach(btn => {
-        btn.onclick = () => openModalTVEdit(btn.dataset.editTv);
-      });
-      content.querySelectorAll('[data-delete-tv]').forEach(btn => {
-        btn.onclick = () => deleteTV(btn.dataset.deleteTv);
-      });
-    }).catch(err => {
-      content.innerHTML = '<div class="empty-state"><p class="error-msg">' + escapeHtml(err.message) + '</p></div>';
-    });
-  }
-
-  function loadUsuarios(content) {
-    api('/usuarios.php?action=list').then(({ data }) => {
-      const list = Array.isArray(data) ? data : [];
-      if (list.length === 0) {
-        content.innerHTML = '<div class="empty-state"><p>No hay usuarios (solo Admin puede gestionarlos).</p></div>';
-        return;
-      }
-      let html = '<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr></thead><tbody>';
-      list.forEach(u => {
-        html += `<tr>
-          <td><code>${escapeHtml(u.username || u.usuario || '')}</code></td>
-          <td>${escapeHtml(u.name || '-')}</td>
-          <td><span class="badge">${escapeHtml(u.role || '')}</span></td>
-          <td>${u.active ? '<span class="badge success">Sí</span>' : '<span class="badge danger">No</span>'}</td>
-          <td class="table-actions">
-            <button type="button" class="btn btn-ghost btn-sm" data-edit-user="${escapeAttr(u.id)}">Editar</button>
-            <button type="button" class="btn btn-danger btn-sm" data-delete-user="${escapeAttr(u.id)}">Eliminar</button>
-          </td>
-        </tr>`;
-      });
-      html += '</tbody></table></div>';
-      content.innerHTML = html;
-      content.querySelectorAll('[data-edit-user]').forEach(btn => {
-        btn.onclick = () => openModalUsuarioEdit(btn.dataset.editUser);
-      });
-      content.querySelectorAll('[data-delete-user]').forEach(btn => {
-        btn.onclick = () => deleteUsuario(btn.dataset.deleteUser);
-      });
-    }).catch(err => {
-      content.innerHTML = '<div class="empty-state"><p class="error-msg">' + escapeHtml(err.message) + '</p></div>';
-    });
-  }
-
   // Init
   checkSession().then(loggedIn => {
     if (loggedIn) {
@@ -612,6 +630,7 @@
     }
   });
 
+  // Login solo por POST con cuerpo (nunca usuario/contraseña en URL ni en query string)
   $('#login-form').onsubmit = function (e) {
     e.preventDefault();
     const errEl = $('#login-error');
@@ -619,6 +638,7 @@
     const usuario = $('#login-usuario').value.trim();
     const password = $('#login-password').value;
     if (!usuario || !password) return;
+    // Credenciales solo en body JSON; no se usan en URL ni en cabeceras de autenticación
     apiPost('/login.php', { usuario, password })
       .then(() => checkSession())
       .then((ok) => {
