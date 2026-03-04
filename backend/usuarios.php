@@ -50,6 +50,23 @@ switch ($action) {
         jsonResponse(['ok' => true, 'data' => $list]);
         break;
 
+    case 'check_username':
+        $username = trim($_GET['username'] ?? $input['username'] ?? '');
+        $excludeId = isset($_GET['exclude_id']) ? (int)$_GET['exclude_id'] : (isset($input['exclude_id']) ? (int)$input['exclude_id'] : 0);
+        $exists = false;
+        if ($username !== '') {
+            foreach ($items as $u) {
+                if ($excludeId && (int)($u['id'] ?? 0) === $excludeId) continue;
+                $un = $u['username'] ?? $u['usuario'] ?? '';
+                if (strcasecmp($un, $username) === 0) {
+                    $exists = true;
+                    break;
+                }
+            }
+        }
+        jsonResponse(['ok' => true, 'exists' => $exists]);
+        break;
+
     case 'get':
         $item = null;
         foreach ($items as $u) {

@@ -289,7 +289,7 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 .toolbar-bar .search-wrap { position: relative; background: var(--bg-base); border-right: 1px solid var(--border); padding-left: 0.5rem; }
 .toolbar-bar .search-input {
-  min-width: 220px;
+  min-width: 320px;
   padding: 0.45rem 0.75rem 0.45rem 2.25rem;
   background: transparent;
   border: none;
@@ -380,7 +380,7 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 .toolbar-productos .search-input,
 .toolbar-search .search-input {
-  min-width: 260px;
+  min-width: 340px;
   padding: 0.6rem 0.75rem 0.6rem 2.25rem;
   background: var(--bg-base);
   border: 1px solid var(--border);
@@ -726,6 +726,107 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   gap: 0.25rem;
 }
 .filter-supervisor-wrap .search-label { margin: 0; }
+.filter-supervisor { position: relative; }
+.filter-supervisor-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 180px;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  text-align: left;
+}
+.filter-supervisor-trigger:hover,
+.filter-supervisor-trigger.open { border-color: var(--accent); }
+.filter-supervisor-trigger::after {
+  content: '';
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--text-muted);
+}
+.filter-supervisor-trigger.open::after { transform: rotate(180deg); }
+.filter-supervisor-dropdown { display: none; }
+.filter-supervisor-dropdown.hidden { display: none; }
+.filter-supervisor-portal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.25rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.filter-supervisor-portal .filter-supervisor-option {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.filter-supervisor-portal .filter-supervisor-option:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.usuarios-supervisors-intro { margin-bottom: 1rem; }
+.usuarios-supervisors-intro-text { margin: 0; color: var(--text-muted); font-size: var(--text-sm); }
+.usuarios-supervisors-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.usuarios-supervisor-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 200px;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.usuarios-supervisor-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+}
+.usuarios-supervisor-card-name { font-weight: 600; margin-bottom: 0.25rem; }
+.usuarios-supervisor-card-count { color: var(--text-muted); font-size: var(--text-xs); }
+
+.btn-excel {
+  color: #217346 !important;
+  font-weight: 600;
+}
+.btn-excel:hover { opacity: 0.9; }
+.btn-excel-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.35em;
+  vertical-align: -0.15em;
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cpath d='M8 13h2M8 17h2M14 13h2M14 17h2'/%3E%3C/svg%3E") no-repeat center;
+  mask-size: contain;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cpath d='M8 13h2M8 17h2M14 13h2M14 17h2'/%3E%3C/svg%3E") no-repeat center;
+  -webkit-mask-size: contain;
+}
 
 /* ===== Configuración (rutas de upload) ===== */
 .config-panel {
@@ -1002,6 +1103,9 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 .modal-body .field { margin-bottom: 0.6rem; }
 .modal-body .field:last-of-type { margin-bottom: 0; }
+.field-msg { font-size: var(--text-xs); margin-top: 0.25rem; min-height: 1.2em; }
+.field-msg-ok { color: var(--success, #16a34a); }
+.field-msg-error { color: var(--danger, #dc2626); }
 .modal-body label {
   display: block;
   margin-bottom: 0.25rem;

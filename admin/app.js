@@ -25,7 +25,7 @@
     productos: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
     ofertas: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
     tvs: { page: 1, pageSize: 10, search: '' },
-    usuarios: { page: 1, pageSize: 10, search: '', supervisorFilter: 'ALL' }
+    usuarios: { page: 1, pageSize: 10, search: '', supervisorFilter: 'ALL', viewMode: 'supervisors' }
   };
 
   function formatPrecio(num) {
@@ -512,7 +512,7 @@
           </div>
           <div class="toolbar-meta">
             <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
-            <button type="button" class="btn btn-ghost btn-sm btn-export-excel" data-export-view="productos">Exportar Excel</button>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="productos"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
           </div>
         </div>
       `;
@@ -726,7 +726,7 @@
                 <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
               </div>
             </div>
-            <button type="button" class="btn btn-ghost btn-sm btn-export-excel" data-export-view="ofertas">Exportar Excel</button>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="ofertas"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
           </div>
         </div>
       `;
@@ -834,7 +834,7 @@
                 <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
               </div>
             </div>
-            <button type="button" class="btn btn-ghost btn-sm btn-export-excel" data-export-view="tvs">Exportar Excel</button>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="tvs"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
           </div>
         </div>
       `;
@@ -919,12 +919,52 @@
       usuariosData = data;
       const raw = Array.isArray(data) ? data : (data && data.data ? data.data : []);
       const list = raw.map(u => ({ ...u, _username: u.username || u.usuario || '' }));
+      const st = gridState.usuarios;
+      const isAdmin = user && user.perfil === 'Admin';
+
+      if (isAdmin && st.viewMode === 'supervisors') {
+        const uniqueSupervisors = (() => {
+          const seen = new Map();
+          list.forEach(u => {
+            const id = u.created_by_id ?? 0;
+            if (seen.has(id)) return;
+            const name = u.created_by_name || 'Administración';
+            const count = list.filter(x => String(x.created_by_id ?? 0) === String(id)).length;
+            seen.set(id, { name, count });
+          });
+          return Array.from(seen.entries()).sort((a, b) => {
+            if (a[0] === 0) return -1;
+            if (b[0] === 0) return 1;
+            return (a[1].name || '').localeCompare(b[1].name || '');
+          });
+        })();
+        content.innerHTML = `
+          <div class="usuarios-supervisors-intro">
+            <p class="usuarios-supervisors-intro-text">Elegí un supervisor para ver sus usuarios.</p>
+          </div>
+          <div class="usuarios-supervisors-list">
+            ${uniqueSupervisors.map(([id, info]) => `
+              <button type="button" class="usuarios-supervisor-card" data-supervisor-id="${escapeAttr(String(id))}">
+                <span class="usuarios-supervisor-card-name">${escapeHtml(info.name)}</span>
+                <span class="usuarios-supervisor-card-count">${info.count} usuario${info.count !== 1 ? 's' : ''}</span>
+              </button>
+            `).join('')}
+          </div>`;
+        content.querySelectorAll('.usuarios-supervisor-card').forEach(btn => {
+          btn.onclick = () => {
+            st.viewMode = 'grid';
+            st.supervisorFilter = btn.dataset.supervisorId;
+            st.page = 1;
+            loadUsuarios(content);
+          };
+        });
+        return;
+      }
+
       if (list.length === 0) {
         content.innerHTML = '<div class="empty-state"><p>No hay usuarios.</p></div>';
         return;
       }
-      const st = gridState.usuarios;
-      const isAdmin = user && user.perfil === 'Admin';
       let listFiltered = list;
       if (isAdmin && st.supervisorFilter !== 'ALL') {
         listFiltered = list.filter(u => String(u.created_by_id ?? 0) === String(st.supervisorFilter));
@@ -946,9 +986,13 @@
           return (a[1] || '').localeCompare(b[1] || '');
         });
       })() : [];
-      const supervisorOptions = isAdmin ? uniqueSupervisors.map(([id, name]) =>
-        `<option value="${escapeAttr(String(id))}">${escapeHtml(name)}</option>`
+      const currentSupervisorLabel = isAdmin && st.supervisorFilter !== 'ALL'
+        ? (uniqueSupervisors.find(([id]) => String(id) === String(st.supervisorFilter)) || [null, 'Supervisor'])[1]
+        : 'Todos';
+      const supervisorOptionsHtml = isAdmin ? uniqueSupervisors.map(([id, name]) =>
+        `<button type="button" class="filter-supervisor-option" data-value="${escapeAttr(String(id))}">${escapeHtml(name)}</button>`
       ).join('') : '';
+      const backToSupervisorsBtn = isAdmin ? `<button type="button" class="btn btn-ghost btn-sm btn-back-supervisors">Ver listado de supervisores</button>` : '';
       const header = `
         <div class="toolbar">
           <div class="toolbar-bar toolbar-productos toolbar-search">
@@ -963,13 +1007,18 @@
             ${isAdmin ? `
             <div class="filter-supervisor-wrap">
               <label class="search-label">Supervisor</label>
-              <select id="usuarios-supervisor-filter" class="select">
-                <option value="ALL">Todos</option>
-                ${supervisorOptions}
-              </select>
+              <div class="filter-supervisor">
+                <input type="hidden" id="usuarios-supervisor-filter-value" value="${escapeAttr(st.supervisorFilter)}">
+                <button type="button" class="filter-supervisor-trigger" id="usuarios-supervisor-trigger">${escapeHtml(currentSupervisorLabel)}</button>
+                <div class="filter-supervisor-dropdown hidden" id="usuarios-supervisor-dropdown">
+                  <button type="button" class="filter-supervisor-option" data-value="ALL">Todos</button>
+                  ${supervisorOptionsHtml}
+                </div>
+              </div>
             </div>
+            ${backToSupervisorsBtn}
             ` : ''}
-            <button type="button" class="btn btn-ghost btn-sm btn-export-excel" data-export-view="usuarios">Exportar Excel</button>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="usuarios"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
           </div>
         </div>
       `;
@@ -1019,11 +1068,43 @@
       renderPagination(content, 'usuarios', total, page, totalPages, pageSize, () => loadUsuarios(content));
       bindSearchWithClear(content, 'usuarios-search', 'usuarios', () => loadUsuarios(content));
       if (isAdmin) {
-        const filterEl = document.getElementById('usuarios-supervisor-filter');
-        if (filterEl) {
-          filterEl.value = st.supervisorFilter;
-          filterEl.onchange = () => { st.supervisorFilter = filterEl.value; st.page = 1; loadUsuarios(content); };
+        const trigger = document.getElementById('usuarios-supervisor-trigger');
+        const dropdown = document.getElementById('usuarios-supervisor-dropdown');
+        const hiddenInput = document.getElementById('usuarios-supervisor-filter-value');
+        if (trigger && dropdown && hiddenInput) {
+          const closeDropdown = () => { trigger.classList.remove('open'); dropdown.classList.add('hidden'); };
+          trigger.onclick = function (e) {
+            e.stopPropagation();
+            const isOpen = !dropdown.classList.contains('hidden');
+            closeDropdown();
+            if (!isOpen) {
+              dropdown.classList.remove('hidden');
+              trigger.classList.add('open');
+              const portal = document.createElement('div');
+              portal.className = 'filter-supervisor-portal';
+              const rect = trigger.getBoundingClientRect();
+              portal.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.bottom + 2}px;min-width:${rect.width}px;z-index:9999;`;
+              portal.innerHTML = dropdown.innerHTML;
+              document.body.appendChild(portal);
+              const removePortal = () => { portal.remove(); closeDropdown(); };
+              setTimeout(() => document.addEventListener('click', removePortal), 0);
+              portal.querySelectorAll('.filter-supervisor-option').forEach(opt => {
+                opt.onclick = (ev) => {
+                  ev.preventDefault();
+                  const val = opt.dataset.value;
+                  st.supervisorFilter = val;
+                  hiddenInput.value = val;
+                  trigger.textContent = val === 'ALL' ? 'Todos' : opt.textContent;
+                  removePortal();
+                  document.removeEventListener('click', removePortal);
+                  st.page = 1;
+                  loadUsuarios(content);
+                };
+              });
+            }
+          };
         }
+        content.querySelector('.btn-back-supervisors')?.addEventListener('click', () => { st.viewMode = 'supervisors'; loadUsuarios(content); });
       }
       content.querySelector('[data-export-view="usuarios"]')?.addEventListener('click', () => {
         const rows = getUsuariosExportRows();
@@ -1171,7 +1252,7 @@
     const body = { action: mode === 'create' ? 'create' : 'update', username: d.username, name: d.name, role: d.role, active: Number(d.active) };
     if (d.password) body.password = d.password;
     if (mode === 'edit') body.id = id;
-    apiPost('/usuarios.php', body).then(() => { closeModal(); setView('usuarios'); }).catch(err => alert(err.message));
+    apiPost('/usuarios.php', body).then(() => { closeModal(); setView('usuarios'); showToast('Usuario guardado.', 'success'); }).catch(err => showToast(err.message || 'Error al guardar', 'error'));
   }
 
   function deleteProducto(id) {
@@ -1444,7 +1525,11 @@
         : '<option value="admin">admin</option><option value="supervisor">supervisor</option><option value="editor">editor</option>';
       body.innerHTML = `
         <div class="form-grid">
-          <div class="field"><label>Usuario (login)</label><input type="text" id="f-username" value="${escapeAttr(row.username || row._username || '')}" required autocomplete="off"></div>
+          <div class="field">
+            <label>Usuario (login)</label>
+            <input type="text" id="f-username" value="${escapeAttr(row.username || row._username || '')}" required autocomplete="off">
+            <div id="f-username-msg" class="field-msg" aria-live="polite"></div>
+          </div>
           <div class="field"><label>Nombre</label><input type="text" id="f-name" value="${escapeAttr(row.name || '')}" placeholder="Nombre completo"></div>
           <div class="field span-2"><label>Contraseña</label><input type="password" id="f-password" placeholder="${mode === 'edit' ? 'Dejar en blanco para no cambiar' : 'Requerida'}"></div>
           <div class="field"><label>Rol</label><select id="f-role" class="select">${roleOptions}</select></div>
@@ -1456,7 +1541,35 @@
         </div>`;
       body.querySelector('#f-role').value = isSupervisor ? 'editor' : (row.role || 'editor');
       body.querySelector('#f-active').value = row.active === 0 ? '0' : '1';
-      body.querySelector('[data-modal-save]').onclick = () => saveUsuario(mode, row.id);
+      const saveBtn = body.querySelector('[data-modal-save]');
+      saveBtn.onclick = () => saveUsuario(mode, row.id);
+      (function bindUsernameCheck() {
+        const input = body.querySelector('#f-username');
+        const msgEl = body.querySelector('#f-username-msg');
+        let debounceTimer;
+        function check() {
+          const v = (input && input.value || '').trim();
+          msgEl.textContent = '';
+          msgEl.className = 'field-msg';
+          if (saveBtn) saveBtn.disabled = false;
+          if (!v) return;
+          api('/usuarios.php?action=check_username&username=' + encodeURIComponent(v) + '&exclude_id=' + (mode === 'edit' ? (row.id || '') : '')).then((r) => {
+            const exists = r && r.exists;
+            if (!msgEl) return;
+            msgEl.textContent = exists ? 'Usuario ya existe' : 'Disponible';
+            msgEl.className = 'field-msg ' + (exists ? 'field-msg-error' : 'field-msg-ok');
+            if (saveBtn) saveBtn.disabled = !!exists;
+          }).catch(() => { if (msgEl) msgEl.textContent = ''; if (saveBtn) saveBtn.disabled = false; });
+        }
+        if (input && msgEl) {
+          input.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(check, 350);
+          });
+          input.addEventListener('blur', check);
+          check();
+        }
+      })();
     }
 
     body.querySelector('[data-modal-cancel]').onclick = closeModal;
@@ -1481,7 +1594,7 @@
   const openModalUsuarioEdit = (id) => {
     api('/usuarios.php?action=get&id=' + id).then(({ data }) => {
       openModal('usuarios', 'edit', data);
-    }).catch(err => alert(err.message));
+    }).catch(err => showToast(err.message || 'Error al cargar', 'error'));
   };
 
   // Init
