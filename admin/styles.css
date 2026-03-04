@@ -707,6 +707,26 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 .empty-state p { margin: 0.35rem 0 0 0; }
 
+/* ===== Usuarios agrupados por supervisor (Admin) ===== */
+.usuarios-group {
+  margin-bottom: 1.5rem;
+}
+.usuarios-group-title {
+  margin: 0 0 0.5rem 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--accent);
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.usuarios-group .table-wrap { margin-bottom: 0; }
+.filter-supervisor-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.filter-supervisor-wrap .search-label { margin: 0; }
+
 /* ===== Configuración (rutas de upload) ===== */
 .config-panel {
   max-width: 420px;

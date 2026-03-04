@@ -25,7 +25,7 @@
     productos: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
     ofertas: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
     tvs: { page: 1, pageSize: 10, search: '' },
-    usuarios: { page: 1, pageSize: 10, search: '' }
+    usuarios: { page: 1, pageSize: 10, search: '', supervisorFilter: 'ALL' }
   };
 
   function formatPrecio(num) {
@@ -280,8 +280,11 @@
 
   function getUsuariosExportRows() {
     const raw = Array.isArray(usuariosData) ? usuariosData : (usuariosData?.data || []);
-    const list = raw.map(u => ({ ...u, _username: u.username || u.usuario || '' }));
+    let list = raw.map(u => ({ ...u, _username: u.username || u.usuario || '' }));
     const st = gridState.usuarios;
+    if (user && user.perfil === 'Admin' && st.supervisorFilter !== 'ALL') {
+      list = list.filter(u => String(u.created_by_id ?? 0) === String(st.supervisorFilter));
+    }
     return filterAndPaginate(list, st.search, ['_username', 'name', 'role'], 1, 999999).rows;
   }
 
@@ -917,14 +920,35 @@
       const raw = Array.isArray(data) ? data : (data && data.data ? data.data : []);
       const list = raw.map(u => ({ ...u, _username: u.username || u.usuario || '' }));
       if (list.length === 0) {
-        content.innerHTML = '<div class="empty-state"><p>No hay usuarios (solo Admin puede gestionarlos).</p></div>';
+        content.innerHTML = '<div class="empty-state"><p>No hay usuarios.</p></div>';
         return;
       }
       const st = gridState.usuarios;
+      const isAdmin = user && user.perfil === 'Admin';
+      let listFiltered = list;
+      if (isAdmin && st.supervisorFilter !== 'ALL') {
+        listFiltered = list.filter(u => String(u.created_by_id ?? 0) === String(st.supervisorFilter));
+      }
       const { rows, total, page, totalPages, pageSize } = filterAndPaginate(
-        list, st.search, ['_username', 'name', 'role'], st.page, st.pageSize
+        listFiltered, st.search, ['_username', 'name', 'role', 'created_by_name'], st.page, st.pageSize
       );
       st.page = page;
+      const uniqueSupervisors = isAdmin ? (() => {
+        const seen = new Map();
+        list.forEach(u => {
+          const id = u.created_by_id ?? 0;
+          if (seen.has(id)) return;
+          seen.set(id, u.created_by_name || 'Administración');
+        });
+        return Array.from(seen.entries()).sort((a, b) => {
+          if (a[0] === 0) return -1;
+          if (b[0] === 0) return 1;
+          return (a[1] || '').localeCompare(b[1] || '');
+        });
+      })() : [];
+      const supervisorOptions = isAdmin ? uniqueSupervisors.map(([id, name]) =>
+        `<option value="${escapeAttr(String(id))}">${escapeHtml(name)}</option>`
+      ).join('') : '';
       const header = `
         <div class="toolbar">
           <div class="toolbar-bar toolbar-productos toolbar-search">
@@ -936,32 +960,71 @@
                 <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
               </div>
             </div>
+            ${isAdmin ? `
+            <div class="filter-supervisor-wrap">
+              <label class="search-label">Supervisor</label>
+              <select id="usuarios-supervisor-filter" class="select">
+                <option value="ALL">Todos</option>
+                ${supervisorOptions}
+              </select>
+            </div>
+            ` : ''}
             <button type="button" class="btn btn-ghost btn-sm btn-export-excel" data-export-view="usuarios">Exportar Excel</button>
           </div>
         </div>
       `;
       const isSupervisor = user && user.perfil === 'Supervisor';
       const canEditUser = (u) => !isSupervisor || (String(u.role || '').toLowerCase() === 'editor');
-      let html = header + '<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr></thead><tbody>';
-      rows.forEach(u => {
+      const rowHtml = (u) => {
         const showActions = canEditUser(u);
         const actionsHtml = showActions
           ? `<button type="button" class="btn btn-ghost btn-sm" data-edit-user="${escapeAttr(u.id)}">Editar</button>
             <button type="button" class="btn btn-secondary btn-sm" data-toggle-user="${escapeAttr(u.id)}" data-active="${u.active ? '1' : '0'}">${u.active ? 'Desactivar' : 'Activar'}</button>
             <button type="button" class="btn btn-danger btn-sm" data-delete-user="${escapeAttr(u.id)}">Eliminar</button>`
           : '<span class="text-muted">—</span>';
-        html += `<tr>
+        return `<tr>
           <td><code>${escapeHtml(u._username)}</code></td>
           <td>${escapeHtml(u.name || '-')}</td>
           <td><span class="badge">${escapeHtml(u.role || '')}</span></td>
           <td>${u.active ? '<span class="badge success">Sí</span>' : '<span class="badge danger">No</span>'}</td>
           <td class="table-actions">${actionsHtml}</td>
         </tr>`;
-      });
-      html += '</tbody></table></div>';
+      };
+      let html = header;
+      if (isAdmin && rows.length > 0) {
+        const groups = {};
+        rows.forEach(u => {
+          const k = String(u.created_by_id ?? 0);
+          const name = u.created_by_name || 'Administración';
+          if (!groups[k]) groups[k] = { name, rows: [] };
+          groups[k].rows.push(u);
+        });
+        const groupKeys = Object.keys(groups).sort((a, b) => {
+          if (a === '0') return -1;
+          if (b === '0') return 1;
+          return (groups[a].name || '').localeCompare(groups[b].name || '');
+        });
+        groupKeys.forEach(k => {
+          const g = groups[k];
+          html += `<div class="usuarios-group"><h3 class="usuarios-group-title">Creado por: ${escapeHtml(g.name)}</h3><div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr></thead><tbody>`;
+          g.rows.forEach(u => { html += rowHtml(u); });
+          html += '</tbody></table></div></div>';
+        });
+      } else {
+        html += '<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr></thead><tbody>';
+        rows.forEach(u => { html += rowHtml(u); });
+        html += '</tbody></table></div>';
+      }
       content.innerHTML = html;
       renderPagination(content, 'usuarios', total, page, totalPages, pageSize, () => loadUsuarios(content));
       bindSearchWithClear(content, 'usuarios-search', 'usuarios', () => loadUsuarios(content));
+      if (isAdmin) {
+        const filterEl = document.getElementById('usuarios-supervisor-filter');
+        if (filterEl) {
+          filterEl.value = st.supervisorFilter;
+          filterEl.onchange = () => { st.supervisorFilter = filterEl.value; st.page = 1; loadUsuarios(content); };
+        }
+      }
       content.querySelector('[data-export-view="usuarios"]')?.addEventListener('click', () => {
         const rows = getUsuariosExportRows();
         const cols = [{ key: '_username', label: 'Usuario' }, { key: 'name', label: 'Nombre' }, { key: 'role', label: 'Rol' }, { key: 'active', label: 'Activo' }];

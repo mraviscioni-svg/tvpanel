@@ -25,9 +25,20 @@ function getRole($u) {
 
 switch ($action) {
     case 'list':
-        $list = array_map(function ($u) {
+        $list = array_map(function ($u) use ($items) {
             $c = $u;
             unset($c['password']);
+            if (!empty($c['created_by_id'])) {
+                foreach ($items as $sup) {
+                    if (isset($sup['id']) && (int)$sup['id'] === (int)$c['created_by_id']) {
+                        $c['created_by_name'] = trim($sup['name'] ?? $sup['username'] ?? $sup['usuario'] ?? '') ?: ($sup['username'] ?? 'ID ' . $c['created_by_id']);
+                        break;
+                    }
+                }
+            } else {
+                $c['created_by_name'] = 'Administración';
+                $c['created_by_id'] = 0;
+            }
             return $c;
         }, $items);
         if ($user['perfil'] === PERFIL_SUPERVISOR) {
@@ -122,7 +133,15 @@ switch ($action) {
             }
         }
         if (isset($input['username'])) {
-            $items[$idx]['username'] = trim($input['username']);
+            $newUsername = trim($input['username']);
+            foreach ($items as $i => $u) {
+                if ($i === $idx) continue;
+                $un = $u['username'] ?? $u['usuario'] ?? '';
+                if (strcasecmp($un, $newUsername) === 0) {
+                    jsonError('Ya existe un usuario con ese nombre de usuario');
+                }
+            }
+            $items[$idx]['username'] = $newUsername;
         }
         if (isset($input['name'])) {
             $items[$idx]['name'] = trim($input['name']);
