@@ -390,6 +390,37 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   color: var(--accent);
 }
 
+/* Dropdown categoría en portal (siempre encima de todo) */
+.filter-categoria-dropdown-portal {
+  position: fixed !important;
+  z-index: 99999 !important;
+  min-width: 160px;
+  max-height: 280px;
+  overflow: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  padding: 0.35rem;
+}
+.filter-categoria-dropdown-portal .filter-categoria-option {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+.filter-categoria-dropdown-portal .filter-categoria-option:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
 /* Toast */
 .toast {
   position: fixed;

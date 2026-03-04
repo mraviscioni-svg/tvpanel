@@ -382,17 +382,46 @@
       const filterDropdown = $('#productos-filter-dropdown', content);
       const filterHidden = $('#productos-filter-value', content);
       if (filterTrigger && filterDropdown && filterHidden) {
+        let portalEl = null;
         const closeFilter = () => {
-          filterDropdown.classList.add('hidden');
+          if (portalEl && portalEl.parentNode) portalEl.parentNode.removeChild(portalEl);
+          portalEl = null;
           filterTrigger.classList.remove('open');
           document.removeEventListener('click', closeFilter);
         };
         filterTrigger.onclick = function (e) {
           e.stopPropagation();
-          const open = filterDropdown.classList.toggle('hidden');
-          filterTrigger.classList.toggle('open', !open);
-          if (!open) document.addEventListener('click', closeFilter);
-          else document.removeEventListener('click', closeFilter);
+          if (portalEl) {
+            closeFilter();
+            return;
+          }
+          const rect = filterTrigger.getBoundingClientRect();
+          portalEl = document.createElement('div');
+          portalEl.className = 'filter-categoria-dropdown-portal';
+          portalEl.style.top = (rect.bottom + 4) + 'px';
+          portalEl.style.left = rect.left + 'px';
+          portalEl.style.minWidth = rect.width + 'px';
+          Array.from(filterDropdown.querySelectorAll('.filter-categoria-option')).forEach(opt => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'filter-categoria-option';
+            btn.dataset.value = opt.dataset.value;
+            btn.textContent = opt.textContent;
+            btn.onclick = function (e) {
+              e.stopPropagation();
+              const val = this.dataset.value;
+              filterHidden.value = val;
+              filterTrigger.textContent = val === 'ALL' ? 'Todas' : val;
+              productosCategoriaFilter = val;
+              gridState.productos.page = 1;
+              closeFilter();
+              loadProductos(content);
+            };
+            portalEl.appendChild(btn);
+          });
+          document.body.appendChild(portalEl);
+          filterTrigger.classList.add('open');
+          requestAnimationFrame(() => document.addEventListener('click', closeFilter));
         };
         content.querySelectorAll('.filter-categoria-option').forEach(opt => {
           opt.onclick = function (e) {
