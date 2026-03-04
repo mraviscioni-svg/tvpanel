@@ -18,6 +18,8 @@
   let user = null;
   let productosData = null;
   let ofertasData = null;
+  let tvsData = null;
+  let usuariosData = null;
   let productosCategoriaFilter = 'ALL';
   const gridState = {
     productos: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
@@ -177,6 +179,112 @@
     return { rows: filtered.slice(start, start + pageSize), total, page: p, totalPages, pageSize };
   }
 
+  function csvEscape(val) {
+    const s = String(val == null ? '' : val);
+    if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function buildCSV(rows, columns) {
+    const header = columns.map(c => csvEscape(c.label)).join(',');
+    const body = rows.map(r => columns.map(c => csvEscape(r[c.key])).join(','));
+    return [header, ...body].join('\r\n');
+  }
+
+  function downloadCSV(csvContent, filename) {
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function sortProductosLikeGrid(flatRows, st) {
+    const sortKey = st.sortKey || '_categoria';
+    const sortDir = st.sortDir || 'asc';
+    flatRows.sort((a, b) => {
+      let va = a[sortKey], vb = b[sortKey];
+      if (sortKey === 'precio') {
+        va = Number(va); vb = Number(vb);
+        const cmp = sortDir === 'asc' ? va - vb : vb - va;
+        if (cmp !== 0) return cmp;
+      } else if (sortKey === 'updated_at') {
+        va = parseUpdatedAt(va); vb = parseUpdatedAt(vb);
+        const cmp = sortDir === 'asc' ? va - vb : vb - va;
+        if (cmp !== 0) return cmp;
+      } else {
+        if (sortKey === 'estado') { va = String(va || ''); vb = String(vb || ''); }
+        else { va = String(va || '').toLowerCase(); vb = String(vb || '').toLowerCase(); }
+        const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+        if (cmp !== 0) return sortDir === 'asc' ? cmp : -cmp;
+      }
+      const na = String(a.nombre || '').toLowerCase(), nb = String(b.nombre || '').toLowerCase();
+      return na < nb ? -1 : na > nb ? 1 : 0;
+    });
+  }
+
+  function sortOfertasLikeGrid(flatRows, st) {
+    const sortKey = st.sortKey || '_categoria';
+    const sortDir = st.sortDir || 'asc';
+    flatRows.sort((a, b) => {
+      let va = a[sortKey], vb = b[sortKey];
+      if (sortKey === 'precio') {
+        va = Number(va); vb = Number(vb);
+        const cmp = sortDir === 'asc' ? va - vb : vb - va;
+        if (cmp !== 0) return cmp;
+      } else if (sortKey === 'updated_at') {
+        va = parseUpdatedAt(va); vb = parseUpdatedAt(vb);
+        const cmp = sortDir === 'asc' ? va - vb : vb - va;
+        if (cmp !== 0) return cmp;
+      } else {
+        if (sortKey === 'estado') { va = String(va || ''); vb = String(vb || ''); }
+        else { va = String(va || '').toLowerCase(); vb = String(vb || '').toLowerCase(); }
+        const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+        if (cmp !== 0) return sortDir === 'asc' ? cmp : -cmp;
+      }
+      const na = String(a.nombre || '').toLowerCase(), nb = String(b.nombre || '').toLowerCase();
+      return na < nb ? -1 : na > nb ? 1 : 0;
+    });
+  }
+
+  function getProductosExportRows() {
+    if (!productosData?.categorias) return [];
+    const categorias = productosData.categorias || [];
+    const selected = productosCategoriaFilter;
+    const flatRows = [];
+    categorias.filter(cat => selected === 'ALL' ? true : cat.nombre === selected).forEach(cat => {
+      (cat.items || []).forEach(it => flatRows.push({ ...it, _categoria: cat.nombre }));
+    });
+    const st = gridState.productos;
+    sortProductosLikeGrid(flatRows, st);
+    return filterAndPaginate(flatRows, st.search, ['nombre', 'unidad', 'tag', '_categoria'], 1, 999999).rows;
+  }
+
+  function getOfertasExportRows() {
+    if (!ofertasData?.categorias) return [];
+    const flatRows = [];
+    ofertasData.categorias.forEach(cat => {
+      (cat.items || []).forEach(it => flatRows.push({ ...it, _categoria: cat.nombre }));
+    });
+    const st = gridState.ofertas;
+    sortOfertasLikeGrid(flatRows, st);
+    return filterAndPaginate(flatRows, st.search, ['nombre', 'unidad', '_categoria'], 1, 999999).rows;
+  }
+
+  function getTVsExportRows() {
+    const list = Array.isArray(tvsData?.tvs) ? tvsData.tvs : [];
+    const st = gridState.tvs;
+    return filterAndPaginate(list, st.search, ['id', 'title', 'description'], 1, 999999).rows;
+  }
+
+  function getUsuariosExportRows() {
+    const raw = Array.isArray(usuariosData) ? usuariosData : (usuariosData?.data || []);
+    const list = raw.map(u => ({ ...u, _username: u.username || u.usuario || '' }));
+    const st = gridState.usuarios;
+    return filterAndPaginate(list, st.search, ['_username', 'name', 'role'], 1, 999999).rows;
+  }
+
   function renderPagination(container, stateKey, total, page, totalPages, pageSize, onRefresh) {
     const st = gridState[stateKey];
     const html = `
@@ -252,7 +360,7 @@
       if (window.localStorage) localStorage.setItem(STORAGE_VIEW_KEY, view);
     } catch (e) {}
     $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
-    $('#view-title').textContent = views[view];
+    $('#view-title').textContent = (views[view] || '').toUpperCase();
     const canCreate = ['productos', 'ofertas', 'tvs'].includes(view) || (view === 'usuarios' && user && user.perfil === 'Admin');
     $('#btn-nuevo').hidden = !canCreate;
     const configNav = document.querySelector('.nav-item-config');
@@ -399,6 +507,7 @@
           </div>
           <div class="toolbar-meta">
             <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel" data-export-view="productos">Exportar Excel</button>
           </div>
         </div>
       `;
@@ -445,7 +554,12 @@
       html += '</tbody></table></div></div>';
       content.innerHTML = html;
       renderPagination(content, 'productos', total, page, totalPages, pageSize, () => loadProductos(content));
-
+      content.querySelector('[data-export-view="productos"]')?.addEventListener('click', () => {
+        const rows = getProductosExportRows();
+        const cols = [{ key: '_categoria', label: 'Categoría' }, { key: 'nombre', label: 'Nombre' }, { key: 'unidad', label: 'Unidad' }, { key: 'precio', label: 'Precio' }, { key: 'updated_at', label: 'Modificado' }, { key: 'estado', label: 'Estado' }];
+        downloadCSV(buildCSV(rows.map(r => ({ ...r, estado: r.estado ? 'Activo' : 'Inactivo' })), cols), 'productos.csv');
+        showToast('Exportado correctamente.', 'success');
+      });
       content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
         th.onclick = function () {
           const key = this.dataset.sort;
@@ -607,6 +721,7 @@
                 <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
               </div>
             </div>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel" data-export-view="ofertas">Exportar Excel</button>
           </div>
         </div>
       `;
@@ -639,6 +754,12 @@
       content.innerHTML = html;
       renderPagination(content, 'ofertas', total, page, totalPages, pageSize, () => loadOfertas(content));
       bindSearchWithClear(content, 'ofertas-search', 'ofertas', () => loadOfertas(content));
+      content.querySelector('[data-export-view="ofertas"]')?.addEventListener('click', () => {
+        const rows = getOfertasExportRows();
+        const cols = [{ key: '_categoria', label: 'Categoría' }, { key: 'nombre', label: 'Nombre' }, { key: 'unidad', label: 'Unidad' }, { key: 'precio', label: 'Precio' }, { key: 'estado', label: 'Estado' }];
+        downloadCSV(buildCSV(rows.map(r => ({ ...r, estado: r.estado ? 'Activo' : 'Inactivo' })), cols), 'ofertas.csv');
+        showToast('Exportado correctamente.', 'success');
+      });
       content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
         th.onclick = function () {
           const key = this.dataset.sort;
@@ -686,6 +807,7 @@
 
   function loadTVs(content) {
     api('/tvs.php?action=list').then(({ data }) => {
+      tvsData = data;
       const list = data.tvs || [];
       if (list.length === 0) {
         content.innerHTML = '<div class="empty-state"><p>No hay televisores configurados.</p></div>';
@@ -707,6 +829,7 @@
                 <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
               </div>
             </div>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel" data-export-view="tvs">Exportar Excel</button>
           </div>
         </div>
       `;
@@ -745,6 +868,12 @@
       content.innerHTML = html;
       renderPagination(content, 'tvs', total, page, totalPages, pageSize, () => loadTVs(content));
       bindSearchWithClear(content, 'tvs-search', 'tvs', () => loadTVs(content));
+      content.querySelector('[data-export-view="tvs"]')?.addEventListener('click', () => {
+        const rows = getTVsExportRows();
+        const cols = [{ key: 'id', label: 'ID' }, { key: 'title', label: 'Título' }, { key: 'tag', label: 'Tag' }, { key: 'url', label: 'URL' }, { key: 'active', label: 'Estado' }];
+        downloadCSV(buildCSV(rows.map(r => ({ ...r, active: r.active ? 'Activo' : 'Inactivo' })), cols), 'televisores.csv');
+        showToast('Exportado correctamente.', 'success');
+      });
       content.querySelectorAll('[data-open-tv-url]').forEach(btn => {
         btn.onclick = () => {
           const url = btn.dataset.openTvUrl;
@@ -782,6 +911,7 @@
 
   function loadUsuarios(content) {
     api('/usuarios.php?action=list').then(({ data }) => {
+      usuariosData = data;
       const raw = Array.isArray(data) ? data : (data && data.data ? data.data : []);
       const list = raw.map(u => ({ ...u, _username: u.username || u.usuario || '' }));
       if (list.length === 0) {
@@ -804,6 +934,7 @@
                 <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
               </div>
             </div>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel" data-export-view="usuarios">Exportar Excel</button>
           </div>
         </div>
       `;
@@ -825,6 +956,12 @@
       content.innerHTML = html;
       renderPagination(content, 'usuarios', total, page, totalPages, pageSize, () => loadUsuarios(content));
       bindSearchWithClear(content, 'usuarios-search', 'usuarios', () => loadUsuarios(content));
+      content.querySelector('[data-export-view="usuarios"]')?.addEventListener('click', () => {
+        const rows = getUsuariosExportRows();
+        const cols = [{ key: '_username', label: 'Usuario' }, { key: 'name', label: 'Nombre' }, { key: 'role', label: 'Rol' }, { key: 'active', label: 'Activo' }];
+        downloadCSV(buildCSV(rows.map(r => ({ ...r, active: r.active ? 'Sí' : 'No' })), cols), 'usuarios.csv');
+        showToast('Exportado correctamente.', 'success');
+      });
       content.querySelectorAll('[data-edit-user]').forEach(btn => {
         btn.onclick = () => openModalUsuarioEdit(btn.dataset.editUser);
       });
