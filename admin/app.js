@@ -20,8 +20,8 @@
   let ofertasData = null;
   let productosCategoriaFilter = 'ALL';
   const gridState = {
-    productos: { page: 1, pageSize: 10, search: '', sortKey: 'nombre', sortDir: 'asc' },
-    ofertas: { page: 1, pageSize: 10, search: '', sortKey: 'nombre', sortDir: 'asc' },
+    productos: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
+    ofertas: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
     tvs: { page: 1, pageSize: 10, search: '' },
     usuarios: { page: 1, pageSize: 10, search: '' }
   };
@@ -334,7 +334,7 @@
         });
 
       const st = gridState.productos;
-      const sortKey = st.sortKey || 'nombre';
+      const sortKey = st.sortKey || '_categoria';
       const sortDir = st.sortDir || 'asc';
       flatRows.sort((a, b) => {
         let va = a[sortKey];
@@ -342,22 +342,27 @@
         if (sortKey === 'precio') {
           va = Number(va);
           vb = Number(vb);
-          return sortDir === 'asc' ? va - vb : vb - va;
-        }
-        if (sortKey === 'updated_at') {
+          const cmp = sortDir === 'asc' ? va - vb : vb - va;
+          if (cmp !== 0) return cmp;
+        } else if (sortKey === 'updated_at') {
           va = parseUpdatedAt(va);
           vb = parseUpdatedAt(vb);
-          return sortDir === 'asc' ? va - vb : vb - va;
-        }
-        if (sortKey === 'estado') {
-          va = String(va || '');
-          vb = String(vb || '');
+          const cmp = sortDir === 'asc' ? va - vb : vb - va;
+          if (cmp !== 0) return cmp;
         } else {
-          va = String(va || '').toLowerCase();
-          vb = String(vb || '').toLowerCase();
+          if (sortKey === 'estado') {
+            va = String(va || '');
+            vb = String(vb || '');
+          } else {
+            va = String(va || '').toLowerCase();
+            vb = String(vb || '').toLowerCase();
+          }
+          const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+          if (cmp !== 0) return sortDir === 'asc' ? cmp : -cmp;
         }
-        const cmp = va < vb ? -1 : va > vb ? 1 : 0;
-        return sortDir === 'asc' ? cmp : -cmp;
+        const na = String(a.nombre || '').toLowerCase();
+        const nb = String(b.nombre || '').toLowerCase();
+        return na < nb ? -1 : na > nb ? 1 : 0;
       });
 
       const { rows, total, page, totalPages, pageSize } = filterAndPaginate(
@@ -551,7 +556,7 @@
         (cat.items || []).forEach(it => flatRows.push({ ...it, _categoria: cat.nombre }));
       });
       const st = gridState.ofertas;
-      const sortKey = st.sortKey || 'nombre';
+      const sortKey = st.sortKey || '_categoria';
       const sortDir = st.sortDir || 'asc';
       flatRows.sort((a, b) => {
         let va = a[sortKey];
@@ -559,22 +564,27 @@
         if (sortKey === 'precio') {
           va = Number(va);
           vb = Number(vb);
-          return sortDir === 'asc' ? va - vb : vb - va;
-        }
-        if (sortKey === 'updated_at') {
+          const cmp = sortDir === 'asc' ? va - vb : vb - va;
+          if (cmp !== 0) return cmp;
+        } else if (sortKey === 'updated_at') {
           va = parseUpdatedAt(va);
           vb = parseUpdatedAt(vb);
-          return sortDir === 'asc' ? va - vb : vb - va;
-        }
-        if (sortKey === 'estado') {
-          va = String(va || '');
-          vb = String(vb || '');
+          const cmp = sortDir === 'asc' ? va - vb : vb - va;
+          if (cmp !== 0) return cmp;
         } else {
-          va = String(va || '').toLowerCase();
-          vb = String(vb || '').toLowerCase();
+          if (sortKey === 'estado') {
+            va = String(va || '');
+            vb = String(vb || '');
+          } else {
+            va = String(va || '').toLowerCase();
+            vb = String(vb || '').toLowerCase();
+          }
+          const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+          if (cmp !== 0) return sortDir === 'asc' ? cmp : -cmp;
         }
-        const cmp = va < vb ? -1 : va > vb ? 1 : 0;
-        return sortDir === 'asc' ? cmp : -cmp;
+        const na = String(a.nombre || '').toLowerCase();
+        const nb = String(b.nombre || '').toLowerCase();
+        return na < nb ? -1 : na > nb ? 1 : 0;
       });
       const { rows, total, page, totalPages, pageSize } = filterAndPaginate(
         flatRows, st.search, ['nombre', 'unidad', '_categoria'], st.page, st.pageSize
