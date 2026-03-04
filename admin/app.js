@@ -608,7 +608,7 @@
                       data-active="${t.active ? '1' : '0'}">
                 ${t.active ? 'Activo' : 'Inactivo'}
               </button>
-              ${url ? `<button type="button" class="btn btn-ghost btn-sm tv-link-btn" data-open-tv-url="${escapeAttr(url)}">Probar link</button>` : ''}
+              ${url ? `<button type="button" class="btn btn-ghost btn-sm tv-link-btn" data-open-tv-url="${escapeAttr(url)}" aria-label="Probar link"></button>` : ''}
             </div>
             <div class="tv-card-actions">
               <button type="button" class="btn btn-ghost btn-sm" data-edit-tv="${escapeAttr(t.id)}">Editar</button>
