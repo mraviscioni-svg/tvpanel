@@ -328,7 +328,7 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 .toolbar-productos .search-input::placeholder { color: var(--text-muted); }
 .toolbar-productos .search-input:focus { outline: none; border-color: var(--accent); }
-.toolbar-productos .filter-categoria-wrap { display: flex; flex-direction: column; gap: 0.25rem; }
+.toolbar-productos .filter-categoria-wrap { display: flex; flex-direction: column; gap: 0.25rem; position: relative; z-index: 100; }
 .toolbar-productos .filter-categoria { position: relative; }
 .toolbar-productos .filter-categoria-trigger {
   display: flex;
@@ -365,7 +365,7 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-  z-index: 50;
+  z-index: 300;
   max-height: 220px;
   overflow: auto;
   padding: 0.35rem;
@@ -572,6 +572,15 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   color: var(--text-muted);
   background: var(--bg-elevated);
 }
+.table-wrap th.th-sort {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.table-wrap th.th-sort:hover { color: var(--text); }
+.table-wrap th.th-sort-active { color: var(--primary); }
+.table-wrap th .th-sort-icon { opacity: 0.8; margin-left: 0.2rem; }
+.table-wrap td .precio { font-variant-numeric: tabular-nums; }
 .table-wrap tr:last-child td { border-bottom: none; }
 .table-wrap tr:hover td { background: rgba(255,255,255,0.03); }
 .table-actions { display: flex; gap: 0.35rem; }

@@ -10,11 +10,17 @@
   let ofertasData = null;
   let productosCategoriaFilter = 'ALL';
   const gridState = {
-    productos: { page: 1, pageSize: 10, search: '' },
+    productos: { page: 1, pageSize: 10, search: '', sortKey: 'nombre', sortDir: 'asc' },
     ofertas: { page: 1, pageSize: 10, search: '' },
     tvs: { page: 1, pageSize: 10, search: '' },
     usuarios: { page: 1, pageSize: 10, search: '' }
   };
+
+  function formatPrecio(num) {
+    const n = Number(num);
+    if (isNaN(n)) return '—';
+    return n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => el.querySelectorAll(sel);
@@ -49,6 +55,21 @@
     else if (diffDays < 30) out.label = `hace ${Math.floor(diffDays / 7)} sem`;
     else out.label = `${d} ${monthNames[m - 1]}`;
     return out;
+  }
+
+  /** Parsea "dd-mm-yyyy" o "dd-mm-yyyy HH:ii" y devuelve timestamp (o 0 si inválido). */
+  function parseUpdatedAt(str) {
+    if (!str || typeof str !== 'string') return 0;
+    const s = str.trim();
+    const parts = s.split(/\s+/);
+    const [d, m, y] = (parts[0] || '').split(/[-\/]/).map(Number);
+    if (!d || !m || !y) return 0;
+    const date = new Date(y, m - 1, d);
+    if (parts[1] && /^\d{1,2}:\d{2}$/.test(parts[1])) {
+      const [h, i] = parts[1].split(':').map(Number);
+      date.setHours(h, i, 0, 0);
+    }
+    return date.getTime();
   }
 
   function showToast(message, type) {
@@ -241,6 +262,32 @@
         });
 
       const st = gridState.productos;
+      const sortKey = st.sortKey || 'nombre';
+      const sortDir = st.sortDir || 'asc';
+      flatRows.sort((a, b) => {
+        let va = a[sortKey];
+        let vb = b[sortKey];
+        if (sortKey === 'precio') {
+          va = Number(va);
+          vb = Number(vb);
+          return sortDir === 'asc' ? va - vb : vb - va;
+        }
+        if (sortKey === 'updated_at') {
+          va = parseUpdatedAt(va);
+          vb = parseUpdatedAt(vb);
+          return sortDir === 'asc' ? va - vb : vb - va;
+        }
+        if (sortKey === 'estado') {
+          va = String(va || '');
+          vb = String(vb || '');
+        } else {
+          va = String(va || '').toLowerCase();
+          vb = String(vb || '').toLowerCase();
+        }
+        const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+
       const { rows, total, page, totalPages, pageSize } = filterAndPaginate(
         flatRows,
         st.search,
@@ -279,17 +326,22 @@
         </div>
       `;
 
+      const thSort = (key, label) => {
+        const isActive = sortKey === key;
+        const dir = isActive ? sortDir : '';
+        return `<th class="th-sort ${isActive ? 'th-sort-active' : ''}" data-sort="${escapeAttr(key)}" title="Ordenar por ${escapeAttr(label)}">${escapeHtml(label)} <span class="th-sort-icon">${dir === 'asc' ? '↑' : dir === 'desc' ? '↓' : ''}</span></th>`;
+      };
       let html = header + `
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Categoría</th>
-                <th>Nombre</th>
-                <th>Unidad</th>
-                <th>Precio</th>
-                <th>Modificado</th>
-                <th>Estado</th>
+                ${thSort('_categoria', 'Categoría')}
+                ${thSort('nombre', 'Nombre')}
+                ${thSort('unidad', 'Unidad')}
+                ${thSort('precio', 'Precio')}
+                ${thSort('updated_at', 'Modificado')}
+                ${thSort('estado', 'Estado')}
                 <th></th>
               </tr>
             </thead>
@@ -302,7 +354,7 @@
           <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
           <td>${escapeHtml(it.nombre)}</td>
           <td>${escapeHtml(it.unidad)}</td>
-          <td><code>${escapeHtml(String(it.precio))}</code></td>
+          <td><code class="precio">${escapeHtml(formatPrecio(it.precio))}</code></td>
           <td><span class="${tagTimeClass}" title="${escapeAttr(String(modRaw))}">${escapeHtml(modRel.label)}</span></td>
           <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
           <td class="table-actions">
@@ -314,6 +366,16 @@
       html += '</tbody></table></div>';
       content.innerHTML = html;
       renderPagination(content, 'productos', total, page, totalPages, pageSize, () => loadProductos(content));
+
+      content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
+        th.onclick = function () {
+          const key = this.dataset.sort;
+          if (st.sortKey === key) st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc';
+          else { st.sortKey = key; st.sortDir = 'asc'; }
+          st.page = 1;
+          loadProductos(content);
+        };
+      });
 
       const filterTrigger = $('#productos-filter-trigger', content);
       const filterDropdown = $('#productos-filter-dropdown', content);

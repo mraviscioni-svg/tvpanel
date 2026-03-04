@@ -113,6 +113,7 @@ switch ($action) {
                     break;
                 }
             }
+            $item['updated_at'] = updatedTimestamp();
             if ($catIdx === null) {
                 $data['categorias'][] = ['nombre' => $newCatName, 'items' => [$item]];
             } else {
