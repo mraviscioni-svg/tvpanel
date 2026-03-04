@@ -2,11 +2,11 @@
 /**
  * ABM Usuarios - graba en JSON/users.json
  * Estructura: { updated, users: [ { id, username, password, name, role, active } ] }
- * role: admin | editor. Solo Admin puede gestionar usuarios.
+ * role: admin | supervisor | editor. Admin: todo. Supervisor: solo altas/edición de editores.
  */
 require_once __DIR__ . '/helpers.php';
 
-requireAdmin();
+$user = requireAdminOrSupervisor();
 
 $input = getInput();
 $action = $_GET['action'] ?? $input['action'] ?? 'list';
@@ -17,7 +17,11 @@ if (!isset($data['users']) || !is_array($data['users'])) {
     $data = ['updated' => updatedTimestamp(), 'users' => []];
 }
 $items = &$data['users'];
-$roles = ['admin', 'editor'];
+$roles = ['admin', 'supervisor', 'editor'];
+
+function getRole($u) {
+    return strtolower(trim($u['role'] ?? $u['usuario'] ?? 'editor'));
+}
 
 switch ($action) {
     case 'list':
@@ -49,11 +53,14 @@ switch ($action) {
         $password = $input['password'] ?? '';
         $name = trim($input['name'] ?? '');
         $role = strtolower(trim($input['role'] ?? 'editor'));
+        if ($user['perfil'] === PERFIL_SUPERVISOR) {
+            $role = 'editor';
+        }
         if ($username === '') {
             jsonError('Usuario (username) requerido');
         }
         if (!in_array($role, $roles, true)) {
-            jsonError('Role debe ser admin o editor');
+            jsonError('Role debe ser admin, supervisor o editor');
         }
         foreach ($items as $u) {
             $un = $u['username'] ?? $u['usuario'] ?? '';
@@ -90,6 +97,11 @@ switch ($action) {
         if ($idx === null) {
             jsonError('Usuario no encontrado', 404);
         }
+        if ($user['perfil'] === PERFIL_SUPERVISOR) {
+            if (getRole($items[$idx]) !== 'editor') {
+                jsonError('Solo puede editar usuarios con rol editor', 403);
+            }
+        }
         if (isset($input['username'])) {
             $items[$idx]['username'] = trim($input['username']);
         }
@@ -97,7 +109,11 @@ switch ($action) {
             $items[$idx]['name'] = trim($input['name']);
         }
         if (isset($input['role']) && in_array(strtolower(trim($input['role'])), $roles, true)) {
-            $items[$idx]['role'] = strtolower(trim($input['role']));
+            if ($user['perfil'] === PERFIL_SUPERVISOR) {
+                $items[$idx]['role'] = 'editor';
+            } else {
+                $items[$idx]['role'] = strtolower(trim($input['role']));
+            }
         }
         if (isset($input['active'])) {
             $items[$idx]['active'] = (int)(bool)$input['active'];
@@ -128,6 +144,9 @@ switch ($action) {
         $currentUser = $items[$idx]['username'] ?? $items[$idx]['usuario'] ?? '';
         if ($currentUser === $_SESSION['usuario']) {
             jsonError('No puede eliminarse a sí mismo');
+        }
+        if ($user['perfil'] === PERFIL_SUPERVISOR && getRole($items[$idx]) !== 'editor') {
+            jsonError('Solo puede eliminar usuarios con rol editor', 403);
         }
         array_splice($items, $idx, 1);
         $data['updated'] = updatedTimestamp();

@@ -51,10 +51,10 @@ if (!$valid) {
     jsonError('Usuario o contraseña incorrectos', 401);
 }
 
-$role = $found['role'] ?? 'editor';
+$role = strtolower(trim($found['role'] ?? 'editor'));
 $_SESSION['user_id'] = $found['id'] ?? 0;
 $_SESSION['usuario'] = $found['username'] ?? $found['usuario'] ?? $usuario;
-$_SESSION['perfil'] = ($role === 'admin') ? PERFIL_ADMIN : PERFIL_USUARIO;
+$_SESSION['perfil'] = ($role === 'admin') ? PERFIL_ADMIN : (($role === 'supervisor') ? PERFIL_SUPERVISOR : PERFIL_USUARIO);
 $_SESSION['name'] = trim($found['name'] ?? $found['username'] ?? $found['usuario'] ?? $usuario);
 
 jsonResponse([

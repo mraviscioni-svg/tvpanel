@@ -52,8 +52,9 @@ define('FILE_PRODUCTOS', DATA_DIR . '/productos.json');
 define('FILE_OFERTAS', DATA_DIR . '/ofertas.json');
 define('FILE_TVS', DATA_DIR . '/tvs.json');
 
-// Perfiles (mapeo: admin -> Admin, editor -> Usuario)
+// Perfiles (mapeo: admin -> Admin, supervisor -> Supervisor, editor -> Usuario)
 define('PERFIL_ADMIN', 'Admin');
+define('PERFIL_SUPERVISOR', 'Supervisor');
 define('PERFIL_USUARIO', 'Usuario');
 
 // Headers JSON para API

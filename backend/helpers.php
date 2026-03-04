@@ -93,3 +93,11 @@ function requireAdmin() {
     }
     return $user;
 }
+
+function requireAdminOrSupervisor() {
+    $user = requireLogin();
+    if ($user['perfil'] !== PERFIL_ADMIN && $user['perfil'] !== PERFIL_SUPERVISOR) {
+        jsonError('Acceso no autorizado', 403);
+    }
+    return $user;
+}

@@ -361,12 +361,14 @@
     } catch (e) {}
     $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
     $('#view-title').textContent = (views[view] || '').toUpperCase();
-    const canCreate = ['productos', 'ofertas', 'tvs'].includes(view) || (view === 'usuarios' && user && user.perfil === 'Admin');
+    const canCreate = ['productos', 'ofertas', 'tvs'].includes(view) || (view === 'usuarios' && user && (user.perfil === 'Admin' || user.perfil === 'Supervisor'));
     $('#btn-nuevo').hidden = !canCreate;
     const configNav = document.querySelector('.nav-item-config');
     if (configNav) configNav.style.display = (user && user.perfil === 'Admin') ? '' : 'none';
+    const tvsNav = document.querySelector('.nav-item-tvs');
+    if (tvsNav) tvsNav.style.display = (user && user.perfil === 'Admin') ? '' : 'none';
     const adminGroup = document.getElementById('nav-group-admin');
-    if (adminGroup) adminGroup.style.display = (user && user.perfil === 'Admin') ? '' : 'none';
+    if (adminGroup) adminGroup.style.display = (user && (user.perfil === 'Admin' || user.perfil === 'Supervisor')) ? '' : 'none';
     $('#btn-nuevo').onclick = () => openModal(view, 'create', {});
     loadView(view);
   }
@@ -938,18 +940,22 @@
           </div>
         </div>
       `;
+      const isSupervisor = user && user.perfil === 'Supervisor';
+      const canEditUser = (u) => !isSupervisor || (String(u.role || '').toLowerCase() === 'editor');
       let html = header + '<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr></thead><tbody>';
       rows.forEach(u => {
+        const showActions = canEditUser(u);
+        const actionsHtml = showActions
+          ? `<button type="button" class="btn btn-ghost btn-sm" data-edit-user="${escapeAttr(u.id)}">Editar</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle-user="${escapeAttr(u.id)}" data-active="${u.active ? '1' : '0'}">${u.active ? 'Desactivar' : 'Activar'}</button>
+            <button type="button" class="btn btn-danger btn-sm" data-delete-user="${escapeAttr(u.id)}">Eliminar</button>`
+          : '<span class="text-muted">—</span>';
         html += `<tr>
           <td><code>${escapeHtml(u._username)}</code></td>
           <td>${escapeHtml(u.name || '-')}</td>
           <td><span class="badge">${escapeHtml(u.role || '')}</span></td>
           <td>${u.active ? '<span class="badge success">Sí</span>' : '<span class="badge danger">No</span>'}</td>
-          <td class="table-actions">
-            <button type="button" class="btn btn-ghost btn-sm" data-edit-user="${escapeAttr(u.id)}">Editar</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-toggle-user="${escapeAttr(u.id)}" data-active="${u.active ? '1' : '0'}">${u.active ? 'Desactivar' : 'Activar'}</button>
-            <button type="button" class="btn btn-danger btn-sm" data-delete-user="${escapeAttr(u.id)}">Eliminar</button>
-          </td>
+          <td class="table-actions">${actionsHtml}</td>
         </tr>`;
       });
       html += '</tbody></table></div>';
@@ -1369,19 +1375,23 @@
       body.querySelector('[data-modal-save]').onclick = () => saveTV(mode, row.id);
     } else if (view === 'usuarios') {
       title.textContent = mode === 'create' ? 'Nuevo usuario' : 'Editar usuario';
+      const isSupervisor = user && user.perfil === 'Supervisor';
+      const roleOptions = isSupervisor
+        ? '<option value="editor">editor</option>'
+        : '<option value="admin">admin</option><option value="supervisor">supervisor</option><option value="editor">editor</option>';
       body.innerHTML = `
         <div class="form-grid">
           <div class="field"><label>Usuario (login)</label><input type="text" id="f-username" value="${escapeAttr(row.username || row._username || '')}" required autocomplete="off"></div>
           <div class="field"><label>Nombre</label><input type="text" id="f-name" value="${escapeAttr(row.name || '')}" placeholder="Nombre completo"></div>
           <div class="field span-2"><label>Contraseña</label><input type="password" id="f-password" placeholder="${mode === 'edit' ? 'Dejar en blanco para no cambiar' : 'Requerida'}"></div>
-          <div class="field"><label>Rol</label><select id="f-role" class="select"><option value="admin">admin</option><option value="editor">editor</option></select></div>
+          <div class="field"><label>Rol</label><select id="f-role" class="select">${roleOptions}</select></div>
           <div class="field"><label>Activo</label><select id="f-active" class="select"><option value="1">Sí</option><option value="0">No</option></select></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
           <button type="button" class="btn btn-primary" data-modal-save>Guardar</button>
         </div>`;
-      body.querySelector('#f-role').value = row.role || 'editor';
+      body.querySelector('#f-role').value = isSupervisor ? 'editor' : (row.role || 'editor');
       body.querySelector('#f-active').value = row.active === 0 ? '0' : '1';
       body.querySelector('[data-modal-save]').onclick = () => saveUsuario(mode, row.id);
     }
@@ -1416,7 +1426,8 @@
     if (loggedIn) {
       showScreen('dashboard');
       $('#user-badge').textContent = user.nombre || user.usuario;
-      if (user.perfil !== 'Admin' && ['config', 'tvs', 'usuarios'].includes(currentView)) currentView = 'productos';
+      if (user.perfil === 'Usuario' && ['config', 'tvs', 'usuarios'].includes(currentView)) currentView = 'productos';
+      if (user.perfil === 'Supervisor' && ['config', 'tvs'].includes(currentView)) currentView = 'productos';
       setView(currentView);
     } else {
       showScreen('login');
