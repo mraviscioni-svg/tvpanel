@@ -21,7 +21,7 @@
   let productosCategoriaFilter = 'ALL';
   const gridState = {
     productos: { page: 1, pageSize: 10, search: '', sortKey: 'nombre', sortDir: 'asc' },
-    ofertas: { page: 1, pageSize: 10, search: '' },
+    ofertas: { page: 1, pageSize: 10, search: '', sortKey: 'nombre', sortDir: 'asc' },
     tvs: { page: 1, pageSize: 10, search: '' },
     usuarios: { page: 1, pageSize: 10, search: '' }
   };
@@ -551,11 +551,41 @@
         (cat.items || []).forEach(it => flatRows.push({ ...it, _categoria: cat.nombre }));
       });
       const st = gridState.ofertas;
+      const sortKey = st.sortKey || 'nombre';
+      const sortDir = st.sortDir || 'asc';
+      flatRows.sort((a, b) => {
+        let va = a[sortKey];
+        let vb = b[sortKey];
+        if (sortKey === 'precio') {
+          va = Number(va);
+          vb = Number(vb);
+          return sortDir === 'asc' ? va - vb : vb - va;
+        }
+        if (sortKey === 'updated_at') {
+          va = parseUpdatedAt(va);
+          vb = parseUpdatedAt(vb);
+          return sortDir === 'asc' ? va - vb : vb - va;
+        }
+        if (sortKey === 'estado') {
+          va = String(va || '');
+          vb = String(vb || '');
+        } else {
+          va = String(va || '').toLowerCase();
+          vb = String(vb || '').toLowerCase();
+        }
+        const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
       const { rows, total, page, totalPages, pageSize } = filterAndPaginate(
         flatRows, st.search, ['nombre', 'unidad', '_categoria'], st.page, st.pageSize
       );
       st.page = page;
 
+      const thSortOferta = (key, label) => {
+        const isActive = sortKey === key;
+        const dir = isActive ? sortDir : '';
+        return `<th class="th-sort ${isActive ? 'th-sort-active' : ''}" data-sort="${escapeAttr(key)}" title="Ordenar por ${escapeAttr(label)}">${escapeHtml(label)} <span class="th-sort-icon">${dir === 'asc' ? '↑' : dir === 'desc' ? '↓' : ''}</span></th>`;
+      };
       const header = `
         <div class="toolbar">
           <div class="toolbar-bar toolbar-productos toolbar-search">
@@ -573,7 +603,7 @@
       let html = header + `
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Categoría</th><th>Nombre</th><th>Unidad</th><th>Precio</th><th>Imagen/Vídeo</th><th>Estado</th><th></th></tr></thead>
+            <thead><tr>${thSortOferta('_categoria', 'Categoría')}${thSortOferta('nombre', 'Nombre')}${thSortOferta('unidad', 'Unidad')}${thSortOferta('precio', 'Precio')}<th>Imagen/Vídeo</th>${thSortOferta('estado', 'Estado')}<th></th></tr></thead>
             <tbody>`;
       rows.forEach(it => {
         const media1 = it.imagen1 || '';
@@ -599,6 +629,15 @@
       content.innerHTML = html;
       renderPagination(content, 'ofertas', total, page, totalPages, pageSize, () => loadOfertas(content));
       bindSearchWithClear(content, 'ofertas-search', 'ofertas', () => loadOfertas(content));
+      content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
+        th.onclick = function () {
+          const key = this.dataset.sort;
+          if (st.sortKey === key) st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc';
+          else { st.sortKey = key; st.sortDir = 'asc'; }
+          st.page = 1;
+          loadOfertas(content);
+        };
+      });
       content.querySelectorAll('.media-preview-btn').forEach(btn => {
         btn.onclick = () => {
           const m1 = btn.dataset.media1 || '';
