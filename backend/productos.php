@@ -64,6 +64,7 @@ switch ($action) {
             'tag' => trim($input['tag'] ?? ''),
             'estado' => isset($input['estado']) ? (int)(bool)$input['estado'] : 1,
             'id' => $newId,
+            'updated_at' => updatedTimestamp(),
         ];
         $catIdx = null;
         foreach ($data['categorias'] as $i => $cat) {
@@ -97,6 +98,7 @@ switch ($action) {
         if (array_key_exists('precio', $input)) $data['categorias'][$ci]['items'][$ii]['precio'] = (int)(float)$input['precio'];
         if (array_key_exists('tag', $input)) $data['categorias'][$ci]['items'][$ii]['tag'] = trim($input['tag']);
         if (array_key_exists('estado', $input)) $data['categorias'][$ci]['items'][$ii]['estado'] = (int)(bool)$input['estado'];
+        $data['categorias'][$ci]['items'][$ii]['updated_at'] = updatedTimestamp();
         if (!empty($input['categoria']) && trim($input['categoria']) !== ($data['categorias'][$ci]['nombre'] ?? '')) {
             $newCatName = trim($input['categoria']);
             $item = $data['categorias'][$ci]['items'][$ii];

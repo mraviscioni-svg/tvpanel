@@ -6,6 +6,8 @@
 
   let currentView = 'productos';
   let user = null;
+  let productosData = null;
+  let productosCategoriaFilter = 'ALL';
 
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => el.querySelectorAll(sel);
@@ -52,7 +54,7 @@
     $('#view-title').textContent = views[view];
     const canCreate = ['productos', 'ofertas', 'tvs'].includes(view) || (view === 'usuarios' && user && user.perfil === 'Admin');
     $('#btn-nuevo').hidden = !canCreate;
-    $('#btn-nuevo').onclick = () => openModal(view, 'create');
+    $('#btn-nuevo').onclick = () => openModal(view, 'create', {});
     loadView(view);
   }
 
@@ -67,19 +69,60 @@
 
   function loadProductos(content) {
     api('/productos.php?action=list').then(({ data }) => {
+      productosData = data;
       if (!data.categorias || data.categorias.length === 0) {
         content.innerHTML = '<div class="empty-state"><p>No hay productos. Cargá categorías desde el backend o agregá uno.</p></div>';
         return;
       }
-      let html = '';
-      data.categorias.forEach(cat => {
+      const categorias = data.categorias || [];
+      const categoriaNames = categorias.map(c => c.nombre).filter(Boolean);
+      const selected = (productosCategoriaFilter === 'ALL' || categoriaNames.includes(productosCategoriaFilter))
+        ? productosCategoriaFilter
+        : 'ALL';
+      productosCategoriaFilter = selected;
+
+      const header = `
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="field-inline">
+              <label>Filtrar</label>
+              <select id="productos-filter" class="select">
+                <option value="ALL">Todas las categorías</option>
+                ${categoriaNames.map(n => `<option value="${escapeAttr(n)}" ${n === selected ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
+              </select>
+            </div>
+            <span class="pill">Última actualización: <span class="mono">${escapeHtml(String(data.updated || '-'))}</span></span>
+          </div>
+        </div>
+      `;
+
+      let html = header;
+      categorias
+        .filter(cat => selected === 'ALL' ? true : cat.nombre === selected)
+        .forEach(cat => {
         const items = cat.items || [];
-        html += `<div class="categoria-block"><h3>${escapeHtml(cat.nombre)}</h3><div class="table-wrap items-table"><table><thead><tr><th>Nombre</th><th>Unidad</th><th>Precio</th><th>Estado</th><th></th></tr></thead><tbody>`;
+        html += `<div class="categoria-block">
+          <h3>${escapeHtml(cat.nombre)}</h3>
+          <div class="table-wrap items-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Unidad</th>
+                  <th>Precio</th>
+                  <th>Modificado</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>`;
         items.forEach(it => {
+          const mod = it.updated_at || data.updated || '-';
           html += `<tr>
             <td>${escapeHtml(it.nombre)}</td>
             <td>${escapeHtml(it.unidad)}</td>
             <td><code>${escapeHtml(String(it.precio))}</code></td>
+            <td><span class="pill mono">${escapeHtml(String(mod))}</span></td>
             <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
             <td class="table-actions">
               <button type="button" class="btn btn-ghost btn-sm" data-edit-product="${escapeAttr(it.id)}" data-cat="${escapeAttr(cat.nombre)}">Editar</button>
@@ -90,6 +133,13 @@
         html += '</tbody></table></div></div>';
       });
       content.innerHTML = html;
+      const filter = $('#productos-filter', content);
+      if (filter) {
+        filter.onchange = () => {
+          productosCategoriaFilter = filter.value;
+          loadProductos(content);
+        };
+      }
       content.querySelectorAll('[data-edit-product]').forEach(btn => {
         btn.onclick = () => openModalProductoEdit(btn.dataset.editProduct, btn.dataset.cat);
       });
@@ -293,7 +343,7 @@
   }
 
   // Modals para editar: cargar datos del item
-  function openModal(view, mode, row) {
+  function openModal(view, mode, row = {}) {
     const modal = $('#modal');
     const title = $('#modal-title');
     const body = $('#modal-body');
@@ -303,12 +353,36 @@
     if (view === 'productos') {
       title.textContent = mode === 'create' ? 'Nuevo producto' : 'Editar producto';
       body.innerHTML = `
-        <div class="field"><label>Categoría</label><input type="text" id="f-categoria" value="${escapeAttr(row.categoria || '')}" placeholder="Ej: Carne"></div>
-        <div class="field"><label>Nombre</label><input type="text" id="f-nombre" value="${escapeAttr(row.nombre || '')}" required></div>
-        <div class="field"><label>Unidad</label><input type="text" id="f-unidad" value="${escapeAttr(row.unidad || '')}" placeholder="kg, unidad..."></div>
-        <div class="field"><label>Precio</label><input type="number" id="f-precio" value="${row.precio ?? ''}" min="0"></div>
-        <div class="field"><label>Tag</label><input type="text" id="f-tag" value="${escapeAttr(row.tag || '')}"></div>
-        <div class="field"><label>Estado</label><select id="f-estado"><option value="1">Activo</option><option value="0">Inactivo</option></select></div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Categoría</label>
+            <input type="text" id="f-categoria" value="${escapeAttr(mode === 'create' ? '' : (row.categoria || ''))}" placeholder="Ej: Carne" autocomplete="off">
+            <div class="help">Tip: usá el mismo nombre para agrupar.</div>
+          </div>
+          <div class="field">
+            <label>Estado</label>
+            <select id="f-estado" class="select">
+              <option value="1">Activo</option>
+              <option value="0">Inactivo</option>
+            </select>
+          </div>
+          <div class="field span-2">
+            <label>Nombre</label>
+            <input type="text" id="f-nombre" value="${escapeAttr(mode === 'create' ? '' : (row.nombre || ''))}" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Unidad</label>
+            <input type="text" id="f-unidad" value="${escapeAttr(mode === 'create' ? '' : (row.unidad || ''))}" placeholder="kg, unidad..." autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Precio</label>
+            <input type="number" id="f-precio" value="${mode === 'create' ? '' : (row.precio ?? '')}" min="0" inputmode="numeric">
+          </div>
+          <div class="field span-2">
+            <label>Tag</label>
+            <input type="text" id="f-tag" value="${escapeAttr(mode === 'create' ? '' : (row.tag || ''))}" placeholder="Opcional (ej: NUEVO, DESTACADO)" autocomplete="off">
+          </div>
+        </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
           <button type="button" class="btn btn-primary" data-modal-save>Guardar</button>
