@@ -342,7 +342,7 @@
   function checkSession() {
     return api('/session.php').then(data => {
       if (data.ok && data.usuario) {
-        user = { usuario: data.usuario, perfil: data.perfil };
+        user = { usuario: data.usuario, nombre: data.nombre, perfil: data.perfil };
         return true;
       }
       return false;
@@ -1414,7 +1414,7 @@
   checkSession().then(loggedIn => {
     if (loggedIn) {
       showScreen('dashboard');
-      $('#user-badge').textContent = user.usuario;
+      $('#user-badge').textContent = user.nombre || user.usuario;
       if (user.perfil !== 'Admin' && ['config', 'tvs', 'usuarios'].includes(currentView)) currentView = 'productos';
       setView(currentView);
     } else {
@@ -1436,7 +1436,7 @@
       .then((ok) => {
         if (ok) {
           showScreen('dashboard');
-          $('#user-badge').textContent = user.usuario;
+          $('#user-badge').textContent = user.nombre || user.usuario;
           currentView = getInitialView();
           setView(currentView);
         }
