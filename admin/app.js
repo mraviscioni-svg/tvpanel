@@ -3,8 +3,18 @@
 
   const API = '/backend';
   const views = { productos: 'Productos', ofertas: 'Ofertas', tvs: 'Televisores', usuarios: 'Usuarios' };
+  const STORAGE_VIEW_KEY = 'tvpanel_admin_last_view';
 
-  let currentView = 'productos';
+  function getInitialView() {
+    try {
+      const v = window.localStorage ? localStorage.getItem(STORAGE_VIEW_KEY) : null;
+      return (v && views[v]) ? v : 'productos';
+    } catch (e) {
+      return 'productos';
+    }
+  }
+
+  let currentView = getInitialView();
   let user = null;
   let productosData = null;
   let ofertasData = null;
@@ -223,6 +233,9 @@
 
   function setView(view) {
     currentView = view;
+    try {
+      if (window.localStorage) localStorage.setItem(STORAGE_VIEW_KEY, view);
+    } catch (e) {}
     $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
     $('#view-title').textContent = views[view];
     const canCreate = ['productos', 'ofertas', 'tvs'].includes(view) || (view === 'usuarios' && user && user.perfil === 'Admin');
@@ -539,20 +552,31 @@
           </div>
         </div>
       `;
-      let html = header + '<div class="table-wrap"><table><thead><tr><th>ID</th><th>Título</th><th>Descripción</th><th>Activo</th><th></th></tr></thead><tbody>';
+      let html = header + '<div class="tv-card-grid">';
       rows.forEach(t => {
-        html += `<tr>
-          <td><code>${escapeHtml(t.id)}</code></td>
-          <td>${escapeHtml(t.title)}</td>
-          <td><span class="text-muted">${escapeHtml((t.description || '').slice(0, 40))}</span></td>
-          <td>${t.active ? '<span class="badge success">Sí</span>' : '<span class="badge danger">No</span>'}</td>
-          <td class="table-actions">
-            <button type="button" class="btn btn-ghost btn-sm" data-edit-tv="${escapeAttr(t.id)}">Editar</button>
-            <button type="button" class="btn btn-danger btn-sm" data-delete-tv="${escapeAttr(t.id)}">Eliminar</button>
-          </td>
-        </tr>`;
+        const desc = (t.description || '').trim();
+        const url = t.url || '';
+        html += `
+        <article class="tv-card${t.active ? ' tv-card-active' : ' tv-card-inactive'}">
+          <header class="tv-card-header">
+            <span class="tv-card-id">#${escapeHtml(t.id)}</span>
+            <span class="tv-card-tag">${escapeHtml(t.tag || 'TV')}</span>
+          </header>
+          <div class="tv-card-body">
+            <h3 class="tv-card-title">${escapeHtml(t.title || '')}</h3>
+            <p class="tv-card-desc">${escapeHtml(desc || 'Sin descripción')}</p>
+            ${url ? `<p class="tv-card-url" title="${escapeAttr(url)}">${escapeHtml(url)}</p>` : ''}
+          </div>
+          <footer class="tv-card-footer">
+            <span class="tv-card-status">${t.active ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</span>
+            <div class="tv-card-actions">
+              <button type="button" class="btn btn-ghost btn-sm" data-edit-tv="${escapeAttr(t.id)}">Editar</button>
+              <button type="button" class="btn btn-danger btn-sm" data-delete-tv="${escapeAttr(t.id)}">Eliminar</button>
+            </div>
+          </footer>
+        </article>`;
       });
-      html += '</tbody></table></div>';
+      html += '</div>';
       content.innerHTML = html;
       renderPagination(content, 'tvs', total, page, totalPages, pageSize, () => loadTVs(content));
       bindSearchWithClear(content, 'tvs-search', 'tvs', () => loadTVs(content));
@@ -977,7 +1001,7 @@
     if (loggedIn) {
       showScreen('dashboard');
       $('#user-badge').textContent = user.usuario;
-      setView('productos');
+      setView(currentView);
     } else {
       showScreen('login');
     }
@@ -998,7 +1022,8 @@
         if (ok) {
           showScreen('dashboard');
           $('#user-badge').textContent = user.usuario;
-          setView('productos');
+          currentView = getInitialView();
+          setView(currentView);
         }
       })
       .catch(err => {
