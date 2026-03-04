@@ -257,6 +257,8 @@
     $('#btn-nuevo').hidden = !canCreate;
     const configNav = document.querySelector('.nav-item-config');
     if (configNav) configNav.style.display = (user && user.perfil === 'Admin') ? '' : 'none';
+    const adminGroup = document.getElementById('nav-group-admin');
+    if (adminGroup) adminGroup.style.display = (user && user.perfil === 'Admin') ? '' : 'none';
     $('#btn-nuevo').onclick = () => openModal(view, 'create', {});
     loadView(view);
   }
@@ -1165,7 +1167,7 @@
     if (loggedIn) {
       showScreen('dashboard');
       $('#user-badge').textContent = user.usuario;
-      if (currentView === 'config' && user.perfil !== 'Admin') currentView = 'productos';
+      if (user.perfil !== 'Admin' && ['config', 'tvs', 'usuarios'].includes(currentView)) currentView = 'productos';
       setView(currentView);
     } else {
       showScreen('login');
