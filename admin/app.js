@@ -1149,9 +1149,7 @@
     if (!src) return '';
     if (/^https?:\/\//i.test(src)) return src;
     if (src.startsWith('/')) return src;
-    if (src.startsWith('IMG/')) return '/' + src;
-    if (src.startsWith('VIDEO/')) return '/IMG/CORTES/' + src;
-    return '/IMG/CORTES/' + src;
+    return '/' + src;
   }
 
   function deleteTV(id) {

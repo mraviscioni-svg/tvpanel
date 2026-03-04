@@ -39,10 +39,10 @@ function subirArchivoOferta($fileKey, $tipo = 'imagen') {
     $nombre = $tipo . '_' . uniqid() . '.' . $ext;
     if ($tipo === 'video') {
         $destino = CORTES_VIDEO . '/' . $nombre;
-        $pathReturn = 'IMG/CORTES/VIDEO/' . $nombre;
+        $pathReturn = CORTES_VIDEO_REL . '/' . $nombre;
     } else {
         $destino = CORTES_DIR . '/' . $nombre;
-        $pathReturn = 'IMG/CORTES/' . $nombre;
+        $pathReturn = CORTES_DIR_REL . '/' . $nombre;
     }
     if (!move_uploaded_file($f['tmp_name'], $destino)) {
         return null;
@@ -52,10 +52,11 @@ function subirArchivoOferta($fileKey, $tipo = 'imagen') {
 
 function eliminarArchivoOferta($path) {
     if (empty($path)) return;
-    if (strpos($path, 'IMG/CORTES/') === 0 || strpos($path, 'CORTES/') === 0) {
-        $full = ROOT . '/' . $path;
+    // Path puede ser relativo (ej. IMG/CORTES/... o el configurado en Configuración)
+    if (strpos($path, '/') === 0) {
+        $full = $path;
     } else {
-        $full = ROOT . '/IMG/CORTES/' . basename($path);
+        $full = ROOT . '/' . ltrim($path, '/');
     }
     if (file_exists($full)) {
         @unlink($full);

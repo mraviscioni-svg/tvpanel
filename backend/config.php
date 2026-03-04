@@ -42,6 +42,9 @@ if ($mediaImagesPath === '') $mediaImagesPath = 'IMG/CORTES';
 if ($mediaVideosPath === '') $mediaVideosPath = 'IMG/CORTES/VIDEO';
 define('CORTES_DIR', ROOT . '/' . trim($mediaImagesPath, '/'));
 define('CORTES_VIDEO', ROOT . '/' . trim($mediaVideosPath, '/'));
+// Rutas relativas (para guardar en JSON y armar URLs en el frontend)
+define('CORTES_DIR_REL', trim($mediaImagesPath, '/'));
+define('CORTES_VIDEO_REL', trim($mediaVideosPath, '/'));
 
 // Archivos JSON (nombres según tus archivos)
 define('FILE_USERS', DATA_DIR . '/users.json');
