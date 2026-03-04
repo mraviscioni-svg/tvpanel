@@ -25,17 +25,23 @@ define('ROOT', dirname(__DIR__));
 // Ruta de la carpeta donde están los JSON (misma altura que backend/, ej: JSON)
 $configPath = __DIR__ . '/config.json';
 $dataFolder = 'JSON';
+$cfg = [];
 if (file_exists($configPath)) {
-    $cfg = @json_decode(file_get_contents($configPath), true);
+    $decoded = @json_decode(file_get_contents($configPath), true);
+    if (is_array($decoded)) $cfg = $decoded;
     if (!empty($cfg['dataPath'])) {
         $dataFolder = trim($cfg['dataPath']);
     }
 }
 define('DATA_DIR', ROOT . '/' . $dataFolder);
 
-// Promociones: imágenes en IMG/CORTES/, videos en IMG/CORTES/VIDEO/
-define('CORTES_DIR', ROOT . '/IMG/CORTES');
-define('CORTES_VIDEO', CORTES_DIR . '/VIDEO');
+// Rutas de upload (imágenes y videos) configurables vía config.json
+$mediaImagesPath = isset($cfg['mediaImagesPath']) ? trim($cfg['mediaImagesPath']) : 'IMG/CORTES';
+$mediaVideosPath = isset($cfg['mediaVideosPath']) ? trim($cfg['mediaVideosPath']) : 'IMG/CORTES/VIDEO';
+if ($mediaImagesPath === '') $mediaImagesPath = 'IMG/CORTES';
+if ($mediaVideosPath === '') $mediaVideosPath = 'IMG/CORTES/VIDEO';
+define('CORTES_DIR', ROOT . '/' . trim($mediaImagesPath, '/'));
+define('CORTES_VIDEO', ROOT . '/' . trim($mediaVideosPath, '/'));
 
 // Archivos JSON (nombres según tus archivos)
 define('FILE_USERS', DATA_DIR . '/users.json');

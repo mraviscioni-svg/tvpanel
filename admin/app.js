@@ -2,7 +2,7 @@
   'use strict';
 
   const API = '/backend';
-  const views = { productos: 'Productos', ofertas: 'Ofertas', tvs: 'Televisores', usuarios: 'Usuarios' };
+  const views = { productos: 'Productos', ofertas: 'Ofertas', tvs: 'Televisores', usuarios: 'Usuarios', config: 'Configuración' };
   const STORAGE_VIEW_KEY = 'tvpanel_admin_last_view';
 
   function getInitialView() {
@@ -255,6 +255,8 @@
     $('#view-title').textContent = views[view];
     const canCreate = ['productos', 'ofertas', 'tvs'].includes(view) || (view === 'usuarios' && user && user.perfil === 'Admin');
     $('#btn-nuevo').hidden = !canCreate;
+    const configNav = document.querySelector('.nav-item-config');
+    if (configNav) configNav.style.display = (user && user.perfil === 'Admin') ? '' : 'none';
     $('#btn-nuevo').onclick = () => openModal(view, 'create', {});
     loadView(view);
   }
@@ -266,6 +268,46 @@
     else if (view === 'ofertas') loadOfertas(content);
     else if (view === 'tvs') loadTVs(content);
     else if (view === 'usuarios') loadUsuarios(content);
+    else if (view === 'config') loadConfig(content);
+  }
+
+  function loadConfig(content) {
+    api('/config-media.php')
+      .then(data => {
+        const imagesPath = data.mediaImagesPath || 'IMG/CORTES';
+        const videosPath = data.mediaVideosPath || 'IMG/CORTES/VIDEO';
+        content.innerHTML = `
+          <div class="config-panel">
+            <p class="config-desc">Rutas donde se guardan las imágenes y videos de ofertas (relativas a la raíz del proyecto).</p>
+            <form id="config-media-form" class="config-form">
+              <div class="field">
+                <label for="config-images-path">Carpeta de imágenes</label>
+                <input type="text" id="config-images-path" class="input" value="${escapeAttr(imagesPath)}" placeholder="IMG/CORTES">
+              </div>
+              <div class="field">
+                <label for="config-videos-path">Carpeta de videos</label>
+                <input type="text" id="config-videos-path" class="input" value="${escapeAttr(videosPath)}" placeholder="IMG/CORTES/VIDEO">
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+              </div>
+            </form>
+          </div>`;
+        const form = document.getElementById('config-media-form');
+        if (form) {
+          form.onsubmit = (e) => {
+            e.preventDefault();
+            const images = (document.getElementById('config-images-path') || {}).value.trim() || 'IMG/CORTES';
+            const videos = (document.getElementById('config-videos-path') || {}).value.trim() || 'IMG/CORTES/VIDEO';
+            apiPost('/config-media.php', { mediaImagesPath: images, mediaVideosPath: videos })
+              .then(() => showToast('Configuración guardada.', 'success'))
+              .catch(err => showToast(err.message || 'Error al guardar', 'error'));
+          };
+        }
+      })
+      .catch(err => {
+        content.innerHTML = '<div class="empty-state"><p>' + (err.message || 'No se pudo cargar la configuración.') + '</p></div>';
+      });
   }
 
   function loadProductos(content) {
@@ -1123,6 +1165,7 @@
     if (loggedIn) {
       showScreen('dashboard');
       $('#user-badge').textContent = user.usuario;
+      if (currentView === 'config' && user.perfil !== 'Admin') currentView = 'productos';
       setView(currentView);
     } else {
       showScreen('login');

@@ -155,7 +155,20 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   padding: 0.5rem 0.5rem;
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+}
+.nav-group {
+  display: flex;
+  flex-direction: column;
   gap: 0.125rem;
+}
+.nav-group-title {
+  padding: 0.35rem 0.75rem 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
 }
 .nav-item {
   display: flex;
@@ -644,6 +657,42 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   color: var(--text-muted);
 }
 .empty-state p { margin: 0.35rem 0 0 0; }
+
+/* ===== Configuración (rutas de upload) ===== */
+.config-panel {
+  max-width: 420px;
+  padding: 1rem 0;
+}
+.config-desc {
+  margin: 0 0 1.25rem 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.config-form .field {
+  margin-bottom: 1rem;
+}
+.config-form .field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.config-form .input {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+.config-form .input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.config-form .form-actions {
+  margin-top: 1.25rem;
+}
 
 /* ===== Categorías (productos/ofertas) ===== */
 .categoria-block {
