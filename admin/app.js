@@ -1027,14 +1027,67 @@
     form.append('unidad', d.unidad);
     form.append('precio', d.precio);
     form.append('estado', d.estado != null ? d.estado : 1);
-    if (mode === 'edit') form.append('id', id);
+    if (mode === 'edit') form.append('id', String(id));
     const f1 = document.getElementById('f-imagen1');
-    if (f1 && f1.files[0]) form.append('imagen1', f1.files[0]);
-    api('/ofertas.php', { method: 'POST', body: form, credentials: 'include' }).then(r => r.json()).then(data => {
-      if (data.error) throw new Error(data.error);
+    const hasFile = f1 && f1.files && f1.files[0];
+    if (hasFile) form.append('imagen1', f1.files[0]);
+
+    const progressWrap = document.getElementById('oferta-upload-progress');
+    const progressBar = document.getElementById('oferta-upload-progress-bar');
+    const progressLabel = document.getElementById('oferta-upload-progress-label');
+    const saveBtn = document.querySelector('#modal [data-modal-save]');
+
+    const onSuccess = () => {
+      if (progressWrap) progressWrap.classList.add('hidden');
+      if (saveBtn) saveBtn.disabled = false;
       closeModal();
       setView('ofertas');
-    }).catch(err => alert(err.message));
+      showToast('Oferta guardada correctamente.', 'success');
+    };
+    const onError = (err) => {
+      if (progressWrap) progressWrap.classList.add('hidden');
+      if (saveBtn) saveBtn.disabled = false;
+      showToast(err.message || 'Error al guardar', 'error');
+    };
+
+    if (hasFile && progressWrap && progressBar) {
+      progressWrap.classList.remove('hidden');
+      progressBar.style.width = '0%';
+      if (progressLabel) progressLabel.textContent = 'Subiendo…';
+      if (saveBtn) saveBtn.disabled = true;
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', API + '/ofertas.php');
+      xhr.withCredentials = true;
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && progressBar && progressLabel) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = pct + '%';
+          progressLabel.textContent = 'Subiendo… ' + pct + '%';
+        }
+      };
+      xhr.onload = () => {
+        let data;
+        try {
+          data = JSON.parse(xhr.responseText || '{}');
+        } catch (_) {
+          onError(new Error('Respuesta inválida del servidor'));
+          return;
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          if (data.error) onError(new Error(data.error));
+          else onSuccess();
+        } else {
+          onError(new Error(data.error || 'Error ' + xhr.status));
+        }
+      };
+      xhr.onerror = () => onError(new Error('Error de conexión'));
+      xhr.send(form);
+    } else {
+      api('/ofertas.php', { method: 'POST', body: form }).then((data) => {
+        if (data && data.error) throw new Error(data.error);
+        onSuccess();
+      }).catch(onError);
+    }
   }
 
   function saveTV(mode, id) {
@@ -1256,6 +1309,10 @@
             <label>Imagen / Video</label>
             <div class="file-upload" id="wrap-imagen1"><input type="file" id="f-imagen1" accept="image/*,video/*"></div>
             <div class="media-inline-preview" id="oferta-media-preview"></div>
+            <div id="oferta-upload-progress" class="upload-progress-wrap hidden">
+              <div class="upload-progress-bar"><div id="oferta-upload-progress-bar" class="upload-progress-fill"></div></div>
+              <span id="oferta-upload-progress-label" class="upload-progress-label">Subiendo…</span>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -1267,25 +1324,32 @@
       const mediaPreview = body.querySelector('#oferta-media-preview');
       const fImg = body.querySelector('#f-imagen1');
       const currentMedia = row.imagen1 || '';
+      let lastBlobUrl = null;
       const renderInlinePreview = (src) => {
         if (!mediaPreview) return;
+        if (lastBlobUrl) { URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = null; }
         mediaPreview.innerHTML = '';
         if (!src) { mediaPreview.textContent = 'Sin archivo seleccionado'; return; }
-        const resolved = buildMediaUrl(src);
-        const isVideo = /\.mp4$|\.webm$|\.mov$/i.test(resolved);
+        const isBlob = typeof src === 'string' && src.startsWith('blob:');
+        const resolved = isBlob ? src : buildMediaUrl(src);
+        const isVideo = isBlob ? /\.(mp4|webm|mov)$/i.test(src) || (fImg && fImg.files && fImg.files[0] && fImg.files[0].type.startsWith('video/')) : /\.mp4$|\.webm$|\.mov$/i.test(resolved);
         mediaPreview.innerHTML = isVideo
           ? `<video src="${escapeAttr(resolved)}" controls muted playsinline style="max-width:100%;max-height:180px;border-radius:4px;"></video>`
           : `<img src="${escapeAttr(resolved)}" alt="Previsualización" style="max-width:100%;max-height:180px;border-radius:4px;">`;
       };
       if (currentMedia) renderInlinePreview(currentMedia);
+      else renderInlinePreview('');
       if (fImg) {
         fImg.onchange = () => {
           const file = fImg.files && fImg.files[0];
-          if (!file) return;
-          const url = URL.createObjectURL(file);
-          renderInlinePreview(url);
+          if (!file) { renderInlinePreview(''); return; }
+          lastBlobUrl = URL.createObjectURL(file);
+          renderInlinePreview(lastBlobUrl);
         };
       }
+      body.querySelector('[data-modal-cancel]')?.addEventListener('click', () => {
+        if (lastBlobUrl) { URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = null; }
+      });
       body.querySelector('[data-modal-save]').onclick = () => saveOferta(mode, row.id);
     } else if (view === 'tvs') {
       title.textContent = mode === 'create' ? 'Nuevo televisor' : 'Editar televisor';

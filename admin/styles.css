@@ -913,6 +913,31 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 80px;
+}
+.upload-progress-wrap {
+  margin-top: 0.5rem;
+}
+.upload-progress-wrap.hidden {
+  display: none !important;
+}
+.upload-progress-bar {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.upload-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s;
+  width: 0%;
+}
+.upload-progress-label {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  display: block;
+  margin-top: 0.25rem;
 }
 .modal-body .field { margin-bottom: 0.6rem; }
 .modal-body .field:last-of-type { margin-bottom: 0; }
