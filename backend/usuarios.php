@@ -30,6 +30,12 @@ switch ($action) {
             unset($c['password']);
             return $c;
         }, $items);
+        if ($user['perfil'] === PERFIL_SUPERVISOR) {
+            $sessionId = (int)($_SESSION['user_id'] ?? 0);
+            $list = array_values(array_filter($list, function ($u) use ($sessionId) {
+                return (int)($u['created_by_id'] ?? 0) === $sessionId;
+            }));
+        }
         jsonResponse(['ok' => true, 'data' => $list]);
         break;
 
@@ -43,6 +49,12 @@ switch ($action) {
         }
         if (!$item) {
             jsonError('Usuario no encontrado', 404);
+        }
+        if ($user['perfil'] === PERFIL_SUPERVISOR) {
+            $sessionId = (int)($_SESSION['user_id'] ?? 0);
+            if ((int)($item['created_by_id'] ?? 0) !== $sessionId) {
+                jsonError('Usuario no encontrado', 404);
+            }
         }
         unset($item['password']);
         jsonResponse(['ok' => true, 'data' => $item]);
@@ -77,6 +89,9 @@ switch ($action) {
             'role' => $role,
             'active' => 1,
         ];
+        if ($user['perfil'] === PERFIL_SUPERVISOR) {
+            $new['created_by_id'] = (int)($_SESSION['user_id'] ?? 0);
+        }
         $items[] = $new;
         $data['updated'] = updatedTimestamp();
         if (!writeJson(FILE_USERS, $data)) {
@@ -100,6 +115,10 @@ switch ($action) {
         if ($user['perfil'] === PERFIL_SUPERVISOR) {
             if (getRole($items[$idx]) !== 'editor') {
                 jsonError('Solo puede editar usuarios con rol editor', 403);
+            }
+            $sessionId = (int)($_SESSION['user_id'] ?? 0);
+            if ((int)($items[$idx]['created_by_id'] ?? 0) !== $sessionId) {
+                jsonError('Solo puede editar usuarios creados por usted', 403);
             }
         }
         if (isset($input['username'])) {
@@ -145,8 +164,14 @@ switch ($action) {
         if ($currentUser === $_SESSION['usuario']) {
             jsonError('No puede eliminarse a sí mismo');
         }
-        if ($user['perfil'] === PERFIL_SUPERVISOR && getRole($items[$idx]) !== 'editor') {
-            jsonError('Solo puede eliminar usuarios con rol editor', 403);
+        if ($user['perfil'] === PERFIL_SUPERVISOR) {
+            if (getRole($items[$idx]) !== 'editor') {
+                jsonError('Solo puede eliminar usuarios con rol editor', 403);
+            }
+            $sessionId = (int)($_SESSION['user_id'] ?? 0);
+            if ((int)($items[$idx]['created_by_id'] ?? 0) !== $sessionId) {
+                jsonError('Solo puede eliminar usuarios creados por usted', 403);
+            }
         }
         array_splice($items, $idx, 1);
         $data['updated'] = updatedTimestamp();
