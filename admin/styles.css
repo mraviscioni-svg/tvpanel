@@ -209,6 +209,8 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 
 /* ===== Toolbar / buscador ===== */
 .toolbar {
+  position: relative;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -550,6 +552,8 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 
 /* ===== Tablas (CRM compact) ===== */
 .table-wrap {
+  position: relative;
+  z-index: 1;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
