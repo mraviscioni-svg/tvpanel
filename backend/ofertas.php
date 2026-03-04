@@ -68,7 +68,7 @@ if (!empty($_POST)) {
     $input = array_merge($input, $_POST);
 }
 $action = $_GET['action'] ?? $input['action'] ?? 'list';
-$id = isset($_GET['id']) ? trim((string)($_GET['id'] ?? $input['id'] ?? '')) : '';
+$id = trim((string)($_GET['id'] ?? $input['id'] ?? ''));
 
 $data = readJson(FILE_OFERTAS);
 if (!isset($data['categorias']) || !is_array($data['categorias'])) {
