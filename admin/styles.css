@@ -710,7 +710,27 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   align-items: stretch;
   gap: 0.4rem;
 }
-.tv-card-status .badge { font-size: var(--text-xs); }
+.tv-status-pill {
+  align-self: flex-start;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  border: none;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.tv-status-on {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.6);
+}
+.tv-status-off {
+  background: rgba(148, 163, 184, 0.18);
+  color: var(--text-muted);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
 .tv-card-actions {
   display: flex;
   flex-wrap: wrap;
@@ -723,6 +743,15 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 .tv-card-actions .btn-danger {
   margin-left: auto;
+}
+.tv-link-btn {
+  border-radius: 999px;
+  border-color: rgba(148, 163, 184, 0.7);
+  color: var(--text-muted);
+}
+.tv-link-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .tv-card-active {
   border-color: rgba(34, 197, 94, 0.45);
