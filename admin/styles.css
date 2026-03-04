@@ -409,6 +409,89 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 .toast-warn { background: #f59e0b; color: #fff; }
 .toast-info { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
 
+/* Modal confirmar eliminar */
+.confirm-modal .confirm-box {
+  max-width: 380px;
+  padding: 0;
+}
+.confirm-modal .confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.confirm-modal .confirm-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--danger-dim);
+  color: var(--danger);
+  border-radius: 50%;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+.confirm-modal .confirm-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.confirm-modal .confirm-message {
+  margin: 0;
+  padding: 1.25rem 1.25rem;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.confirm-modal .confirm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* Botón vaciar buscador */
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-clear {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.search-clear:hover {
+  background: var(--border);
+  color: var(--text);
+}
+.search-clear.hidden { display: none !important; }
+.toolbar-productos .search-input { padding-right: 2.25rem; }
+.toolbar-search .search-input { padding-right: 2.25rem; }
+
 .field-inline {
   display: flex;
   align-items: center;

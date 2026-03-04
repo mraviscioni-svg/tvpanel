@@ -63,6 +63,62 @@
     }, 3500);
   }
 
+  function showConfirmDelete(options) {
+    const { title = '¿Eliminar?', message = 'Esta acción no se puede deshacer.', onConfirm } = options;
+    const modal = $('#confirm-modal');
+    const titleEl = $('#confirm-title');
+    const messageEl = $('#confirm-message');
+    const btnCancel = $('#confirm-cancel');
+    const btnOk = $('#confirm-ok');
+    const backdrop = $('#confirm-backdrop');
+    if (!modal || !titleEl || !messageEl || !btnCancel || !btnOk) return;
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    const close = () => {
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+      btnOk.onclick = null;
+      btnCancel.onclick = null;
+      backdrop.onclick = null;
+    };
+    btnOk.onclick = () => { close(); if (onConfirm) onConfirm(); };
+    btnCancel.onclick = close;
+    backdrop.onclick = close;
+  }
+
+  function bindSearchWithClear(content, searchId, stateKey, onRefresh) {
+    const st = gridState[stateKey];
+    const input = document.getElementById(searchId);
+    const clearBtn = input && input.closest('.search-input-wrap') && input.closest('.search-input-wrap').querySelector('.search-clear');
+    if (!input) return;
+    const updateClearVisibility = () => {
+      if (clearBtn) clearBtn.classList.toggle('hidden', !input.value.trim());
+    };
+    let searchTimeout;
+    input.oninput = function () {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        st.search = this.value;
+        st.page = 1;
+        onRefresh();
+      }, 280);
+      updateClearVisibility();
+    };
+    if (clearBtn) {
+      clearBtn.onclick = () => {
+        input.value = '';
+        st.search = '';
+        st.page = 1;
+        clearBtn.classList.add('hidden');
+        onRefresh();
+        input.focus();
+      };
+    }
+    updateClearVisibility();
+  }
+
   function filterAndPaginate(rows, searchText, textFields, page, pageSize) {
     const q = (searchText || '').trim().toLowerCase();
     const filtered = q
@@ -202,6 +258,7 @@
               <div class="search-input-wrap">
                 <span class="search-icon" aria-hidden="true">🔍</span>
                 <input type="text" id="productos-search" class="search-input" placeholder="nombre, unidad, tag..." value="${escapeAttr(st.search)}">
+                <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
               </div>
             </div>
             <div class="filter-categoria-wrap">
@@ -287,18 +344,7 @@
           };
         });
       }
-      const searchEl = $('#productos-search', content);
-      if (searchEl) {
-        let searchTimeout;
-        searchEl.oninput = function () {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => {
-            st.search = this.value;
-            st.page = 1;
-            loadProductos(content);
-          }, 280);
-        };
-      }
+      bindSearchWithClear(content, 'productos-search', 'productos', () => loadProductos(content));
       content.querySelectorAll('[data-edit-product]').forEach(btn => {
         btn.onclick = () => openModalProductoEdit(btn.dataset.editProduct, btn.dataset.cat);
       });
@@ -329,10 +375,14 @@
 
       const header = `
         <div class="toolbar">
-          <div class="toolbar-bar">
-            <div class="search-wrap">
-              <span class="search-icon" aria-hidden="true">🔍</span>
-              <input type="text" id="ofertas-search" class="search-input" placeholder="Buscar por nombre, unidad, categoría..." value="${escapeAttr(st.search)}">
+          <div class="toolbar-bar toolbar-productos toolbar-search">
+            <div class="search-group">
+              <label class="search-label">Buscar</label>
+              <div class="search-input-wrap">
+                <span class="search-icon" aria-hidden="true">🔍</span>
+                <input type="text" id="ofertas-search" class="search-input" placeholder="nombre, unidad, categoría..." value="${escapeAttr(st.search)}">
+                <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
+              </div>
             </div>
           </div>
         </div>
@@ -359,14 +409,7 @@
       html += '</tbody></table></div>';
       content.innerHTML = html;
       renderPagination(content, 'ofertas', total, page, totalPages, pageSize, () => loadOfertas(content));
-      const searchEl = $('#ofertas-search', content);
-      if (searchEl) {
-        let searchTimeout;
-        searchEl.oninput = function () {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => { st.search = this.value; st.page = 1; loadOfertas(content); }, 280);
-        };
-      }
+      bindSearchWithClear(content, 'ofertas-search', 'ofertas', () => loadOfertas(content));
       content.querySelectorAll('[data-edit-oferta]').forEach(btn => {
         btn.onclick = () => openModalOfertaEdit(btn.dataset.editOferta, btn.dataset.cat);
       });
@@ -392,10 +435,14 @@
       st.page = page;
       const header = `
         <div class="toolbar">
-          <div class="toolbar-bar">
-            <div class="search-wrap">
-              <span class="search-icon" aria-hidden="true">🔍</span>
-              <input type="text" id="tvs-search" class="search-input" placeholder="Buscar por ID, título, descripción..." value="${escapeAttr(st.search)}">
+          <div class="toolbar-bar toolbar-productos toolbar-search">
+            <div class="search-group">
+              <label class="search-label">Buscar</label>
+              <div class="search-input-wrap">
+                <span class="search-icon" aria-hidden="true">🔍</span>
+                <input type="text" id="tvs-search" class="search-input" placeholder="ID, título, descripción..." value="${escapeAttr(st.search)}">
+                <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
+              </div>
             </div>
           </div>
         </div>
@@ -416,14 +463,7 @@
       html += '</tbody></table></div>';
       content.innerHTML = html;
       renderPagination(content, 'tvs', total, page, totalPages, pageSize, () => loadTVs(content));
-      const searchEl = $('#tvs-search', content);
-      if (searchEl) {
-        let searchTimeout;
-        searchEl.oninput = function () {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => { st.search = this.value; st.page = 1; loadTVs(content); }, 280);
-        };
-      }
+      bindSearchWithClear(content, 'tvs-search', 'tvs', () => loadTVs(content));
       content.querySelectorAll('[data-edit-tv]').forEach(btn => {
         btn.onclick = () => openModalTVEdit(btn.dataset.editTv);
       });
@@ -450,10 +490,14 @@
       st.page = page;
       const header = `
         <div class="toolbar">
-          <div class="toolbar-bar">
-            <div class="search-wrap">
-              <span class="search-icon" aria-hidden="true">🔍</span>
-              <input type="text" id="usuarios-search" class="search-input" placeholder="Buscar por usuario, nombre, rol..." value="${escapeAttr(st.search)}">
+          <div class="toolbar-bar toolbar-productos toolbar-search">
+            <div class="search-group">
+              <label class="search-label">Buscar</label>
+              <div class="search-input-wrap">
+                <span class="search-icon" aria-hidden="true">🔍</span>
+                <input type="text" id="usuarios-search" class="search-input" placeholder="usuario, nombre, rol..." value="${escapeAttr(st.search)}">
+                <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
+              </div>
             </div>
           </div>
         </div>
@@ -474,14 +518,7 @@
       html += '</tbody></table></div>';
       content.innerHTML = html;
       renderPagination(content, 'usuarios', total, page, totalPages, pageSize, () => loadUsuarios(content));
-      const searchEl = $('#usuarios-search', content);
-      if (searchEl) {
-        let searchTimeout;
-        searchEl.oninput = function () {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => { st.search = this.value; st.page = 1; loadUsuarios(content); }, 280);
-        };
-      }
+      bindSearchWithClear(content, 'usuarios-search', 'usuarios', () => loadUsuarios(content));
       content.querySelectorAll('[data-edit-user]').forEach(btn => {
         btn.onclick = () => openModalUsuarioEdit(btn.dataset.editUser);
       });
@@ -559,23 +596,35 @@
   }
 
   function deleteProducto(id) {
-    if (!confirm('¿Eliminar este producto?')) return;
-    apiPost('/productos.php', { action: 'delete', id: String(id) }).then(() => { setView('productos'); showToast('Producto eliminado.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'));
+    showConfirmDelete({
+      title: 'Eliminar producto',
+      message: '¿Eliminar este producto? Esta acción no se puede deshacer.',
+      onConfirm: () => apiPost('/productos.php', { action: 'delete', id: String(id) }).then(() => { setView('productos'); showToast('Producto eliminado.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'))
+    });
   }
 
   function deleteOferta(id) {
-    if (!confirm('¿Eliminar esta oferta?')) return;
-    apiPost('/ofertas.php', { action: 'delete', id }).then(() => setView('ofertas')).catch(err => alert(err.message));
+    showConfirmDelete({
+      title: 'Eliminar oferta',
+      message: '¿Eliminar esta oferta? Esta acción no se puede deshacer.',
+      onConfirm: () => apiPost('/ofertas.php', { action: 'delete', id: String(id) }).then(() => { setView('ofertas'); showToast('Oferta eliminada.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'))
+    });
   }
 
   function deleteTV(id) {
-    if (!confirm('¿Eliminar este televisor?')) return;
-    apiPost('/tvs.php', { action: 'delete', id }).then(() => setView('tvs')).catch(err => alert(err.message));
+    showConfirmDelete({
+      title: 'Eliminar televisor',
+      message: '¿Eliminar este televisor? Esta acción no se puede deshacer.',
+      onConfirm: () => apiPost('/tvs.php', { action: 'delete', id: String(id) }).then(() => { setView('tvs'); showToast('Televisor eliminado.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'))
+    });
   }
 
   function deleteUsuario(id) {
-    if (!confirm('¿Eliminar este usuario?')) return;
-    apiPost('/usuarios.php', { action: 'delete', id }).then(() => setView('usuarios')).catch(err => alert(err.message));
+    showConfirmDelete({
+      title: 'Eliminar usuario',
+      message: '¿Eliminar este usuario? Esta acción no se puede deshacer.',
+      onConfirm: () => apiPost('/usuarios.php', { action: 'delete', id: String(id) }).then(() => { setView('usuarios'); showToast('Usuario eliminado.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'))
+    });
   }
 
   function escapeHtml(s) {

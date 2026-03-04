@@ -89,6 +89,22 @@
     </div>
   </div>
 
+  <!-- Modal confirmar eliminar -->
+  <div id="confirm-modal" class="modal confirm-modal hidden" aria-hidden="true">
+    <div class="modal-backdrop" id="confirm-backdrop"></div>
+    <div class="modal-box confirm-box">
+      <div class="confirm-header">
+        <span class="confirm-icon" aria-hidden="true">⚠</span>
+        <h2 id="confirm-title">¿Eliminar?</h2>
+      </div>
+      <p id="confirm-message" class="confirm-message"></p>
+      <div class="confirm-footer">
+        <button type="button" class="btn btn-ghost" id="confirm-cancel">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="confirm-ok">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js?v=8"></script>
 </body>
 </html>
