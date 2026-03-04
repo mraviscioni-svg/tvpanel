@@ -19,15 +19,16 @@
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => el.querySelectorAll(sel);
 
-  /** Parsea fecha "dd-mm-yyyy" o "dd-mm-yyyy HH:ii" y devuelve texto relativo: "hace 2 h", "hace 3 días", etc. */
+  /** Parsea fecha "dd-mm-yyyy" o "dd-mm-yyyy HH:ii" y devuelve { label, isToday }. */
   function formatRelativeDate(str) {
-    if (!str || typeof str !== 'string') return '—';
+    const out = { label: '—', isToday: false };
+    if (!str || typeof str !== 'string') return out;
     const s = str.trim();
     const parts = s.split(/\s+/);
     const datePart = parts[0];
     const timePart = parts[1] || '';
     const [d, m, y] = (datePart || '').split(/[-\/]/).map(Number);
-    if (!d || !m || !y) return s;
+    if (!d || !m || !y) { out.label = s; return out; }
     const monthNames = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
     let date = new Date(y, m - 1, d);
     if (timePart && /^\d{1,2}:\d{2}$/.test(timePart)) {
@@ -39,13 +40,27 @@
     const diffMin = Math.floor(diffMs / 60000);
     const diffH = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    if (diffMin < 1) return 'hace un momento';
-    if (diffMin < 60) return `hace ${diffMin} min`;
-    if (diffH < 24) return `hace ${diffH} h`;
-    if (diffDays === 1) return 'ayer';
-    if (diffDays < 7) return `hace ${diffDays} días`;
-    if (diffDays < 30) return `hace ${Math.floor(diffDays / 7)} sem`;
-    return `${d} ${monthNames[m - 1]}`;
+    out.isToday = diffDays === 0 && diffMs >= 0;
+    if (diffMin < 1) out.label = 'hace un momento';
+    else if (diffMin < 60) out.label = `hace ${diffMin} min`;
+    else if (diffH < 24) out.label = `hace ${diffH} h`;
+    else if (diffDays === 1) out.label = 'ayer';
+    else if (diffDays < 7) out.label = `hace ${diffDays} días`;
+    else if (diffDays < 30) out.label = `hace ${Math.floor(diffDays / 7)} sem`;
+    else out.label = `${d} ${monthNames[m - 1]}`;
+    return out;
+  }
+
+  function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + (type || 'info');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
   }
 
   function filterAndPaginate(rows, searchText, textFields, page, pageSize) {
@@ -181,21 +196,28 @@
 
       const header = `
         <div class="toolbar">
-          <div class="toolbar-bar">
-            <div class="search-wrap">
-              <span class="search-icon" aria-hidden="true">🔍</span>
-              <input type="text" id="productos-search" class="search-input" placeholder="Buscar por nombre, unidad, tag..." value="${escapeAttr(st.search)}">
+          <div class="toolbar-bar toolbar-productos">
+            <div class="search-group">
+              <label class="search-label">Buscar</label>
+              <div class="search-input-wrap">
+                <span class="search-icon" aria-hidden="true">🔍</span>
+                <input type="text" id="productos-search" class="search-input" placeholder="nombre, unidad, tag..." value="${escapeAttr(st.search)}">
+              </div>
             </div>
-            <div class="filter-wrap">
-              <label for="productos-filter">Categoría</label>
-              <select id="productos-filter" class="select">
-                <option value="ALL">Todas</option>
-                ${categoriaNames.map(n => `<option value="${escapeAttr(n)}" ${n === selected ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
-              </select>
+            <div class="filter-categoria-wrap">
+              <label class="filter-categoria-label">Categoría</label>
+              <div class="filter-categoria">
+                <input type="hidden" id="productos-filter-value" value="${escapeAttr(selected)}">
+                <button type="button" class="filter-categoria-trigger" id="productos-filter-trigger">${escapeHtml(selected === 'ALL' ? 'Todas' : selected)}</button>
+                <div class="filter-categoria-dropdown hidden" id="productos-filter-dropdown">
+                  <button type="button" class="filter-categoria-option" data-value="ALL">Todas</button>
+                  ${categoriaNames.map(n => `<button type="button" class="filter-categoria-option" data-value="${escapeAttr(n)}">${escapeHtml(n)}</button>`).join('')}
+                </div>
+              </div>
             </div>
           </div>
           <div class="toolbar-meta">
-            <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || ''))}</span>
+            <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
           </div>
         </div>
       `;
@@ -217,13 +239,14 @@
             <tbody>`;
       rows.forEach(it => {
         const modRaw = it.updated_at || data.updated || '';
-        const modLabel = formatRelativeDate(modRaw);
+        const modRel = formatRelativeDate(modRaw);
+        const tagTimeClass = 'tag-time' + (modRel.isToday ? ' tag-today' : '');
         html += `<tr>
           <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
           <td>${escapeHtml(it.nombre)}</td>
           <td>${escapeHtml(it.unidad)}</td>
           <td><code>${escapeHtml(String(it.precio))}</code></td>
-          <td><span class="tag-time" title="${escapeAttr(String(modRaw))}">${escapeHtml(modLabel)}</span></td>
+          <td><span class="${tagTimeClass}" title="${escapeAttr(String(modRaw))}">${escapeHtml(modRel.label)}</span></td>
           <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
           <td class="table-actions">
             <button type="button" class="btn btn-ghost btn-sm" data-edit-product="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
@@ -235,11 +258,35 @@
       content.innerHTML = html;
       renderPagination(content, 'productos', total, page, totalPages, pageSize, () => loadProductos(content));
 
-      $('#productos-filter', content).onchange = function () {
-        productosCategoriaFilter = this.value;
-        gridState.productos.page = 1;
-        loadProductos(content);
-      };
+      const filterTrigger = $('#productos-filter-trigger', content);
+      const filterDropdown = $('#productos-filter-dropdown', content);
+      const filterHidden = $('#productos-filter-value', content);
+      if (filterTrigger && filterDropdown && filterHidden) {
+        const closeFilter = () => {
+          filterDropdown.classList.add('hidden');
+          filterTrigger.classList.remove('open');
+          document.removeEventListener('click', closeFilter);
+        };
+        filterTrigger.onclick = function (e) {
+          e.stopPropagation();
+          const open = filterDropdown.classList.toggle('hidden');
+          filterTrigger.classList.toggle('open', !open);
+          if (!open) document.addEventListener('click', closeFilter);
+          else document.removeEventListener('click', closeFilter);
+        };
+        content.querySelectorAll('.filter-categoria-option').forEach(opt => {
+          opt.onclick = function (e) {
+            e.stopPropagation();
+            const val = this.dataset.value;
+            filterHidden.value = val;
+            filterTrigger.textContent = val === 'ALL' ? 'Todas' : val;
+            productosCategoriaFilter = val;
+            gridState.productos.page = 1;
+            closeFilter();
+            loadProductos(content);
+          };
+        });
+      }
       const searchEl = $('#productos-search', content);
       if (searchEl) {
         let searchTimeout;
@@ -466,10 +513,10 @@
     const catEl = document.getElementById('f-categoria');
     const catNuevaEl = document.getElementById('f-categoria-nueva');
     d.categoria = (catEl && catEl.value === '__nueva__' && catNuevaEl) ? (catNuevaEl.value || '').trim() : (d.categoria || '');
-    if (!d.categoria) { alert('Elegí o ingresá una categoría.'); return; }
+    if (!d.categoria) { showToast('Elegí o ingresá una categoría.', 'warn'); return; }
     const body = { action: mode === 'create' ? 'create' : 'update', categoria: d.categoria, nombre: d.nombre, unidad: d.unidad, precio: d.precio, tag: d.tag, estado: d.estado };
-    if (mode === 'edit') body.id = id;
-    apiPost('/productos.php', body).then(() => { closeModal(); setView('productos'); }).catch(err => alert(err.message));
+    if (mode === 'edit') body.id = String(id);
+    apiPost('/productos.php', body).then(() => { closeModal(); setView('productos'); showToast('Guardado correctamente.', 'success'); }).catch(err => showToast(err.message || 'Error al guardar', 'error'));
   }
 
   function saveOferta(mode, id) {
@@ -513,7 +560,7 @@
 
   function deleteProducto(id) {
     if (!confirm('¿Eliminar este producto?')) return;
-    apiPost('/productos.php', { action: 'delete', id }).then(() => setView('productos')).catch(err => alert(err.message));
+    apiPost('/productos.php', { action: 'delete', id: String(id) }).then(() => { setView('productos'); showToast('Producto eliminado.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'));
   }
 
   function deleteOferta(id) {

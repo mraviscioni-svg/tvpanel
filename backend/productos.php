@@ -9,7 +9,7 @@ requireLogin();
 
 $input = getInput();
 $action = $_GET['action'] ?? $input['action'] ?? 'list';
-$id = isset($_GET['id']) ? trim((string)($_GET['id'] ?? $input['id'] ?? '')) : '';
+$id = trim((string)($_GET['id'] ?? $input['id'] ?? ''));
 
 $data = readJson(FILE_PRODUCTOS);
 if (!isset($data['categorias']) || !is_array($data['categorias'])) {

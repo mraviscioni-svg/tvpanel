@@ -283,7 +283,131 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   border: 1px solid rgba(14, 165, 233, 0.25);
 }
 .tag-time { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border-color: var(--border); }
+.tag-time.tag-today {
+  background: rgba(249, 115, 22, 0.2);
+  color: #fb923c;
+  border-color: rgba(249, 115, 22, 0.4);
+}
 .toolbar-bar .search-icon { color: var(--accent); opacity: 0.85; }
+
+/* Toolbar Productos: buscador y filtro categoría claros */
+.toolbar-bar.toolbar-productos {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.75rem;
+}
+.toolbar-productos .search-group { display: flex; flex-direction: column; gap: 0.25rem; }
+.toolbar-productos .search-label,
+.toolbar-productos .filter-categoria-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.toolbar-productos .search-input-wrap { position: relative; }
+.toolbar-productos .search-input-wrap .search-icon {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  opacity: 0.8;
+  pointer-events: none;
+}
+.toolbar-productos .search-input {
+  min-width: 200px;
+  padding: 0.45rem 0.65rem 0.45rem 2rem;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+.toolbar-productos .search-input::placeholder { color: var(--text-muted); }
+.toolbar-productos .search-input:focus { outline: none; border-color: var(--accent); }
+.toolbar-productos .filter-categoria-wrap { display: flex; flex-direction: column; gap: 0.25rem; }
+.toolbar-productos .filter-categoria { position: relative; }
+.toolbar-productos .filter-categoria-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 140px;
+  padding: 0.45rem 0.65rem;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.toolbar-productos .filter-categoria-trigger:hover,
+.toolbar-productos .filter-categoria-trigger.open { border-color: var(--accent); }
+.toolbar-productos .filter-categoria-trigger::after {
+  content: '';
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid var(--text-muted);
+  margin-left: 0.4rem;
+}
+.toolbar-productos .filter-categoria-trigger.open::after { transform: rotate(180deg); }
+.toolbar-productos .filter-categoria-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  z-index: 50;
+  max-height: 220px;
+  overflow: auto;
+  padding: 0.35rem;
+}
+.toolbar-productos .filter-categoria-option {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+.toolbar-productos .filter-categoria-option:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  z-index: 1000;
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast-success { background: var(--success); color: #fff; }
+.toast-error { background: var(--danger); color: #fff; }
+.toast-warn { background: #f59e0b; color: #fff; }
+.toast-info { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
 
 .field-inline {
   display: flex;
