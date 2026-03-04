@@ -95,7 +95,13 @@
   }
 
   function showConfirmDelete(options) {
-    const { title = '¿Eliminar?', message = 'Esta acción no se puede deshacer.', onConfirm } = options;
+    const {
+      title = '¿Eliminar?',
+      message = 'Esta acción no se puede deshacer.',
+      onConfirm,
+      confirmLabel = 'Eliminar',
+      cancelLabel = 'Cancelar'
+    } = options;
     const modal = $('#confirm-modal');
     const titleEl = $('#confirm-title');
     const messageEl = $('#confirm-message');
@@ -105,6 +111,8 @@
     if (!modal || !titleEl || !messageEl || !btnCancel || !btnOk) return;
     titleEl.textContent = title;
     messageEl.textContent = message;
+    btnOk.textContent = confirmLabel;
+    btnCancel.textContent = cancelLabel;
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
     const close = () => {
@@ -469,6 +477,8 @@
           showConfirmDelete({
             title: 'Cambiar estado',
             message: `¿Seguro que querés ${estadoActual ? 'desactivar' : 'activar'} este producto?`,
+            confirmLabel: 'Sí',
+            cancelLabel: 'No',
             onConfirm: () => {
               apiPost('/productos.php', { action: 'update', id: String(id), estado: nuevoEstado })
                 .then(() => { showToast('Estado actualizado.', 'success'); loadProductos(content); })
@@ -628,6 +638,8 @@
           showConfirmDelete({
             title: 'Cambiar estado',
             message: `¿Seguro que querés ${activeNow ? 'desactivar' : 'activar'} este televisor?`,
+            confirmLabel: 'Sí',
+            cancelLabel: 'No',
             onConfirm: () => {
               apiPost('/tvs.php', { action: 'update', id: String(id), active: newActive })
                 .then(() => { showToast('Estado actualizado.', 'success'); loadTVs(content); })
@@ -700,6 +712,8 @@
           showConfirmDelete({
             title: 'Cambiar estado',
             message: `¿Seguro que querés ${activeNow ? 'desactivar' : 'activar'} este usuario?`,
+            confirmLabel: 'Sí',
+            cancelLabel: 'No',
             onConfirm: () => {
               apiPost('/usuarios.php', { action: 'update', id: Number(id), active: newActive })
                 .then(() => { showToast('Estado actualizado.', 'success'); loadUsuarios(content); })
