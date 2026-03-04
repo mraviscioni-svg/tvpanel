@@ -205,7 +205,7 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   font-weight: 600;
   color: var(--text);
 }
-.view-content { min-height: 180px; }
+.view-content { min-height: 180px; overflow-x: hidden; }
 
 /* ===== Toolbar / buscador ===== */
 .toolbar {
@@ -551,6 +551,12 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 .pagination [data-page-next]:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ===== Tablas (CRM compact) ===== */
+.table-scroll-wrap {
+  overflow-x: auto;
+  position: relative;
+  z-index: 1;
+  margin-top: 0.25rem;
+}
 .table-wrap {
   position: relative;
   z-index: 1;

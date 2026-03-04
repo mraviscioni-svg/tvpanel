@@ -332,6 +332,7 @@
         return `<th class="th-sort ${isActive ? 'th-sort-active' : ''}" data-sort="${escapeAttr(key)}" title="Ordenar por ${escapeAttr(label)}">${escapeHtml(label)} <span class="th-sort-icon">${dir === 'asc' ? '↑' : dir === 'desc' ? '↓' : ''}</span></th>`;
       };
       let html = header + `
+        <div class="table-scroll-wrap">
         <div class="table-wrap">
           <table>
             <thead>
@@ -363,7 +364,7 @@
           </td>
         </tr>`;
       });
-      html += '</tbody></table></div>';
+      html += '</tbody></table></div></div>';
       content.innerHTML = html;
       renderPagination(content, 'productos', total, page, totalPages, pageSize, () => loadProductos(content));
 
