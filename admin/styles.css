@@ -193,6 +193,14 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   font-weight: 500;
 }
 .nav-icon { font-size: 0.95rem; }
+
+/* Módulo Usuarios: color e icono propios */
+.nav-item-usuarios .nav-icon { color: #7c3aed; }
+.nav-item-usuarios:hover .nav-icon { color: #8b5cf6; }
+.nav-item-usuarios.active .nav-icon,
+.nav-item-usuarios.active { color: #7c3aed; }
+.nav-item-usuarios.active { background: rgba(124, 58, 237, 0.12); }
+
 .sidebar-footer {
   flex-shrink: 0;
   padding: 0.5rem 0.5rem;
