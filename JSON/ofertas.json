@@ -5,28 +5,45 @@
     {
       "nombre": "Ofertas",
       "items": [
-        { "nombre": "Pata Muslo 3kg", "unidad": "", "precio": 13500, "imagen1": "VIDEO/pataymuslo.mp4", "imagen2":"" },
-        { "nombre": "Suprema 2kg", "unidad": "", "precio": 28000, "imagen1": "VIDEO/suprema.mp4", "imagen2":"" },
-        { "nombre": "Milanesa Pollo 2kg", "unidad": "", "precio": 26000, "imagen1": "VIDEO/milanesa-carne.mp4", "imagen2":"" },
-        { "nombre": "Milanesa Carne 2kg", "unidad": "", "precio": 26000, "imagen1": "VIDEO/milanesa-pollo.mp4", "imagen2":"" },
-        { "nombre": "Alitas 1kg", "unidad": "", "precio": 2000, "imagen1": "VIDEO/alitas.mp4", "imagen2":"" },
-        { "nombre": "Osobuco 2kg", "unidad": "", "precio": 25000, "imagen1": "VIDEO/osobuco.mp4", "imagen2":"" },
-        { "nombre": "Espinazo 2kg", "unidad": "", "precio": 16000, "imagen1": "VIDEO/espinazo.mp4", "imagen2":"" },
-        { "nombre": "Bife Ancho 1kg", "unidad": "", "precio": 18400, "imagen1": "VIDEO/bife.mp4", "imagen2":"" },
-        { "nombre": "Asado 2kg", "unidad": "", "precio": 42000, "imagen1": "VIDEO/asado.mp4", "imagen2":"" },
-        { "nombre": "Menudo 1kg", "unidad": "", "precio": 1000, "imagen1": "VIDEO/menudo.mp4", "imagen2":"" },
-        { "nombre": "Vacío 2kg", "unidad": "", "precio": 42000, "imagen1": "VIDEO/vacio.mp4", "imagen2":"" },
-        { "nombre": "Paleta 2kg", "unidad": "", "precio": 36000, "imagen1": "VIDEO/paleta.mp4", "imagen2":"" },
-        { "nombre": "Roast Beef 2kg", "unidad": "", "precio": 36000, "imagen1": "VIDEO/roastbeef.mp4", "imagen2":"" },
-        { "nombre": "Hamburguesas 1kg", "unidad": "", "precio": 19000, "imagen1": "VIDEO/hamburguesa.mp4", "imagen2":"" },
-        { "nombre": "Picada 2kg", "unidad": "", "precio": 32000, "imagen1": "VIDEO/picada.mp4", "imagen2":"" }
+        { "nombre": "Pata Muslo 3kg", "unidad": "", "precio": 13500, "imagen1": "VIDEO/pataymuslo.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Suprema 2kg", "unidad": "", "precio": 28000, "imagen1": "VIDEO/suprema.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Milanesa Pollo 2kg", "unidad": "", "precio": 26000, "imagen1": "VIDEO/milanesa-carne.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Milanesa Carne 2kg", "unidad": "", "precio": 26000, "imagen1": "VIDEO/milanesa-pollo.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Alitas 1kg", "unidad": "", "precio": 2000, "imagen1": "VIDEO/alitas.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Osobuco 2kg", "unidad": "", "precio": 25000, "imagen1": "VIDEO/osobuco.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Espinazo 2kg", "unidad": "", "precio": 16000, "imagen1": "VIDEO/espinazo.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Bife Ancho 1kg", "unidad": "", "precio": 18400, "imagen1": "VIDEO/bife.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Asado 2kg", "unidad": "", "precio": 42000, "imagen1": "VIDEO/asado.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Menudo 1kg", "unidad": "", "precio": 1000, "imagen1": "VIDEO/menudo.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Vacío 2kg", "unidad": "", "precio": 42000, "imagen1": "VIDEO/vacio.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Paleta 2kg", "unidad": "", "precio": 36000, "imagen1": "VIDEO/paleta.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Roast Beef 2kg", "unidad": "", "precio": 36000, "imagen1": "VIDEO/roastbeef.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Hamburguesas 1kg", "unidad": "", "precio": 19000, "imagen1": "VIDEO/hamburguesa.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Picada 2kg", "unidad": "", "precio": 32000, "imagen1": "VIDEO/picada.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" }
       ] 
     },
     {
       "nombre": "Varios",
       "items": [
-        { "nombre": "Carbón", "unidad": "bolsa", "precio": 5000, "imagen1": "VIDEO/carbon.mp4", "imagen2":"" },
-        { "nombre": "Carcaza", "unidad": "kg", "precio": 350, "imagen1": "VIDEO/carcaza.mp4", "imagen2":"" }
+        { "nombre": "Carbón", "unidad": "bolsa", "precio": 5000, "imagen1": "VIDEO/carbon.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" },
+        { "nombre": "Carcaza", "unidad": "kg", "precio": 350, "imagen1": "VIDEO/carcaza.mp4", "imagen2":"",
+        "updated_at": "03-03-2025 12:00" }
       ]
     }
   ]

@@ -19,7 +19,7 @@
   function formatPrecio(num) {
     const n = Number(num);
     if (isNaN(n)) return '—';
-    return n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return '$ ' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   }
 
   const $ = (sel, el = document) => el.querySelector(sel);

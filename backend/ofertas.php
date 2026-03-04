@@ -129,6 +129,7 @@ switch ($action) {
             'precio' => (int)(float)($input['precio'] ?? 0),
             'imagen1' => $imagen1 ?? '',
             'imagen2' => $imagen2 ?? '',
+            'updated_at' => updatedTimestamp(),
         ];
         $catIdx = null;
         foreach ($data['categorias'] as $i => $cat) {
@@ -173,9 +174,10 @@ switch ($action) {
         if ($up2) {
             eliminarArchivoOferta($data['categorias'][$ci]['items'][$ii]['imagen2'] ?? '');
             $data['categorias'][$ci]['items'][$ii]['imagen2'] = $up2;
-        } elseif (array_key_exists('imagen2', $input)) {
+        } else        if (array_key_exists('imagen2', $input)) {
             $data['categorias'][$ci]['items'][$ii]['imagen2'] = trim($input['imagen2']);
         }
+        $data['categorias'][$ci]['items'][$ii]['updated_at'] = updatedTimestamp();
         $data['updated'] = updatedTimestamp();
         if (!writeJson(FILE_OFERTAS, $data)) {
             jsonError('Error al guardar', 500);
