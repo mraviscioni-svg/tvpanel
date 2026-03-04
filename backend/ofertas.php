@@ -110,8 +110,27 @@ function findItemOfertas($data, $id) {
     return [null, null, null];
 }
 
+/** Convierte path de media a ruta completa usando las carpetas configuradas (CORTES_*_REL). */
+function normalizarPathMedia($path) {
+    if ($path === null || $path === '') return '';
+    $path = trim($path);
+    if (strpos($path, '/') !== false) return $path;
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $isVideo = in_array($ext, ['mp4', 'webm', 'mov'], true);
+    return ($isVideo ? CORTES_VIDEO_REL : CORTES_DIR_REL) . '/' . $path;
+}
+
 switch ($action) {
     case 'list':
+        foreach ($data['categorias'] as $ci => $cat) {
+            if (empty($cat['items']) || !is_array($cat['items'])) continue;
+            foreach ($cat['items'] as $ii => $item) {
+                $data['categorias'][$ci]['items'][$ii]['imagen1'] = normalizarPathMedia($item['imagen1'] ?? '');
+                if (isset($item['imagen2'])) {
+                    $data['categorias'][$ci]['items'][$ii]['imagen2'] = normalizarPathMedia($item['imagen2'] ?? '');
+                }
+            }
+        }
         jsonResponse(['ok' => true, 'data' => $data]);
         break;
 
@@ -124,6 +143,8 @@ switch ($action) {
             jsonError('Oferta no encontrada', 404);
         }
         $item['_categoria'] = $data['categorias'][$ci]['nombre'] ?? '';
+        $item['imagen1'] = normalizarPathMedia($item['imagen1'] ?? '');
+        if (isset($item['imagen2'])) $item['imagen2'] = normalizarPathMedia($item['imagen2'] ?? '');
         jsonResponse(['ok' => true, 'data' => $item]);
         break;
 
