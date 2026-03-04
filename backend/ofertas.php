@@ -78,23 +78,19 @@ if (empty($data['moneda'])) $data['moneda'] = 'ARS';
 // Normalizar estructura: asegurar id y estado en todas las ofertas existentes
 $changed = false;
 $nextId = nextIdEnCategorias($data);
-    foreach ($data['categorias'] as $ci => $cat) {
-        if (empty($cat['items']) || !is_array($cat['items'])) continue;
-        foreach ($cat['items'] as $ii => $item) {
-            if (!isset($item['id']) || $item['id'] === '') {
-                $data['categorias'][$ci]['items'][$ii]['id'] = (string)$nextId++;
-                $changed = true;
-            }
-            if (!isset($item['estado'])) {
-                $data['categorias'][$ci]['items'][$ii]['estado'] = 1;
-                $changed = true;
-            }
-            if (isset($data['categorias'][$ci]['items'][$ii]['imagen2'])) {
-                unset($data['categorias'][$ci]['items'][$ii]['imagen2']);
-                $changed = true;
-            }
+foreach ($data['categorias'] as $ci => $cat) {
+    if (empty($cat['items']) || !is_array($cat['items'])) continue;
+    foreach ($cat['items'] as $ii => $item) {
+        if (!isset($item['id']) || $item['id'] === '') {
+            $data['categorias'][$ci]['items'][$ii]['id'] = (string)$nextId++;
+            $changed = true;
+        }
+        if (!isset($item['estado'])) {
+            $data['categorias'][$ci]['items'][$ii]['estado'] = 1;
+            $changed = true;
         }
     }
+}
 if ($changed) {
     $data['updated'] = updatedTimestamp();
     writeJson(FILE_OFERTAS, $data);
@@ -131,7 +127,7 @@ switch ($action) {
         break;
 
     case 'create':
-        $categoriaNombre = 'Ofertas';
+        $categoriaNombre = trim($input['categoria'] ?? $input['nombre_categoria'] ?? '');
         $nombre = trim($input['nombre'] ?? '');
         if ($nombre === '') {
             jsonError('Nombre requerido');
@@ -141,6 +137,7 @@ switch ($action) {
         }
         $newId = (string) nextIdEnCategorias($data);
         $imagen1 = subirArchivoOferta('imagen1', 'imagen') ?? subirArchivoOferta('imagen', 'imagen');
+        $imagen2 = subirArchivoOferta('imagen2', 'imagen');
         if (!$imagen1 && !empty($input['imagen1'])) $imagen1 = trim($input['imagen1']);
         if (!$imagen2 && !empty($input['imagen2'])) $imagen2 = trim($input['imagen2']);
         $video1 = subirArchivoOferta('video1', 'video');
@@ -152,6 +149,7 @@ switch ($action) {
             'unidad' => trim($input['unidad'] ?? ''),
             'precio' => (int)(float)($input['precio'] ?? 0),
             'imagen1' => $imagen1 ?? '',
+            'imagen2' => $imagen2 ?? '',
             'estado' => isset($input['estado']) ? (int)(bool)$input['estado'] : 1,
             'updated_at' => updatedTimestamp(),
         ];
@@ -170,6 +168,7 @@ switch ($action) {
         $data['updated'] = updatedTimestamp();
         if (!writeJson(FILE_OFERTAS, $data)) {
             eliminarArchivoOferta($imagen1 ?? '');
+            eliminarArchivoOferta($imagen2 ?? '');
             jsonError('Error al guardar', 500);
         }
         jsonResponse(['ok' => true, 'data' => $newItem]);
@@ -194,6 +193,13 @@ switch ($action) {
         } elseif (array_key_exists('imagen1', $input)) {
             $data['categorias'][$ci]['items'][$ii]['imagen1'] = trim($input['imagen1']);
         }
+        $up2 = subirArchivoOferta('imagen2', 'imagen');
+        if ($up2) {
+            eliminarArchivoOferta($data['categorias'][$ci]['items'][$ii]['imagen2'] ?? '');
+            $data['categorias'][$ci]['items'][$ii]['imagen2'] = $up2;
+        } else        if (array_key_exists('imagen2', $input)) {
+            $data['categorias'][$ci]['items'][$ii]['imagen2'] = trim($input['imagen2']);
+        }
         $data['categorias'][$ci]['items'][$ii]['updated_at'] = updatedTimestamp();
         $data['updated'] = updatedTimestamp();
         if (!writeJson(FILE_OFERTAS, $data)) {
@@ -211,6 +217,7 @@ switch ($action) {
             jsonError('Oferta no encontrada', 404);
         }
         eliminarArchivoOferta($item['imagen1'] ?? '');
+        eliminarArchivoOferta($item['imagen2'] ?? '');
         array_splice($data['categorias'][$ci]['items'], $ii, 1);
         if (empty($data['categorias'][$ci]['items'])) {
             array_splice($data['categorias'], $ci, 1);

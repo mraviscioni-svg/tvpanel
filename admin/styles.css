@@ -155,14 +155,7 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   padding: 0.5rem 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-.sidebar-section-title {
-  padding: 0.25rem 0.5rem;
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
+  gap: 0.125rem;
 }
 .nav-item {
   display: flex;
@@ -637,6 +630,9 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   min-width: 80px;
   text-align: right;
 }
+.table-wrap td.media-cell {
+  text-align: center;
+}
 .table-wrap tr:last-child td { border-bottom: none; }
 .table-wrap tr:hover td { background: rgba(255,255,255,0.03); }
 .table-actions { display: flex; gap: 0.35rem; }
@@ -663,16 +659,6 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 .items-table { margin-top: 0; }
 .items-table .table-wrap { border-radius: var(--radius-sm); }
-
-.input-readonly {
-  width: 100%;
-  padding: 0.4rem 0.6rem;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-}
 
 /* ===== TV cards ===== */
 .tv-card-grid {
@@ -857,6 +843,19 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+}
+.modal-body.no-scroll {
+  overflow-y: visible;
+}
+.media-inline-preview {
+  margin-top: 0.4rem;
+  padding: 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  background: var(--bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .modal-body .field { margin-bottom: 0.6rem; }
 .modal-body .field:last-of-type { margin-bottom: 0; }
