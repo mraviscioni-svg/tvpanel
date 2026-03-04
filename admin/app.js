@@ -150,10 +150,17 @@
     updateClearVisibility();
   }
 
+  function normalizeText(str) {
+    return String(str || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  }
+
   function filterAndPaginate(rows, searchText, textFields, page, pageSize) {
-    const q = (searchText || '').trim().toLowerCase();
+    const q = normalizeText((searchText || '').trim());
     const filtered = q
-      ? rows.filter(r => textFields.some(f => String(r[f] || '').toLowerCase().includes(q)))
+      ? rows.filter(r => textFields.some(f => normalizeText(r[f]).includes(q)))
       : rows;
     const total = filtered.length;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -373,6 +380,7 @@
           <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
           <td class="table-actions">
             <button type="button" class="btn btn-ghost btn-sm" data-edit-product="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle-product="${escapeAttr(it.id)}" data-estado="${it.estado ? '1' : '0'}">${it.estado ? 'Desactivar' : 'Activar'}</button>
             <button type="button" class="btn btn-danger btn-sm" data-delete-product="${escapeAttr(it.id)}">Eliminar</button>
           </td>
         </tr>`;
@@ -452,6 +460,22 @@
       bindSearchWithClear(content, 'productos-search', 'productos', () => loadProductos(content));
       content.querySelectorAll('[data-edit-product]').forEach(btn => {
         btn.onclick = () => openModalProductoEdit(btn.dataset.editProduct, btn.dataset.cat);
+      });
+      content.querySelectorAll('[data-toggle-product]').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.dataset.toggleProduct;
+          const estadoActual = btn.dataset.estado === '1';
+          const nuevoEstado = estadoActual ? 0 : 1;
+          showConfirmDelete({
+            title: 'Cambiar estado',
+            message: `¿Seguro que querés ${estadoActual ? 'desactivar' : 'activar'} este producto?`,
+            onConfirm: () => {
+              apiPost('/productos.php', { action: 'update', id: String(id), estado: nuevoEstado })
+                .then(() => { showToast('Estado actualizado.', 'success'); loadProductos(content); })
+                .catch(err => showToast(err.message || 'Error al cambiar estado', 'error'));
+            }
+          });
+        };
       });
       content.querySelectorAll('[data-delete-product]').forEach(btn => {
         btn.onclick = () => deleteProducto(btn.dataset.deleteProduct);
@@ -565,12 +589,13 @@
           <div class="tv-card-body">
             <h3 class="tv-card-title">${escapeHtml(t.title || '')}</h3>
             <p class="tv-card-desc">${escapeHtml(desc || 'Sin descripción')}</p>
-            ${url ? `<p class="tv-card-url" title="${escapeAttr(url)}">${escapeHtml(url)}</p>` : ''}
           </div>
           <footer class="tv-card-footer">
             <span class="tv-card-status">${t.active ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</span>
             <div class="tv-card-actions">
+              ${url ? `<button type="button" class="btn btn-secondary btn-sm" data-open-tv-url="${escapeAttr(url)}">Probar link</button>` : ''}
               <button type="button" class="btn btn-ghost btn-sm" data-edit-tv="${escapeAttr(t.id)}">Editar</button>
+              <button type="button" class="btn btn-secondary btn-sm" data-toggle-tv="${escapeAttr(t.id)}" data-active="${t.active ? '1' : '0'}">${t.active ? 'Desactivar' : 'Activar'}</button>
               <button type="button" class="btn btn-danger btn-sm" data-delete-tv="${escapeAttr(t.id)}">Eliminar</button>
             </div>
           </footer>
@@ -580,8 +605,30 @@
       content.innerHTML = html;
       renderPagination(content, 'tvs', total, page, totalPages, pageSize, () => loadTVs(content));
       bindSearchWithClear(content, 'tvs-search', 'tvs', () => loadTVs(content));
+      content.querySelectorAll('[data-open-tv-url]').forEach(btn => {
+        btn.onclick = () => {
+          const url = btn.dataset.openTvUrl;
+          if (url) window.open(url, '_blank');
+        };
+      });
       content.querySelectorAll('[data-edit-tv]').forEach(btn => {
         btn.onclick = () => openModalTVEdit(btn.dataset.editTv);
+      });
+      content.querySelectorAll('[data-toggle-tv]').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.dataset.toggleTv;
+          const activeNow = btn.dataset.active === '1';
+          const newActive = activeNow ? 0 : 1;
+          showConfirmDelete({
+            title: 'Cambiar estado',
+            message: `¿Seguro que querés ${activeNow ? 'desactivar' : 'activar'} este televisor?`,
+            onConfirm: () => {
+              apiPost('/tvs.php', { action: 'update', id: String(id), active: newActive })
+                .then(() => { showToast('Estado actualizado.', 'success'); loadTVs(content); })
+                .catch(err => showToast(err.message || 'Error al cambiar estado', 'error'));
+            }
+          });
+        };
       });
       content.querySelectorAll('[data-delete-tv]').forEach(btn => {
         btn.onclick = () => deleteTV(btn.dataset.deleteTv);
@@ -627,6 +674,7 @@
           <td>${u.active ? '<span class="badge success">Sí</span>' : '<span class="badge danger">No</span>'}</td>
           <td class="table-actions">
             <button type="button" class="btn btn-ghost btn-sm" data-edit-user="${escapeAttr(u.id)}">Editar</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle-user="${escapeAttr(u.id)}" data-active="${u.active ? '1' : '0'}">${u.active ? 'Desactivar' : 'Activar'}</button>
             <button type="button" class="btn btn-danger btn-sm" data-delete-user="${escapeAttr(u.id)}">Eliminar</button>
           </td>
         </tr>`;
@@ -637,6 +685,22 @@
       bindSearchWithClear(content, 'usuarios-search', 'usuarios', () => loadUsuarios(content));
       content.querySelectorAll('[data-edit-user]').forEach(btn => {
         btn.onclick = () => openModalUsuarioEdit(btn.dataset.editUser);
+      });
+      content.querySelectorAll('[data-toggle-user]').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.dataset.toggleUser;
+          const activeNow = btn.dataset.active === '1';
+          const newActive = activeNow ? 0 : 1;
+          showConfirmDelete({
+            title: 'Cambiar estado',
+            message: `¿Seguro que querés ${activeNow ? 'desactivar' : 'activar'} este usuario?`,
+            onConfirm: () => {
+              apiPost('/usuarios.php', { action: 'update', id: Number(id), active: newActive })
+                .then(() => { showToast('Estado actualizado.', 'success'); loadUsuarios(content); })
+                .catch(err => showToast(err.message || 'Error al cambiar estado', 'error'));
+            }
+          });
+        };
       });
       content.querySelectorAll('[data-delete-user]').forEach(btn => {
         btn.onclick = () => deleteUsuario(btn.dataset.deleteUser);
