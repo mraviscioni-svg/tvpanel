@@ -198,12 +198,46 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   padding: 0.5rem 0.5rem;
   border-top: 1px solid var(--border);
 }
-.user-badge {
-  display: block;
-  padding: 0.35rem 0.75rem;
-  font-size: var(--text-xs);
-  color: var(--text-muted);
+.user-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
   margin-bottom: 0.25rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.user-profile-trigger:hover {
+  background: var(--border);
+  border-color: var(--accent);
+}
+.user-profile-avatar {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 50%;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.user-profile-name,
+.user-badge {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .content {
   flex: 1;
@@ -1145,7 +1179,7 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   .sidebar { width: 72px; padding: 0.5rem 0; }
   .sidebar-header span:not(.logo-icon),
   .nav-item span:not(.nav-icon),
-  .user-badge { display: none; }
+  .user-profile-name { display: none; }
   .sidebar-header { justify-content: center; padding: 1rem; }
   .nav-item { justify-content: center; padding: 1rem; }
   .content { padding: 1rem; }

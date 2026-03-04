@@ -342,7 +342,7 @@
   function checkSession() {
     return api('/session.php').then(data => {
       if (data.ok && data.usuario) {
-        user = { usuario: data.usuario, nombre: data.nombre, perfil: data.perfil };
+        user = { id: data.id, usuario: data.usuario, nombre: data.nombre, perfil: data.perfil };
         return true;
       }
       return false;
@@ -1148,8 +1148,9 @@
   function buildMediaUrl(src) {
     if (!src) return '';
     if (/^https?:\/\//i.test(src)) return src;
-    if (src.startsWith('/')) return src;
-    return '/' + src;
+    const path = src.startsWith('/') ? src.slice(1) : src;
+    const origin = window.location.origin || '';
+    return origin ? (origin.replace(/\/$/, '') + '/' + path) : '/' + path;
   }
 
   function deleteTV(id) {
@@ -1458,6 +1459,71 @@
     e.preventDefault();
     api('/logout.php').then(() => { showScreen('login'); }).catch(() => { showScreen('login'); });
   };
+
+  function openProfileModal() {
+    const modal = $('#profile-modal');
+    const body = $('#profile-modal-body');
+    if (!modal || !body) return;
+    body.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando…</div>';
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    api('/perfil.php?action=get')
+      .then((data) => {
+        const d = data.data || data;
+        const nombre = d.name || d.nombre || user?.nombre || '';
+        const usuario = d.username || d.usuario || user?.usuario || '';
+        body.innerHTML = `
+          <form id="profile-form" class="form-grid">
+            <div class="field span-2">
+              <label>Usuario (login)</label>
+              <input type="text" value="${escapeAttr(usuario)}" readonly class="input" style="opacity:0.8;">
+            </div>
+            <div class="field span-2">
+              <label>Nombre</label>
+              <input type="text" id="profile-name" class="input" value="${escapeAttr(nombre)}" placeholder="Tu nombre para mostrar">
+            </div>
+            <div class="field span-2">
+              <label>Nueva contraseña</label>
+              <input type="password" id="profile-password" class="input" placeholder="Dejar en blanco para no cambiar" autocomplete="new-password">
+            </div>
+          </form>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" id="profile-cancel">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="profile-save">Guardar</button>
+          </div>`;
+        body.querySelector('#profile-cancel').onclick = closeProfileModal;
+        body.querySelector('#profile-save').onclick = () => {
+          const name = (body.querySelector('#profile-name') || {}).value?.trim() || '';
+          const password = (body.querySelector('#profile-password') || {}).value || '';
+          const payload = { action: 'update', name };
+          if (password) payload.password = password;
+          apiPost('/perfil.php', payload)
+            .then((res) => {
+              if (res.data && res.data.name !== undefined) user.nombre = res.data.name;
+              if (user) $('#user-badge').textContent = user.nombre || user.usuario;
+              closeProfileModal();
+              showToast('Perfil actualizado.', 'success');
+            })
+            .catch((err) => showToast(err.message || 'Error al guardar', 'error'));
+        };
+      })
+      .catch((err) => {
+        body.innerHTML = '<div class="empty-state"><p class="error-msg">' + (err.message || 'No se pudo cargar el perfil') + '</p><button type="button" class="btn btn-ghost" id="profile-cancel">Cerrar</button></div>';
+        body.querySelector('#profile-cancel').onclick = closeProfileModal;
+      });
+  }
+
+  function closeProfileModal() {
+    const modal = $('#profile-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  $('#user-profile-trigger').onclick = openProfileModal;
+  $('#profile-modal-close').onclick = closeProfileModal;
+  $('#profile-modal-backdrop').onclick = closeProfileModal;
 
   $('#modal-close').onclick = closeModal;
   $('#modal-backdrop').onclick = closeModal;

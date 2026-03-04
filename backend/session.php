@@ -24,6 +24,7 @@ if ($nombre === null || $nombre === '') {
 }
 jsonResponse([
     'ok' => true,
+    'id' => (int)($_SESSION['user_id'] ?? 0),
     'usuario' => $_SESSION['usuario'] ?? null,
     'nombre' => $nombre,
     'perfil' => $_SESSION['perfil'] ?? null
