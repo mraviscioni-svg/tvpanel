@@ -19,6 +19,35 @@
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => el.querySelectorAll(sel);
 
+  /** Parsea fecha "dd-mm-yyyy" o "dd-mm-yyyy HH:ii" y devuelve texto relativo: "hace 2 h", "hace 3 días", etc. */
+  function formatRelativeDate(str) {
+    if (!str || typeof str !== 'string') return '—';
+    const s = str.trim();
+    const parts = s.split(/\s+/);
+    const datePart = parts[0];
+    const timePart = parts[1] || '';
+    const [d, m, y] = (datePart || '').split(/[-\/]/).map(Number);
+    if (!d || !m || !y) return s;
+    const monthNames = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    let date = new Date(y, m - 1, d);
+    if (timePart && /^\d{1,2}:\d{2}$/.test(timePart)) {
+      const [h, i] = timePart.split(':').map(Number);
+      date.setHours(h, i, 0, 0);
+    }
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffH = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffMin < 1) return 'hace un momento';
+    if (diffMin < 60) return `hace ${diffMin} min`;
+    if (diffH < 24) return `hace ${diffH} h`;
+    if (diffDays === 1) return 'ayer';
+    if (diffDays < 7) return `hace ${diffDays} días`;
+    if (diffDays < 30) return `hace ${Math.floor(diffDays / 7)} sem`;
+    return `${d} ${monthNames[m - 1]}`;
+  }
+
   function filterAndPaginate(rows, searchText, textFields, page, pageSize) {
     const q = (searchText || '').trim().toLowerCase();
     const filtered = q
@@ -166,7 +195,7 @@
             </div>
           </div>
           <div class="toolbar-meta">
-            <span class="pill">Actualizado: <span class="mono">${escapeHtml(String(data.updated || '-'))}</span></span>
+            <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || ''))}</span>
           </div>
         </div>
       `;
@@ -187,13 +216,14 @@
             </thead>
             <tbody>`;
       rows.forEach(it => {
-        const mod = it.updated_at || data.updated || '-';
+        const modRaw = it.updated_at || data.updated || '';
+        const modLabel = formatRelativeDate(modRaw);
         html += `<tr>
           <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
           <td>${escapeHtml(it.nombre)}</td>
           <td>${escapeHtml(it.unidad)}</td>
           <td><code>${escapeHtml(String(it.precio))}</code></td>
-          <td><span class="pill mono">${escapeHtml(String(mod))}</span></td>
+          <td><span class="tag-time" title="${escapeAttr(String(modRaw))}">${escapeHtml(modLabel)}</span></td>
           <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
           <td class="table-actions">
             <button type="button" class="btn btn-ghost btn-sm" data-edit-product="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
@@ -525,21 +555,26 @@
       const catSet = new Set(catList);
       const currentCat = (row.categoria || row._categoria || '').trim();
       if (currentCat && !catSet.has(currentCat)) catList.push(currentCat);
-      const catOptions = catList.map(n => `<option value="${escapeAttr(n)}" ${n === currentCat ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('');
+      const catOptionsHtml = catList.map(n => `<button type="button" class="custom-categoria-option" data-value="${escapeAttr(n)}">${escapeHtml(n)}</button>`).join('');
       title.textContent = mode === 'create' ? 'Nuevo producto' : 'Editar producto';
       body.innerHTML = `
         <div class="form-grid">
           <div class="field span-2">
             <label>Categoría</label>
-            <select id="f-categoria" class="select form-categoria-select">
-              <option value="">— Elegir categoría —</option>
-              ${catOptions}
-              <option value="__nueva__">+ Nueva categoría...</option>
-            </select>
-            <div class="field-nueva-cat hidden" id="wrap-categoria-nueva">
-              <input type="text" id="f-categoria-nueva" placeholder="Nombre de la nueva categoría" autocomplete="off">
+            <div class="custom-categoria">
+              <input type="hidden" id="f-categoria" value="${escapeAttr(currentCat)}">
+              <button type="button" class="custom-categoria-trigger" id="trigger-categoria">${escapeHtml(currentCat || 'Elegir categoría')}</button>
+              <div class="custom-categoria-dropdown hidden" id="dropdown-categoria">
+                <div class="custom-categoria-list">
+                  ${catOptionsHtml}
+                  <button type="button" class="custom-categoria-option nueva" data-value="__nueva__">+ Nueva categoría...</button>
+                </div>
+                <div class="field-nueva-cat hidden" id="wrap-categoria-nueva">
+                  <input type="text" id="f-categoria-nueva" placeholder="Nombre de la nueva categoría" autocomplete="off">
+                </div>
+              </div>
             </div>
-            <div class="help">Elegí una existente del listado de productos o creá una nueva.</div>
+            <div class="help">Elegí una del listado o creá una nueva.</div>
           </div>
           <div class="field">
             <label>Estado</label>
@@ -571,16 +606,40 @@
         </div>`;
       const selEstado = body.querySelector('#f-estado');
       if (selEstado) selEstado.value = row.estado === 0 ? '0' : '1';
-      const selCat = body.querySelector('#f-categoria');
+      const triggerCat = body.querySelector('#trigger-categoria');
+      const dropdownCat = body.querySelector('#dropdown-categoria');
+      const hiddenCat = body.querySelector('#f-categoria');
       const wrapNueva = body.querySelector('#wrap-categoria-nueva');
       const inputNueva = body.querySelector('#f-categoria-nueva');
-      if (selCat && wrapNueva && inputNueva) {
-        selCat.onchange = function () {
-          const isNueva = this.value === '__nueva__';
-          wrapNueva.classList.toggle('hidden', !isNueva);
-          if (isNueva) inputNueva.focus();
+      if (triggerCat && dropdownCat && hiddenCat) {
+        const closeDropdown = () => {
+          dropdownCat.classList.add('hidden');
+          triggerCat.classList.remove('open');
+          document.removeEventListener('click', closeDropdown);
         };
-        if (selCat.value === '__nueva__') wrapNueva.classList.remove('hidden');
+        triggerCat.onclick = function (e) {
+          e.stopPropagation();
+          const open = dropdownCat.classList.toggle('hidden');
+          triggerCat.classList.toggle('open', !open);
+          if (!open) document.addEventListener('click', closeDropdown);
+          else document.removeEventListener('click', closeDropdown);
+        };
+        body.querySelectorAll('.custom-categoria-option').forEach(opt => {
+          opt.onclick = function (e) {
+            e.stopPropagation();
+            const val = this.dataset.value;
+            hiddenCat.value = val;
+            if (val === '__nueva__') {
+              wrapNueva.classList.remove('hidden');
+              triggerCat.textContent = 'Nueva categoría...';
+              inputNueva.focus();
+            } else {
+              wrapNueva.classList.add('hidden');
+              triggerCat.textContent = this.textContent.trim();
+            }
+            closeDropdown();
+          };
+        });
       }
       body.querySelector('[data-modal-save]').onclick = () => saveProducto(mode, row.id);
     } else if (view === 'ofertas') {
@@ -588,21 +647,26 @@
       const catSet = new Set(catList);
       const currentCat = (row.categoria || row._categoria || '').trim();
       if (currentCat && !catSet.has(currentCat)) catList.push(currentCat);
-      const catOptions = catList.map(n => `<option value="${escapeAttr(n)}" ${n === currentCat ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('');
+      const catOptionsHtml = catList.map(n => `<button type="button" class="custom-categoria-option" data-value="${escapeAttr(n)}">${escapeHtml(n)}</button>`).join('');
       title.textContent = mode === 'create' ? 'Nueva oferta' : 'Editar oferta';
       body.innerHTML = `
         <div class="form-grid">
           <div class="field span-2">
             <label>Categoría</label>
-            <select id="f-categoria" class="select form-categoria-select">
-              <option value="">— Elegir categoría —</option>
-              ${catOptions}
-              <option value="__nueva__">+ Nueva categoría...</option>
-            </select>
-            <div class="field-nueva-cat hidden" id="wrap-categoria-nueva">
-              <input type="text" id="f-categoria-nueva" placeholder="Nombre de la nueva categoría" autocomplete="off">
+            <div class="custom-categoria">
+              <input type="hidden" id="f-categoria" value="${escapeAttr(currentCat)}">
+              <button type="button" class="custom-categoria-trigger" id="trigger-categoria">${escapeHtml(currentCat || 'Elegir categoría')}</button>
+              <div class="custom-categoria-dropdown hidden" id="dropdown-categoria">
+                <div class="custom-categoria-list">
+                  ${catOptionsHtml}
+                  <button type="button" class="custom-categoria-option nueva" data-value="__nueva__">+ Nueva categoría...</button>
+                </div>
+                <div class="field-nueva-cat hidden" id="wrap-categoria-nueva">
+                  <input type="text" id="f-categoria-nueva" placeholder="Nombre de la nueva categoría" autocomplete="off">
+                </div>
+              </div>
             </div>
-            <div class="help">Elegí una del listado de ofertas o creá una nueva.</div>
+            <div class="help">Elegí una del listado o creá una nueva.</div>
           </div>
           <div class="field span-2">
             <label>Nombre</label>
@@ -629,16 +693,34 @@
           <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
           <button type="button" class="btn btn-primary" data-modal-save>Guardar</button>
         </div>`;
-      const selCat = body.querySelector('#f-categoria');
+      const triggerCat = body.querySelector('#trigger-categoria');
+      const dropdownCat = body.querySelector('#dropdown-categoria');
+      const hiddenCat = body.querySelector('#f-categoria');
       const wrapNueva = body.querySelector('#wrap-categoria-nueva');
       const inputNueva = body.querySelector('#f-categoria-nueva');
-      if (selCat && wrapNueva && inputNueva) {
-        selCat.onchange = function () {
-          const isNueva = this.value === '__nueva__';
-          wrapNueva.classList.toggle('hidden', !isNueva);
-          if (isNueva) inputNueva.focus();
+      if (triggerCat && dropdownCat && hiddenCat) {
+        const closeDropdown = () => {
+          dropdownCat.classList.add('hidden');
+          triggerCat.classList.remove('open');
+          document.removeEventListener('click', closeDropdown);
         };
-        if (selCat.value === '__nueva__') wrapNueva.classList.remove('hidden');
+        triggerCat.onclick = function (e) {
+          e.stopPropagation();
+          const open = dropdownCat.classList.toggle('hidden');
+          triggerCat.classList.toggle('open', !open);
+          if (!open) document.addEventListener('click', closeDropdown);
+          else document.removeEventListener('click', closeDropdown);
+        };
+        body.querySelectorAll('.custom-categoria-option').forEach(opt => {
+          opt.onclick = function (e) {
+            e.stopPropagation();
+            const val = this.dataset.value;
+            hiddenCat.value = val;
+            if (val === '__nueva__') { wrapNueva.classList.remove('hidden'); triggerCat.textContent = 'Nueva categoría...'; inputNueva.focus(); }
+            else { wrapNueva.classList.add('hidden'); triggerCat.textContent = this.textContent.trim(); }
+            closeDropdown();
+          };
+        });
       }
       body.querySelector('[data-modal-save]').onclick = () => saveOferta(mode, row.id);
     } else if (view === 'tvs') {
