@@ -782,7 +782,7 @@
         btn.onclick = () => {
           const m1 = btn.dataset.media1 || '';
           const m2 = btn.dataset.media2 || '';
-          openMediaPreview(buildOfertaMediaUrl(m1 || m2));
+          openMediaPreview(m1 || m2);
         };
       });
       content.querySelectorAll('[data-edit-oferta]').forEach(btn => {
@@ -1277,7 +1277,7 @@
 
   function openMediaPreview(src) {
     if (!src) return;
-    const resolved = buildMediaUrl(src);
+    const resolved = (typeof src === 'string' && src.startsWith('blob:')) ? src : buildMediaUrl(src);
     const modal = $('#modal');
     const title = $('#modal-title');
     const body = $('#modal-body');
@@ -1505,7 +1505,7 @@
       const btnPreview = body.querySelector('#oferta-btn-preview');
       const fImg = body.querySelector('#f-imagen1');
       const currentMedia = row.imagen1 || '';
-      let currentPreviewSrc = currentMedia ? buildOfertaMediaUrl(currentMedia) : null;
+      let currentPreviewSrc = currentMedia || null;
       let lastBlobUrl = null;
 
       function getDisplayName(src) {
@@ -1533,7 +1533,7 @@
             lastBlobUrl = URL.createObjectURL(file);
             currentPreviewSrc = lastBlobUrl;
           } else {
-            currentPreviewSrc = currentMedia ? buildOfertaMediaUrl(currentMedia) : null;
+            currentPreviewSrc = currentMedia || null;
           }
           updateUploadUI();
         };
