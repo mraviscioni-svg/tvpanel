@@ -1284,7 +1284,8 @@
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
     title.textContent = 'Previsualización';
-    const isVideo = /\.mp4$|\.webm$|\.mov$/i.test(resolved);
+    const pathOnly = (resolved && (resolved.split('?')[0].split('#')[0])) || '';
+    const isVideo = /\.(mp4|webm|mov)$/i.test(pathOnly);
     const safeSrc = escapeAttr(resolved);
     body.innerHTML = `
       <div class="media-preview">
@@ -1473,8 +1474,18 @@
           </div>
           <div class="field span-2">
             <label>Imagen / Video</label>
-            <div class="file-upload" id="wrap-imagen1"><input type="file" id="f-imagen1" accept="image/*,video/*"></div>
-            <div class="media-inline-preview" id="oferta-media-preview"></div>
+            <div class="oferta-upload-zone" id="oferta-upload-zone">
+              <input type="file" id="f-imagen1" accept="image/*,video/*" class="oferta-upload-input">
+              <div class="oferta-upload-placeholder" id="oferta-upload-placeholder">
+                <span class="oferta-upload-icon" aria-hidden="true"></span>
+                <span class="oferta-upload-text">Arrastrá un archivo o hacé clic para elegir</span>
+                <span class="oferta-upload-hint">Imagen (JPG, PNG) o video (MP4, WebM)</span>
+              </div>
+              <div class="oferta-upload-chosen hidden" id="oferta-upload-chosen">
+                <span class="oferta-upload-filename" id="oferta-upload-filename"></span>
+                <button type="button" class="btn btn-ghost btn-sm oferta-btn-preview" id="oferta-btn-preview">Ver preview</button>
+              </div>
+            </div>
             <div id="oferta-upload-progress" class="upload-progress-wrap hidden">
               <div class="upload-progress-bar"><div id="oferta-upload-progress-bar" class="upload-progress-fill"></div></div>
               <span id="oferta-upload-progress-label" class="upload-progress-label">Subiendo…</span>
@@ -1487,30 +1498,50 @@
         </div>`;
       body.classList.add('no-scroll');
 
-      const mediaPreview = body.querySelector('#oferta-media-preview');
+      const zone = body.querySelector('#oferta-upload-zone');
+      const placeholder = body.querySelector('#oferta-upload-placeholder');
+      const chosen = body.querySelector('#oferta-upload-chosen');
+      const filenameEl = body.querySelector('#oferta-upload-filename');
+      const btnPreview = body.querySelector('#oferta-btn-preview');
       const fImg = body.querySelector('#f-imagen1');
       const currentMedia = row.imagen1 || '';
+      let currentPreviewSrc = currentMedia ? buildOfertaMediaUrl(currentMedia) : null;
       let lastBlobUrl = null;
-      const renderInlinePreview = (src) => {
-        if (!mediaPreview) return;
-        if (lastBlobUrl) { URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = null; }
-        mediaPreview.innerHTML = '';
-        if (!src) { mediaPreview.textContent = 'Sin archivo seleccionado'; return; }
-        const isBlob = typeof src === 'string' && src.startsWith('blob:');
-        const resolved = isBlob ? src : buildOfertaMediaUrl(src);
-        const isVideo = isBlob ? /\.(mp4|webm|mov)$/i.test(src) || (fImg && fImg.files && fImg.files[0] && fImg.files[0].type.startsWith('video/')) : /\.mp4$|\.webm$|\.mov$/i.test(resolved);
-        mediaPreview.innerHTML = isVideo
-          ? `<video src="${escapeAttr(resolved)}" controls muted playsinline style="max-width:100%;max-height:180px;border-radius:4px;"></video>`
-          : `<img src="${escapeAttr(resolved)}" alt="Previsualización" style="max-width:100%;max-height:180px;border-radius:4px;">`;
-      };
-      if (currentMedia) renderInlinePreview(currentMedia);
-      else renderInlinePreview('');
-      if (fImg) {
+
+      function getDisplayName(src) {
+        if (!src || typeof src !== 'string') return '';
+        if (src.startsWith('blob:')) return (fImg && fImg.files && fImg.files[0] && fImg.files[0].name) || 'Archivo';
+        const parts = src.replace(/\\/g, '/').split('/');
+        return parts[parts.length - 1] || 'Archivo';
+      }
+      function updateUploadUI() {
+        const hasFile = !!(currentPreviewSrc || (fImg && fImg.files && fImg.files[0]));
+        if (placeholder && chosen) {
+          placeholder.classList.toggle('hidden', hasFile);
+          chosen.classList.toggle('hidden', !hasFile);
+        }
+        if (filenameEl) filenameEl.textContent = hasFile ? (fImg && fImg.files && fImg.files[0] ? fImg.files[0].name : getDisplayName(currentMedia)) : '';
+      }
+      updateUploadUI();
+
+      if (zone && fImg) {
+        zone.onclick = (e) => { if (e.target !== fImg && !e.target.closest('.oferta-btn-preview')) fImg.click(); };
         fImg.onchange = () => {
+          if (lastBlobUrl) { URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = null; }
           const file = fImg.files && fImg.files[0];
-          if (!file) { renderInlinePreview(''); return; }
-          lastBlobUrl = URL.createObjectURL(file);
-          renderInlinePreview(lastBlobUrl);
+          if (file) {
+            lastBlobUrl = URL.createObjectURL(file);
+            currentPreviewSrc = lastBlobUrl;
+          } else {
+            currentPreviewSrc = currentMedia ? buildOfertaMediaUrl(currentMedia) : null;
+          }
+          updateUploadUI();
+        };
+      }
+      if (btnPreview) {
+        btnPreview.onclick = (e) => {
+          e.stopPropagation();
+          if (currentPreviewSrc) openMediaPreview(currentPreviewSrc);
         };
       }
       body.querySelector('[data-modal-cancel]')?.addEventListener('click', () => {
