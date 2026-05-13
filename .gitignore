@@ -6,6 +6,9 @@ __pycache__/
 venv/
 env/
 
+# Next.js SaaS vive en repo aparte (Gestor-Stock); clon local solo para desarrollo
+kiosco-saas/
+
 # IDE / OS
 .idea/
 .vscode/
