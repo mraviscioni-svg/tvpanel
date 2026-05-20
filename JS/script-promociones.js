@@ -21,26 +21,8 @@ function init(data) {
   if (!categorias.length) return;
 
   categorias.forEach(cat => {
-    // ===== INTERMEDIO =====
-    const intro = document.createElement('div');
-    intro.className = 'intermediate';
-    intro.dataset.duration = String(INTRO_MS);
-    intro.innerHTML = `
-      <img class="logo" src="/IMG/Logo.png" alt="Logo Carnicería">
-      <div class="headline">PEDIDOS POR WHATSAPP</div>
-      <div class="copy">
-        Escaneá el QR y hacé tu pedido en segundos.<br>
-        Te respondemos a la brevedad.
-      </div>
-      <div class="qrCenter">
-        <div class="qrCard">
-          <img src="/IMG/qrcode.jpg" alt="QR WhatsApp">
-        </div>
-        <div class="chip">📲 WHATSAPP</div>
-      </div>
-    `;
-    root.appendChild(intro);
-    slides.push(intro);
+    appendIntermediateWhatsApp(root);
+    appendIntermediateEfectivo10(root);
 
     // ===== ITEMS =====
     const items = Array.isArray(cat?.items) ? cat.items : [];
@@ -85,6 +67,44 @@ function init(data) {
 
   showSlide(0);
   scheduleNext();
+}
+
+function appendIntermediateWhatsApp(root) {
+  const intro = document.createElement('div');
+  intro.className = 'intermediate';
+  intro.dataset.duration = String(INTRO_MS);
+  intro.innerHTML = `
+    <img class="logo" src="/IMG/Logo.png" alt="Logo Carnicería">
+    <div class="headline">PEDIDOS POR WHATSAPP</div>
+    <div class="copy">
+      Escaneá el QR y hacé tu pedido en segundos.<br>
+      Te respondemos a la brevedad.
+    </div>
+    <div class="qrCenter">
+      <div class="qrCard">
+        <img src="/IMG/qrcode.jpg" alt="QR WhatsApp">
+      </div>
+      <div class="chip">📲 WHATSAPP</div>
+    </div>
+  `;
+  root.appendChild(intro);
+  slides.push(intro);
+}
+
+/** Slide intermedio: 10% descuento pagos en efectivo (gráfica fija). */
+function appendIntermediateEfectivo10(root) {
+  const intro = document.createElement('div');
+  intro.className = 'intermediate intermediate-poster';
+  intro.dataset.duration = String(INTRO_MS);
+  intro.innerHTML = `
+    <img
+      class="poster-full"
+      src="/IMG/promo-descuento-efectivo-10.png"
+      alt="10% de descuento para pagos en efectivo en todas las ofertas"
+    >
+  `;
+  root.appendChild(intro);
+  slides.push(intro);
 }
 
 function getValidMediaList(m1, m2) {

@@ -376,6 +376,21 @@ body{
   letter-spacing: .08em;
   text-transform: uppercase;
 }
+
+/* Slide intermedio: gráfica completa (10% efectivo) */
+.intermediate.intermediate-poster{
+  padding: clamp(12px, 2vh, 24px) clamp(12px, 3vw, 32px);
+  justify-content: center;
+}
+
+.intermediate-poster .poster-full{
+  width: min(96vw, 1100px);
+  height: auto;
+  max-height: calc(100vh - var(--footerH) - var(--tvSafe) - clamp(24px, 4vh, 48px));
+  object-fit: contain;
+  border-radius: clamp(12px, 1.8vh, 20px);
+  filter: drop-shadow(0 22px 56px rgba(0,0,0,.55));
+}
 /* ================================
    FOOTER FIJO: Métodos de pago
 ================================== */
