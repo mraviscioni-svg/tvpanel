@@ -61,13 +61,19 @@ async function loadData(jsonPath){
     return {ORDER:[], data:[]};
   }
 }
+function itemActivoEnCartelera(it) {
+  if (!it || typeof it !== 'object') return true;
+  if (!('estado' in it)) return true;
+  return it.estado !== 0 && it.estado !== false && it.estado !== '0';
+}
+
 function normalizeJson(j){
   // {categorias:[{nombre,items:[{nombre,unidad/precio/promo}]}]}
   if(Array.isArray(j.categorias)){
     const ORDER = j.categorias.map(c=>c.nombre);
     const data = j.categorias.map(c=>({
       categoria: c.nombre,
-      items: (c.items||[]).map(it=>({
+      items: (c.items||[]).filter(itemActivoEnCartelera).map(it=>({
         nombre: it.nombre,
         desc: it.unidad ? `(${it.unidad})` : (it.desc||""),
         precio: it.precio,
@@ -447,6 +453,16 @@ async function buildDynamicRightCarousel(){
 let __listPollTimer = null;
 let __carouselPollTimer = null;
 let __layoutObserversAttached = false;
+const __REFRESH_MIN_MS = 450;
+
+function resolveListJsonPath(path) {
+  if (window.LiveJsonSync && window.LiveJsonSync.resolveJsonUrl) {
+    return window.LiveJsonSync.resolveJsonUrl(path);
+  }
+  const raw = (path || 'JSON/productos.json').trim();
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return raw.startsWith('/') ? raw : '/' + raw.replace(/^\.\//, '');
+}
 
 function getListRenderConfig() {
   const base = window.APP_CONFIG || {};
@@ -454,7 +470,7 @@ function getListRenderConfig() {
   const productsPerColumn = qsParamInt('ppc', base.productsPerColumn ?? 15);
   const startIndex = qsParamInt('start', base.startIndex ?? 0);
   const productsPerPage = qsParamInt('ppp', base.productsPerPage ?? (cols * productsPerColumn));
-  const jsonPath = qsParamStr('j', base.jsonPath || 'JSON/productos.json');
+  const jsonPath = resolveListJsonPath(qsParamStr('j', base.jsonPath || 'JSON/productos.json'));
   const p = qsParamInt('p', 1);
   const overrideSide = qsParamStr('side', '').toLowerCase();
   const qs = new URL(location).searchParams;
@@ -468,8 +484,20 @@ function getListRenderConfig() {
     jsonPath,
     p,
     overrideSide,
-    carouselJson: carouselJson.trim(),
+    carouselJson: carouselJson.trim() ? resolveListJsonPath(carouselJson.trim()) : '',
   };
+}
+
+function tvRefreshUi() {
+  return window.LiveJsonSync && window.LiveJsonSync.TvRefreshUI
+    ? window.LiveJsonSync.TvRefreshUI
+    : null;
+}
+
+function yieldToPaint() {
+  return new Promise(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
 }
 
 function applyListLayoutSide(config) {
@@ -495,6 +523,24 @@ function renderProductListFromJson(j, config) {
   fitMenuToHeightRobust();
 }
 
+async function applyProductListUpdate(j, config, opts = {}) {
+  const ui = tvRefreshUi();
+  const showOverlay = !opts.silent && ui;
+  const started = Date.now();
+  if (showOverlay) ui.show(opts.message || 'Actualizando precios…');
+  try {
+    await yieldToPaint();
+    renderProductListFromJson(j, config);
+    await yieldToPaint();
+  } finally {
+    if (showOverlay) {
+      const wait = Math.max(0, __REFRESH_MIN_MS - (Date.now() - started));
+      if (wait) await new Promise(r => setTimeout(r, wait));
+      ui.hide();
+    }
+  }
+}
+
 function attachLayoutObserversOnce() {
   if (__layoutObserversAttached) return;
   __layoutObserversAttached = true;
@@ -514,17 +560,30 @@ async function init() {
   const config = getListRenderConfig();
   applyListLayoutSide(config);
 
+  if (window.LiveJsonSync && window.LiveJsonSync.preloadJson) {
+    window.LiveJsonSync.preloadJson(config.jsonPath);
+    if (config.carouselJson) window.LiveJsonSync.preloadJson(config.carouselJson);
+  }
+
   let listJson;
+  const ui = tvRefreshUi();
+  if (ui) ui.show('Cargando precios…');
   try {
-    const res = await fetch(config.jsonPath, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    listJson = await res.json();
+    if (window.LiveJsonSync && window.LiveJsonSync.fetchJson) {
+      listJson = await window.LiveJsonSync.fetchJson(config.jsonPath);
+    } else {
+      const res = await fetch(config.jsonPath, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      listJson = await res.json();
+    }
   } catch (e) {
     console.error('No se pudo cargar JSON de listado:', e);
     listJson = { categorias: [] };
   }
 
-  renderProductListFromJson(listJson, config);
+  await applyProductListUpdate(listJson, config, { silent: true });
+  if (ui) ui.hide();
+
   attachLayoutObserversOnce();
   if (document.fonts && document.fonts.ready) await document.fonts.ready;
   fitMenuToHeightRobust();
@@ -539,7 +598,15 @@ async function init() {
       path: config.jsonPath,
       intervalMs: window.LiveJsonSync.getPollIntervalMs(),
       initialStamp: window.LiveJsonSync.stampFromJson(listJson),
-      onUpdate: (fresh) => renderProductListFromJson(fresh, config),
+      onRefreshStart: () => {
+        const u = tvRefreshUi();
+        if (u) u.show('Actualizando precios…');
+      },
+      onUpdate: (fresh) => applyProductListUpdate(fresh, config, { silent: true, message: 'Actualizando precios…' }),
+      onRefreshEnd: () => {
+        const u = tvRefreshUi();
+        if (u) u.hide();
+      },
     });
 
     const cj = config.carouselJson;
@@ -549,7 +616,17 @@ async function init() {
         path: cj,
         intervalMs: window.LiveJsonSync.getPollIntervalMs(),
         initialStamp: '',
-        onUpdate: () => buildDynamicRightCarousel(),
+        onRefreshStart: () => {
+          const u = tvRefreshUi();
+          if (u) u.show('Actualizando imágenes…');
+        },
+        onUpdate: async () => {
+          await buildDynamicRightCarousel();
+        },
+        onRefreshEnd: () => {
+          const u = tvRefreshUi();
+          if (u) u.hide();
+        },
       });
     }
   }

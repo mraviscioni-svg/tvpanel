@@ -136,11 +136,16 @@
 </script>
 
 <!-- Lógica completa en app.js -->
-<script src="JS/live-json-sync.js?v=1"></script>
-<script src="JS/app.js?v=20260520"></script>
+<script src="JS/live-json-sync.js?v=2"></script>
+<script src="JS/app.js?v=20260521"></script>
 
 <!-- Capa de nieve (si snow=1, app.js la animará) -->
 <div class="snow" aria-hidden="true"></div>
+<div id="tv-data-refresh" class="tv-data-refresh" aria-live="polite" aria-hidden="true">
+  <div class="tv-data-refresh-card">
+    <div class="tv-data-refresh-spinner" aria-hidden="true"></div>
+    <p class="tv-data-refresh-msg">Cargando precios…</p>
+  </div>
+</div>
 </body>
-</html>
 </html>
