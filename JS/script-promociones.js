@@ -20,47 +20,30 @@ function init(data) {
   const categorias = Array.isArray(data?.categorias) ? data.categorias : [];
   if (!categorias.length) return;
 
-  categorias.forEach(cat => {
-    appendIntermediateWhatsApp(root);
-    appendIntermediateEfectivo10(root);
+  const blocks = [];
 
-    // ===== ITEMS =====
+  categorias.forEach(cat => {
+    blocks.push(createIntermediateWhatsApp());
+
+    const productSlides = [];
     const items = Array.isArray(cat?.items) ? cat.items : [];
     items.forEach(item => {
-      const name = (item?.nombre || '').trim();
-      const price = Number(item?.precio);
-      if (!name || !Number.isFinite(price)) return;
-
-      const medias = getValidMediaList(item?.imagen1, item?.imagen2);
-
-      const slide = document.createElement('div');
-      slide.className = 'slide';
-      slide.dataset.duration = String(SLIDE_MS);
-
-      slide.innerHTML = `
-        <div class="header">
-          <img class="header-logo" src="/IMG/Logo.png" alt="Logo">
-        </div>
-
-        <div class="stage">
-          <div class="mediaWrap ${medias.length === 1 ? 'one' : 'two'}"></div>
-
-          <div class="overlay">
-            <div class="name">${escapeHtml(name)}</div>
-            <div class="price">
-              <span class="currency">$</span>
-              <span class="amount">${price.toLocaleString('es-AR')}</span>
-            </div>
-          </div>
-        </div>
-      `;
-
-      const mediaWrap = slide.querySelector('.mediaWrap');
-      renderMedia(mediaWrap, medias);
-
-      root.appendChild(slide);
-      slides.push(slide);
+      const slide = createProductSlide(item);
+      if (slide) productSlides.push(slide);
     });
+
+    // 10% efectivo: posición aleatoria entre productos (no al cambio de categoría)
+    if (productSlides.length > 0) {
+      const insertAt = Math.floor(Math.random() * (productSlides.length + 1));
+      productSlides.splice(insertAt, 0, createIntermediateEfectivo10());
+    }
+
+    blocks.push(...productSlides);
+  });
+
+  blocks.forEach(el => {
+    root.appendChild(el);
+    slides.push(el);
   });
 
   if (!slides.length) return;
@@ -69,7 +52,35 @@ function init(data) {
   scheduleNext();
 }
 
-function appendIntermediateWhatsApp(root) {
+function createProductSlide(item) {
+  const name = (item?.nombre || '').trim();
+  const price = Number(item?.precio);
+  if (!name || !Number.isFinite(price)) return null;
+
+  const medias = getValidMediaList(item?.imagen1, item?.imagen2);
+  const slide = document.createElement('div');
+  slide.className = 'slide';
+  slide.dataset.duration = String(SLIDE_MS);
+  slide.innerHTML = `
+    <div class="header">
+      <img class="header-logo" src="/IMG/Logo.png" alt="Logo">
+    </div>
+    <div class="stage">
+      <div class="mediaWrap ${medias.length === 1 ? 'one' : 'two'}"></div>
+      <div class="overlay">
+        <div class="name">${escapeHtml(name)}</div>
+        <div class="price">
+          <span class="currency">$</span>
+          <span class="amount">${price.toLocaleString('es-AR')}</span>
+        </div>
+      </div>
+    </div>
+  `;
+  renderMedia(slide.querySelector('.mediaWrap'), medias);
+  return slide;
+}
+
+function createIntermediateWhatsApp() {
   const intro = document.createElement('div');
   intro.className = 'intermediate';
   intro.dataset.duration = String(INTRO_MS);
@@ -87,12 +98,11 @@ function appendIntermediateWhatsApp(root) {
       <div class="chip">📲 WHATSAPP</div>
     </div>
   `;
-  root.appendChild(intro);
-  slides.push(intro);
+  return intro;
 }
 
 /** Slide intermedio: 10% descuento pagos en efectivo (gráfica fija). */
-function appendIntermediateEfectivo10(root) {
+function createIntermediateEfectivo10() {
   const intro = document.createElement('div');
   intro.className = 'intermediate intermediate-poster';
   intro.dataset.duration = String(INTRO_MS);
@@ -103,8 +113,7 @@ function appendIntermediateEfectivo10(root) {
       alt="10% de descuento para pagos en efectivo en todas las ofertas"
     >
   `;
-  root.appendChild(intro);
-  slides.push(intro);
+  return intro;
 }
 
 function getValidMediaList(m1, m2) {
