@@ -27,7 +27,11 @@ $configPath = __DIR__ . '/config.json';
 $dataFolder = 'JSON';
 $cfg = [];
 if (file_exists($configPath)) {
-    $decoded = @json_decode(file_get_contents($configPath), true);
+    $configRaw = file_get_contents($configPath);
+    if ($configRaw !== false && strncmp($configRaw, "\xEF\xBB\xBF", 3) === 0) {
+        $configRaw = substr($configRaw, 3);
+    }
+    $decoded = @json_decode($configRaw, true);
     if (is_array($decoded)) $cfg = $decoded;
     if (!empty($cfg['dataPath'])) {
         $dataFolder = trim($cfg['dataPath']);

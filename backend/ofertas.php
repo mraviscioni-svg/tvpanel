@@ -81,6 +81,9 @@ if (!empty($_POST)) {
 $action = $_GET['action'] ?? $input['action'] ?? 'list';
 $id = trim((string)($_GET['id'] ?? $input['id'] ?? ''));
 
+if (readJsonFailed(FILE_OFERTAS)) {
+    jsonError('ofertas.json inválido o con codificación incorrecta (sin BOM UTF-8)', 500);
+}
 $data = readJson(FILE_OFERTAS);
 if (!isset($data['categorias']) || !is_array($data['categorias'])) {
     $data = ['updated' => updatedTimestamp(), 'moneda' => 'ARS', 'categorias' => []];

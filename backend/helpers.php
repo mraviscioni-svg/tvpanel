@@ -13,8 +13,28 @@ function readJson($file) {
     if ($raw === false || trim($raw) === '') {
         return [];
     }
+    // UTF-8 BOM (p. ej. guardado con PowerShell) rompe json_decode en PHP
+    if (strncmp($raw, "\xEF\xBB\xBF", 3) === 0) {
+        $raw = substr($raw, 3);
+    }
     $data = json_decode($raw, true);
     return is_array($data) ? $data : [];
+}
+
+/** true si el archivo existe, tiene contenido y no es JSON válido */
+function readJsonFailed($file) {
+    if (!file_exists($file)) {
+        return false;
+    }
+    $raw = file_get_contents($file);
+    if ($raw === false || trim($raw) === '') {
+        return false;
+    }
+    if (strncmp($raw, "\xEF\xBB\xBF", 3) === 0) {
+        $raw = substr($raw, 3);
+    }
+    $data = json_decode($raw, true);
+    return !is_array($data);
 }
 
 function writeJson($file, $data) {
