@@ -95,7 +95,7 @@
       const link = document.createElement('link');
       link.id = 'promo-jpg-export-styles';
       link.rel = 'stylesheet';
-      link.href = 'export-promos-jpg.css?v=3';
+      link.href = 'export-promos-jpg.css?v=4';
       document.head.appendChild(link);
     }
     if (!document.getElementById('promo-export-montserrat')) {
@@ -329,30 +329,55 @@
   }
 
   /**
-   * html2canvas no respeta bien object-fit; fijamos px con la proporción real.
+   * html2canvas no respeta bien object-fit; fijamos tamaño y centramos en la zona media.
    */
   function layoutMediaForCapture(root) {
     const stage = root.querySelector('.stage');
     if (!stage) return;
-    const maxW = stage.clientWidth || 984;
-    const maxH = stage.clientHeight || 1520;
+    const stageW = stage.clientWidth || 984;
+    const stageH = stage.clientHeight || 1520;
+    const overlayReserve = 248;
+    const padX = 56;
+    const mediaZoneH = stageH - overlayReserve;
+    const mediaZoneW = stageW - padX;
 
     root.querySelectorAll('.mediaWrap').forEach(wrap => {
       const isOne = wrap.classList.contains('one');
+      const wrapRect = wrap.getBoundingClientRect();
+      const zoneW = wrapRect.width > 0 ? wrapRect.width - 40 : mediaZoneW;
+      const zoneH = wrapRect.height > 0 ? wrapRect.height - 40 : mediaZoneH;
+
       wrap.querySelectorAll('img.media').forEach(img => {
         const nw = img.naturalWidth || 1;
         const nh = img.naturalHeight || 1;
-        let boxW = maxW;
-        let boxH = maxH;
+        let boxW = zoneW;
+        let boxH = zoneH;
+        let topPct = '50%';
+        let leftPct = '50%';
+        let translate = 'translate(-50%, -50%)';
+
         if (!isOne) {
+          img.style.position = 'absolute';
+          img.style.margin = '0';
           if (img.classList.contains('slot-top')) {
-            boxW = Math.min(680, maxW);
-            boxH = Math.round(maxH * 0.42);
+            boxW = Math.min(700, zoneW);
+            boxH = Math.round(zoneH * 0.44);
+            topPct = '26%';
+            translate = 'translate(-50%, -50%)';
           } else {
-            boxW = Math.min(640, maxW);
-            boxH = Math.round(maxH * 0.4);
+            boxW = Math.min(660, zoneW);
+            boxH = Math.round(zoneH * 0.38);
+            topPct = '72%';
+            translate = 'translate(-50%, -50%)';
           }
+        } else {
+          img.style.position = 'relative';
+          img.style.top = '';
+          img.style.left = '';
+          img.style.transform = '';
+          img.style.margin = 'auto';
         }
+
         const scale = Math.min(boxW / nw, boxH / nh);
         const w = Math.max(1, Math.round(nw * scale));
         const h = Math.max(1, Math.round(nh * scale));
@@ -361,6 +386,12 @@
         img.style.maxWidth = 'none';
         img.style.maxHeight = 'none';
         img.style.objectFit = 'fill';
+
+        if (!isOne) {
+          img.style.left = leftPct;
+          img.style.top = topPct;
+          img.style.transform = translate;
+        }
       });
     });
   }

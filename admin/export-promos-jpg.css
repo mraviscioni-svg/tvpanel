@@ -20,7 +20,7 @@
   height: 1920px;
   position: relative;
   box-sizing: border-box;
-  padding: 40px 48px 48px;
+  padding: 36px 40px 44px;
 }
 
 #promo-jpg-export-host .slide,
@@ -32,7 +32,12 @@
   pointer-events: none;
 }
 
-/* Sin animaciones de la vidriera al capturar */
+#promo-jpg-export-host .slide.active {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
 #promo-jpg-export-host .promo-capture,
 #promo-jpg-export-host .promo-capture * {
   animation: none !important;
@@ -43,26 +48,29 @@
 #promo-jpg-export-host .overlay .name,
 #promo-jpg-export-host .overlay .price {
   opacity: 1 !important;
+  transform: none !important;
 }
 
 #promo-jpg-export-host .header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 20px;
+  padding-bottom: 16px;
 }
 
 #promo-jpg-export-host .header-logo {
-  width: 420px;
-  max-height: 110px;
+  width: 400px;
+  max-height: 100px;
   object-fit: contain;
   filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.45));
 }
 
 #promo-jpg-export-host .stage {
   position: relative;
-  margin-top: 12px;
-  height: 1520px;
+  flex: 1;
+  min-height: 0;
+  margin-top: 8px;
   border-radius: 24px;
   overflow: hidden;
   background:
@@ -93,13 +101,19 @@
   pointer-events: none;
 }
 
+/* Zona media centrada (deja espacio al pie para nombre/precio) */
 #promo-jpg-export-host .mediaWrap {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 248px;
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px 28px;
+  box-sizing: border-box;
 }
 
 #promo-jpg-export-host .mediaWrap.one::after {
@@ -123,83 +137,89 @@
   position: relative;
   z-index: 3;
   flex-shrink: 0;
-  max-width: 100%;
-  max-height: 100%;
+  margin: auto;
 }
 
 #promo-jpg-export-host .mediaWrap.two {
   display: block;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 16px 24px 24px;
 }
 
 #promo-jpg-export-host .mediaWrap.two .slot-top,
 #promo-jpg-export-host .mediaWrap.two .slot-bottom {
   position: absolute;
   left: 50%;
+  margin-left: 0;
   transform: translateX(-50%);
   object-fit: contain;
   z-index: 3;
 }
 
 #promo-jpg-export-host .mediaWrap.two .slot-top {
-  top: 5%;
-  max-width: 680px;
-  max-height: 42%;
+  top: 6%;
+  max-width: 700px;
+  max-height: 44%;
 }
 
 #promo-jpg-export-host .mediaWrap.two .slot-bottom {
-  bottom: 16%;
-  max-width: 640px;
-  max-height: 40%;
+  top: auto;
+  bottom: 12%;
+  max-width: 660px;
+  max-height: 38%;
 }
 
+/* Pie centrado */
 #promo-jpg-export-host .overlay {
   position: absolute;
-  left: 6%;
-  right: 6%;
-  bottom: 5.5%;
+  left: 50%;
+  bottom: 5%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 920px;
   z-index: 4;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  column-gap: 22px;
-  row-gap: 14px;
-  align-items: end;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
 }
 
 #promo-jpg-export-host .overlay .name {
-  grid-column: 1 / -1;
+  width: 100%;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 1000;
-  font-size: 52px;
+  font-size: 48px;
   line-height: 1.1;
   color: #fff;
-  padding: 16px 22px;
+  padding: 14px 20px;
   border-radius: 18px;
   background: rgba(0, 0, 0, 0.62);
   border: 1px solid rgba(255, 255, 255, 0.12);
+  box-sizing: border-box;
 }
 
 #promo-jpg-export-host .overlay .price {
-  grid-column: 2;
-  grid-row: 2;
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 12px;
-  padding: 16px 26px;
+  padding: 14px 28px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.7);
   border: 2px solid rgba(216, 177, 90, 0.75);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.6);
 }
 
 #promo-jpg-export-host .overlay .currency {
-  font-size: 36px;
+  font-size: 34px;
   font-weight: 1000;
 }
 
 #promo-jpg-export-host .overlay .amount {
-  font-size: 96px;
+  font-size: 88px;
   font-weight: 1000;
   color: #d8b15a;
 }
@@ -211,11 +231,12 @@
   justify-content: center;
   gap: 22px;
   text-align: center;
+  padding: 48px;
 }
 
 #promo-jpg-export-host .intermediate .logo {
-  width: 520px;
-  max-height: 200px;
+  width: 480px;
+  max-height: 190px;
   object-fit: contain;
 }
 
@@ -272,10 +293,19 @@
   letter-spacing: 0.1em;
 }
 
+#promo-jpg-export-host .intermediate-poster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
 #promo-jpg-export-host .intermediate-poster .poster-full {
-  width: min(960px, 92%);
+  width: auto;
   height: auto;
+  max-width: 92%;
   max-height: 1680px;
   object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 22px 56px rgba(0, 0, 0, 0.55));
 }
