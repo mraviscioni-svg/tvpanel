@@ -265,11 +265,23 @@ async function _loadCarouselImages(path){
   }
   return [];
 }
+function setCarouselSlideImage(slide, src) {
+  if (!slide) return;
+  const url = String(src || '').trim();
+  slide.dataset.carouselSrc = url;
+  slide.style.backgroundImage = url ? `url("${url.replace(/"/g, '%22')}")` : 'none';
+}
+
+function getActiveCarouselSlideSrc(stack) {
+  const active = stack?.querySelector('.slide.active');
+  return active?.dataset?.carouselSrc || '';
+}
+
 function _makeStack(){ const d=document.createElement('div'); d.className='stack'; return d; }
 function _makeSlide(src, active=false){
   const slide=document.createElement('div'); slide.className='slide'+(active?' active':'');
-  const img=document.createElement('img'); img.src=src; img.alt='';
-  slide.appendChild(img); return slide;
+  setCarouselSlideImage(slide, src);
+  return slide;
 }
 
 /** Garantiza que exista #rightPanel. Si no existe, lo crea dentro de .right */
@@ -322,7 +334,12 @@ async function buildDynamicRightCarousel(){
     return [];
   }
   const makeStack = ()=>{ const d=document.createElement('div'); d.className='stack'; return d; };
-  const makeSlide = (src, active=false)=>{ const s=document.createElement('div'); s.className='slide'+(active?' active':''); const i=document.createElement('img'); i.src=src; i.alt=''; s.appendChild(i); return s; };
+  const makeSlide = (src, active=false)=>{
+    const s=document.createElement('div');
+    s.className='slide'+(active?' active':'');
+    setCarouselSlideImage(s, src);
+    return s;
+  };
 
   // ---- contenedor ----
   let rightPanel = document.getElementById('rightPanel');
@@ -387,7 +404,7 @@ async function buildDynamicRightCarousel(){
 
   // cooldown por fila (evita volver a poner la misma muy seguido)
   const lastSeen = Array.from({length: stacksCount}, ()=>[]);
-  stacks.forEach((s,i)=>{ const src=s.querySelector('.slide.active img')?.src; if(src){ lastSeen[i].unshift(src); } });
+  stacks.forEach((s,i)=>{ const src=getActiveCarouselSlideSrc(s); if(src){ lastSeen[i].unshift(src); } });
 
   // ---- selección de candidato SIN colisión con activos de otras filas ----
   // Recorremos un "máster" por fila para no quedarnos pegados
@@ -398,7 +415,7 @@ async function buildDynamicRightCarousel(){
     // activos actuales (otras filas)
     const activeOthers = new Set(
       stacks
-        .map((s, i)=> i===rowIdx ? null : s.querySelector('.slide.active img')?.src)
+        .map((s, i)=> i===rowIdx ? null : getActiveCarouselSlideSrc(s))
         .filter(Boolean)
     );
     const cooldown = new Set(lastSeen[rowIdx]); // últimos 2
@@ -440,10 +457,8 @@ async function buildDynamicRightCarousel(){
       nextIdx = (i + 1) % slides.length;
     }
     const next = slides[nextIdx];
-    const img  = next.querySelector('img');
-
     const src = pickForRow(rowIdx);
-    if (img) img.src = src;
+    setCarouselSlideImage(next, src);
     next.classList.add('active');
 
     // cooldown máx 2
@@ -452,11 +467,11 @@ async function buildDynamicRightCarousel(){
 
     // comprobación final: si por algún motivo quedó repetida con otra fila, forzamos otro pick
     if (images.length >= stacksCount){
-      const mySrc = next.querySelector('img')?.src;
-      const clash = stacks.some((s,i)=> i!==rowIdx && s.querySelector('.slide.active img')?.src === mySrc);
+      const mySrc = next.dataset.carouselSrc || '';
+      const clash = stacks.some((s,i)=> i!==rowIdx && getActiveCarouselSlideSrc(s) === mySrc);
       if (clash){
         const alt = pickForRow(rowIdx);
-        if (alt && alt !== mySrc) { next.querySelector('img').src = alt; }
+        if (alt && alt !== mySrc) setCarouselSlideImage(next, alt);
       }
     }
   }
