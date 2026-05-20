@@ -298,6 +298,9 @@ async function buildDynamicRightCarousel(){
   }
   window.__tvCarousel = { running:false, timer:null };
 
+  const cUi = carouselRefreshUi();
+  cUi.show('Cargando imágenes…');
+  try {
   const qs  = new URL(location).searchParams;
   const cfg = window.APP_CONFIG || {};
 
@@ -330,12 +333,23 @@ async function buildDynamicRightCarousel(){
     rightPanel.id = 'rightPanel';
     rightPanel.className = 'right';
     right.replaceWith(rightPanel);
+    const refresh = document.createElement('div');
+    refresh.id = 'tv-carousel-refresh';
+    refresh.className = 'tv-data-refresh tv-data-refresh--panel';
+    refresh.setAttribute('aria-live', 'polite');
+    refresh.setAttribute('aria-hidden', 'true');
+    refresh.innerHTML = `
+      <div class="tv-data-refresh-card">
+        <div class="tv-data-refresh-spinner" aria-hidden="true"></div>
+        <p class="tv-data-refresh-msg">Cargando imágenes…</p>
+      </div>`;
+    rightPanel.appendChild(refresh);
   }
   rightPanel.style.display = 'grid';
   rightPanel.style.gridTemplateRows = `repeat(${stacksCount}, 1fr)`;
   rightPanel.style.gap = '8px';
   rightPanel.style.padding = '8px';
-  rightPanel.innerHTML = '';
+  clearRightPanelStacks(rightPanel);
 
   // ---- pool (único/normalizado) ----
   let images = await loadImgs(carouselJson);
@@ -350,12 +364,23 @@ async function buildDynamicRightCarousel(){
   const stacks = Array.from({length: stacksCount}, ()=> makeStack());
   stacks.forEach(s => rightPanel.appendChild(s));
 
-  // ---- inicial: todos ACTIVO distintos (si hay pool suficiente) ----
   const initial = shuffle(images);
+  const urlsToPreload = [];
+  stacks.forEach((stack, i) => {
+    const first = initial[i % initial.length];
+    urlsToPreload.push(first);
+    const rest = shuffle(images.filter(x => x !== first)).slice(0, Math.min(2, Math.max(0, images.length - 1)));
+    rest.forEach(src => urlsToPreload.push(src));
+  });
+
+  setStacksLoading(stacks, true);
+  await preloadImageUrls(urlsToPreload);
+  setStacksLoading(stacks, false);
+
+  // ---- inicial: todos ACTIVO distintos (si hay pool suficiente) ----
   stacks.forEach((stack, i)=>{
     const first = initial[i % initial.length];
     stack.appendChild(makeSlide(first, true));
-    // dos slides de reserva (no importa si repiten con NO activos)
     const rest = shuffle(images.filter(x=>x!==first)).slice(0, Math.min(2, Math.max(0, images.length-1)));
     rest.forEach(src => stack.appendChild(makeSlide(src, false)));
   });
@@ -444,6 +469,9 @@ async function buildDynamicRightCarousel(){
   setTimeout(()=>{ rotateRow(rr); rr = (rr+1)%stacksCount; }, 400 + jitter);
   window.__tvCarousel.timer = setInterval(()=>{ rotateRow(rr); rr = (rr+1)%stacksCount; }, baseInterval + jitter);
   window.__tvCarousel.running = true;
+  } finally {
+    cUi.hide();
+  }
 }
 
 
@@ -492,6 +520,62 @@ function tvRefreshUi() {
   return window.LiveJsonSync && window.LiveJsonSync.TvRefreshUI
     ? window.LiveJsonSync.TvRefreshUI
     : null;
+}
+
+/** Overlay de carga solo sobre #rightPanel (carrusel de imágenes). */
+function carouselRefreshUi() {
+  return {
+    show(message) {
+      const el = document.getElementById('tv-carousel-refresh');
+      if (!el) return;
+      const msg = el.querySelector('.tv-data-refresh-msg');
+      if (msg && message) msg.textContent = message;
+      el.classList.add('is-visible');
+      el.setAttribute('aria-hidden', 'false');
+    },
+    hide() {
+      const el = document.getElementById('tv-carousel-refresh');
+      if (!el) return;
+      el.classList.remove('is-visible');
+      el.setAttribute('aria-hidden', 'true');
+    },
+  };
+}
+
+function clearRightPanelStacks(panel) {
+  if (!panel) return;
+  Array.from(panel.children).forEach(ch => {
+    if (ch.classList.contains('stack')) ch.remove();
+  });
+}
+
+function setStacksLoading(stacks, loading) {
+  (stacks || []).forEach(stack => {
+    let ov = stack.querySelector('.tv-stack-refresh');
+    if (loading) {
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.className = 'tv-stack-refresh';
+        ov.setAttribute('aria-hidden', 'true');
+        ov.innerHTML = '<div class="tv-data-refresh-spinner" aria-hidden="true"></div>';
+        stack.appendChild(ov);
+      }
+      ov.classList.add('is-visible');
+      ov.setAttribute('aria-hidden', 'false');
+    } else if (ov) {
+      ov.classList.remove('is-visible');
+      ov.setAttribute('aria-hidden', 'true');
+    }
+  });
+}
+
+function preloadImageUrls(urls) {
+  const list = Array.from(new Set((urls || []).filter(Boolean)));
+  return Promise.all(list.map(src => new Promise(resolve => {
+    const img = new Image();
+    img.onload = img.onerror = () => resolve();
+    img.src = src;
+  })));
 }
 
 function yieldToPaint() {
@@ -616,16 +700,8 @@ async function init() {
         path: cj,
         intervalMs: window.LiveJsonSync.getPollIntervalMs(),
         initialStamp: '',
-        onRefreshStart: () => {
-          const u = tvRefreshUi();
-          if (u) u.show('Actualizando imágenes…');
-        },
         onUpdate: async () => {
           await buildDynamicRightCarousel();
-        },
-        onRefreshEnd: () => {
-          const u = tvRefreshUi();
-          if (u) u.hide();
         },
       });
     }

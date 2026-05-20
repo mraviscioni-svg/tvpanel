@@ -68,7 +68,9 @@ main.layout.image-left{grid-template-columns:0.9fr 1.85fr;grid-template-areas:"r
 /* PANEL IMÁGENES (se arma por JS) */
 
 /* Right panel: por defecto 2 filas; JS ajusta a 1/2/3 */
-.right{
+.right,
+#rightPanel{
+  position:relative;
   border-radius:16px;background:#0f0f0f;min-height:0;
   display:grid;grid-template-rows:1fr 1fr;gap:8px;padding:8px;
 }
@@ -113,7 +115,7 @@ footer{padding:0 12px 12px;background:linear-gradient(180deg,#0b0b0b,#0a0a0a)}
   .qr{display:none}
 }
 
-/* Overlay: carga / actualización de precios (index2) */
+/* Overlay: carga / actualización de precios (index2, pantalla completa) */
 .tv-data-refresh{
   position:fixed;
   inset:0;
@@ -162,4 +164,37 @@ footer{padding:0 12px 12px;background:linear-gradient(180deg,#0b0b0b,#0a0a0a)}
 }
 @keyframes tvRefreshSpin{
   to{ transform:rotate(360deg); }
+}
+
+/* Overlay solo en panel de imágenes (carrusel derecha) */
+.tv-data-refresh--panel{
+  position:absolute;
+  inset:0;
+  z-index:25;
+  border-radius:16px;
+  background:rgba(6,6,6,.55);
+}
+
+/* Spinner por stack mientras precarga cada imagen */
+.tv-stack-refresh{
+  position:absolute;
+  inset:0;
+  z-index:8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.45);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .3s ease, visibility .3s ease;
+}
+.tv-stack-refresh.is-visible{
+  opacity:1;
+  visibility:visible;
+}
+.tv-stack-refresh .tv-data-refresh-spinner{
+  width:clamp(28px,5vh,44px);
+  height:clamp(28px,5vh,44px);
+  border-width:3px;
 }

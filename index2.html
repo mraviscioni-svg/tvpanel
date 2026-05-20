@@ -63,7 +63,14 @@
     </section>
 
     <!-- PANEL DERECHA (carrusel dinámico 1–3 stacks) -->
-    <section class="right" aria-label="Destacados" id="rightPanel"></section>
+    <section class="right" aria-label="Destacados" id="rightPanel">
+      <div id="tv-carousel-refresh" class="tv-data-refresh tv-data-refresh--panel" aria-live="polite" aria-hidden="true">
+        <div class="tv-data-refresh-card">
+          <div class="tv-data-refresh-spinner" aria-hidden="true"></div>
+          <p class="tv-data-refresh-msg">Cargando imágenes…</p>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- FOOTER -->
@@ -137,7 +144,7 @@
 
 <!-- Lógica completa en app.js -->
 <script src="JS/live-json-sync.js?v=2"></script>
-<script src="JS/app.js?v=20260521"></script>
+<script src="JS/app.js?v=20260522"></script>
 
 <!-- Capa de nieve (si snow=1, app.js la animará) -->
 <div class="snow" aria-hidden="true"></div>
