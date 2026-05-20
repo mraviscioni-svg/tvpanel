@@ -1277,7 +1277,7 @@
 
   function openMediaPreview(src) {
     if (!src) return;
-    const resolved = (typeof src === 'string' && src.startsWith('blob:')) ? src : buildMediaUrl(src);
+    const resolved = (typeof src === 'string' && src.startsWith('blob:')) ? src : buildOfertaMediaUrl(src);
     const modal = $('#modal');
     const title = $('#modal-title');
     const body = $('#modal-body');
@@ -1308,17 +1308,30 @@
     return origin ? (origin.replace(/\/$/, '') + '/' + path) : '/' + path;
   }
 
-  /** Para ofertas: resuelve la URL usando las rutas de configuración (imágenes/videos). */
-  function buildOfertaMediaUrl(src) {
+  /** Normaliza path guardado en JSON (legado VIDEO/…) a carpeta configurada. */
+  function resolveOfertaMediaPath(src) {
     if (!src || typeof src !== 'string') return '';
-    const s = src.trim();
+    const s = src.trim().replace(/\\/g, '/');
     if (/^https?:\/\//i.test(s)) return s;
-    if (s.indexOf('/') !== -1) return buildMediaUrl(s);
+    const imgBase = (mediaConfig.mediaImagesPath || 'IMG/CORTES').replace(/\/$/, '');
+    const vidBase = (mediaConfig.mediaVideosPath || 'IMG/CORTES/VIDEO').replace(/\/$/, '');
+    let m = s.match(/^VIDEO\/(.+)$/i);
+    if (m) return vidBase + '/' + m[1];
+    m = s.match(/^CORTES\/VIDEO\/(.+)$/i);
+    if (m) return vidBase + '/' + m[1];
+    m = s.match(/^CORTES\/(.+)$/i);
+    if (m) return imgBase + '/' + m[1];
+    if (s.indexOf(imgBase + '/') === 0 || s.indexOf(vidBase + '/') === 0) return s;
     const ext = (s.split('.').pop() || '').toLowerCase();
     const isVideo = ['mp4', 'webm', 'mov'].indexOf(ext) !== -1;
-    const base = isVideo ? (mediaConfig.mediaVideosPath || 'IMG/CORTES/VIDEO') : (mediaConfig.mediaImagesPath || 'IMG/CORTES');
-    const path = base.replace(/\/$/, '') + '/' + s;
-    return buildMediaUrl(path);
+    const base = isVideo ? vidBase : imgBase;
+    if (s.indexOf('/') === -1) return base + '/' + s;
+    return s;
+  }
+
+  /** Para ofertas: URL pública usando rutas de configuración (imágenes/videos). */
+  function buildOfertaMediaUrl(src) {
+    return buildMediaUrl(resolveOfertaMediaPath(src));
   }
 
   function deleteTV(id) {

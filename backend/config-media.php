@@ -7,11 +7,10 @@
 
 require_once __DIR__ . '/helpers.php';
 
-$user = requireAdmin();
-
 $configPath = __DIR__ . '/config.json';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    requireLogin();
     $cfg = readJson($configPath);
     $out = [
         'mediaImagesPath' => isset($cfg['mediaImagesPath']) ? trim($cfg['mediaImagesPath']) : 'IMG/CORTES',
@@ -26,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método no permitido', 405);
 }
 
+requireAdmin();
 $input = getInput();
 $imagesPath = isset($input['mediaImagesPath']) ? trim($input['mediaImagesPath']) : '';
 $videosPath = isset($input['mediaVideosPath']) ? trim($input['mediaVideosPath']) : '';

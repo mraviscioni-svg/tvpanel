@@ -25,6 +25,11 @@ function subirArchivoOferta($fileKey, $tipo = 'imagen') {
         return null;
     }
     $f = $_FILES[$fileKey];
+    if ($tipo === 'auto') {
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($f['tmp_name']);
+        $tipo = (strpos($mime, 'video/') === 0) ? 'video' : 'imagen';
+    }
     $allowed = $tipo === 'video' ? $ALLOWED_VIDEO : $ALLOWED_IMAGE;
     $exts = $tipo === 'video' ? $EXT_VIDEO : $EXT_IMAGE;
     $finfo = new finfo(FILEINFO_MIME_TYPE);
@@ -52,14 +57,24 @@ function subirArchivoOferta($fileKey, $tipo = 'imagen') {
 
 function eliminarArchivoOferta($path) {
     if (empty($path)) return;
-    // Path puede ser relativo (ej. IMG/CORTES/... o el configurado en Configuración)
-    if (strpos($path, '/') === 0) {
-        $full = $path;
-    } else {
-        $full = ROOT . '/' . ltrim($path, '/');
+    $path = normalizarPathMedia($path);
+    $candidates = [$path];
+    if (preg_match('#^(.+)/([^/]+)$#', $path, $m)) {
+        $file = $m[2];
+        $candidates[] = 'VIDEO/' . $file;
+        $candidates[] = 'CORTES/VIDEO/' . $file;
+        $candidates[] = 'CORTES/' . $file;
     }
-    if (file_exists($full)) {
-        @unlink($full);
+    $candidates = array_unique($candidates);
+    foreach ($candidates as $rel) {
+        if (strpos($rel, '/') === 0) {
+            $full = $rel;
+        } else {
+            $full = ROOT . '/' . ltrim($rel, '/');
+        }
+        if (file_exists($full)) {
+            @unlink($full);
+        }
     }
 }
 
@@ -110,26 +125,79 @@ function findItemOfertas($data, $id) {
     return [null, null, null];
 }
 
-/** Convierte path de media a ruta completa usando las carpetas configuradas (CORTES_*_REL). */
+/**
+ * Ruta relativa al sitio para mostrar/guardar media de ofertas.
+ * Corrige legado VIDEO/archivo.mp4 → IMG/CORTES/VIDEO/archivo.mp4 (o rutas de Configuración).
+ */
 function normalizarPathMedia($path) {
     if ($path === null || $path === '') return '';
-    $path = trim($path);
-    if (strpos($path, '/') !== false) return $path;
+    $path = trim(str_replace('\\', '/', (string)$path));
+    if ($path === '') return '';
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+
+    $imgRel = trim(CORTES_DIR_REL, '/');
+    $vidRel = trim(CORTES_VIDEO_REL, '/');
+
+    if (preg_match('#^VIDEO/(.+)$#i', $path, $m)) {
+        return $vidRel . '/' . $m[1];
+    }
+    if (preg_match('#^CORTES/VIDEO/(.+)$#i', $path, $m)) {
+        return $vidRel . '/' . $m[1];
+    }
+    if (preg_match('#^CORTES/(.+)$#i', $path, $m)) {
+        return $imgRel . '/' . $m[1];
+    }
+
+    if (strpos($path, $imgRel . '/') === 0 || strpos($path, $vidRel . '/') === 0) {
+        return $path;
+    }
+
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
     $isVideo = in_array($ext, ['mp4', 'webm', 'mov'], true);
-    return ($isVideo ? CORTES_VIDEO_REL : CORTES_DIR_REL) . '/' . $path;
+    $base = $isVideo ? $vidRel : $imgRel;
+
+    if (strpos($path, '/') === false) {
+        return $base . '/' . $path;
+    }
+
+    return $path;
+}
+
+/** Tras create/update, asegura imagen1/imagen2 normalizadas en el ítem. */
+function normalizarItemMedia(array &$item) {
+    if (array_key_exists('imagen1', $item)) {
+        $item['imagen1'] = normalizarPathMedia($item['imagen1'] ?? '');
+    }
+    if (array_key_exists('imagen2', $item)) {
+        $item['imagen2'] = normalizarPathMedia($item['imagen2'] ?? '');
+    }
 }
 
 switch ($action) {
     case 'list':
+        $mediaPathsChanged = false;
         foreach ($data['categorias'] as $ci => $cat) {
             if (empty($cat['items']) || !is_array($cat['items'])) continue;
             foreach ($cat['items'] as $ii => $item) {
-                $data['categorias'][$ci]['items'][$ii]['imagen1'] = normalizarPathMedia($item['imagen1'] ?? '');
+                $before1 = $item['imagen1'] ?? '';
+                $before2 = $item['imagen2'] ?? '';
+                $data['categorias'][$ci]['items'][$ii]['imagen1'] = normalizarPathMedia($before1);
                 if (isset($item['imagen2'])) {
-                    $data['categorias'][$ci]['items'][$ii]['imagen2'] = normalizarPathMedia($item['imagen2'] ?? '');
+                    $data['categorias'][$ci]['items'][$ii]['imagen2'] = normalizarPathMedia($before2);
+                }
+                if (
+                    ($data['categorias'][$ci]['items'][$ii]['imagen1'] ?? '') !== $before1
+                    || ($data['categorias'][$ci]['items'][$ii]['imagen2'] ?? '') !== $before2
+                ) {
+                    $mediaPathsChanged = true;
                 }
             }
+        }
+        if ($mediaPathsChanged) {
+            $data['updated'] = updatedTimestamp();
+            writeJson(FILE_OFERTAS, $data);
         }
         jsonResponse(['ok' => true, 'data' => $data]);
         break;
@@ -158,13 +226,10 @@ switch ($action) {
             jsonError('Categoría requerida');
         }
         $newId = (string) nextIdEnCategorias($data);
-        $imagen1 = subirArchivoOferta('imagen1', 'imagen') ?? subirArchivoOferta('imagen', 'imagen');
-        $imagen2 = subirArchivoOferta('imagen2', 'imagen');
-        if (!$imagen1 && !empty($input['imagen1'])) $imagen1 = trim($input['imagen1']);
-        if (!$imagen2 && !empty($input['imagen2'])) $imagen2 = trim($input['imagen2']);
-        $video1 = subirArchivoOferta('video1', 'video');
-        if (!$imagen1 && $video1) $imagen1 = $video1;
-        if (!$imagen1 && !empty($input['imagen1'])) $imagen1 = trim($input['imagen1']);
+        $imagen1 = subirArchivoOferta('imagen1', 'auto') ?? subirArchivoOferta('imagen', 'auto');
+        $imagen2 = subirArchivoOferta('imagen2', 'auto');
+        if (!$imagen1 && !empty($input['imagen1'])) $imagen1 = normalizarPathMedia(trim($input['imagen1']));
+        if (!$imagen2 && !empty($input['imagen2'])) $imagen2 = normalizarPathMedia(trim($input['imagen2']));
         $newItem = [
             'id' => $newId,
             'nombre' => $nombre,
@@ -175,6 +240,7 @@ switch ($action) {
             'estado' => isset($input['estado']) ? (int)(bool)$input['estado'] : 1,
             'updated_at' => updatedTimestamp(),
         ];
+        normalizarItemMedia($newItem);
         $catIdx = null;
         foreach ($data['categorias'] as $i => $cat) {
             if (isset($cat['nombre']) && trim($cat['nombre']) === $categoriaNombre) {
@@ -208,20 +274,21 @@ switch ($action) {
         if (array_key_exists('unidad', $input)) $data['categorias'][$ci]['items'][$ii]['unidad'] = trim($input['unidad']);
         if (array_key_exists('precio', $input)) $data['categorias'][$ci]['items'][$ii]['precio'] = (int)(float)$input['precio'];
         if (array_key_exists('estado', $input)) $data['categorias'][$ci]['items'][$ii]['estado'] = (int)(bool)$input['estado'];
-        $up1 = subirArchivoOferta('imagen1', 'imagen') ?? subirArchivoOferta('imagen', 'imagen');
+        $up1 = subirArchivoOferta('imagen1', 'auto') ?? subirArchivoOferta('imagen', 'auto');
         if ($up1) {
             eliminarArchivoOferta($data['categorias'][$ci]['items'][$ii]['imagen1'] ?? '');
             $data['categorias'][$ci]['items'][$ii]['imagen1'] = $up1;
         } elseif (array_key_exists('imagen1', $input)) {
-            $data['categorias'][$ci]['items'][$ii]['imagen1'] = trim($input['imagen1']);
+            $data['categorias'][$ci]['items'][$ii]['imagen1'] = normalizarPathMedia(trim($input['imagen1']));
         }
         $up2 = subirArchivoOferta('imagen2', 'imagen');
         if ($up2) {
             eliminarArchivoOferta($data['categorias'][$ci]['items'][$ii]['imagen2'] ?? '');
             $data['categorias'][$ci]['items'][$ii]['imagen2'] = $up2;
-        } else        if (array_key_exists('imagen2', $input)) {
-            $data['categorias'][$ci]['items'][$ii]['imagen2'] = trim($input['imagen2']);
+        } elseif (array_key_exists('imagen2', $input)) {
+            $data['categorias'][$ci]['items'][$ii]['imagen2'] = normalizarPathMedia(trim($input['imagen2']));
         }
+        normalizarItemMedia($data['categorias'][$ci]['items'][$ii]);
         $data['categorias'][$ci]['items'][$ii]['updated_at'] = updatedTimestamp();
         $data['updated'] = updatedTimestamp();
         if (!writeJson(FILE_OFERTAS, $data)) {
