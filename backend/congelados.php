@@ -20,6 +20,31 @@ if (!isset($data['categorias']) || !is_array($data['categorias'])) {
 }
 if (empty($data['moneda'])) $data['moneda'] = 'ARS';
 
+// Asegurar id y estado en ítems existentes (JSON legacy sin id)
+$changed = false;
+$nextId = nextIdEnCategorias($data);
+foreach ($data['categorias'] as $ci => $cat) {
+    if (empty($cat['items']) || !is_array($cat['items'])) continue;
+    foreach ($cat['items'] as $ii => $item) {
+        if (!isset($item['id']) || $item['id'] === '' || $item['id'] === null) {
+            $data['categorias'][$ci]['items'][$ii]['id'] = (string)$nextId++;
+            $changed = true;
+        }
+        if (!isset($item['estado'])) {
+            $data['categorias'][$ci]['items'][$ii]['estado'] = 1;
+            $changed = true;
+        }
+        if (!isset($item['updated_at']) || $item['updated_at'] === '') {
+            $data['categorias'][$ci]['items'][$ii]['updated_at'] = updatedTimestamp();
+            $changed = true;
+        }
+    }
+}
+if ($changed) {
+    $data['updated'] = updatedTimestamp();
+    writeJson(FILE_CONGELADOS, $data);
+}
+
 function findItemCongelados($data, $id) {
     $idStr = (string)$id;
     foreach ($data['categorias'] as $ci => $cat) {

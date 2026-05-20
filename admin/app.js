@@ -672,11 +672,16 @@
       }
       bindSearchWithClear(content, prefix + '-search', catalogView, reload);
       content.querySelectorAll('[data-edit-catalog]').forEach(btn => {
-        btn.onclick = () => openModalCatalogEdit(btn.dataset.catalogView, btn.dataset.editCatalog, btn.dataset.cat);
+        btn.onclick = () => openModalCatalogEdit(btn.dataset.catalogView, btn.getAttribute('data-edit-catalog'), btn.dataset.cat);
       });
       content.querySelectorAll('[data-toggle-catalog]').forEach(btn => {
         btn.onclick = () => {
-          const id = btn.dataset.toggleCatalog;
+          const id = btn.getAttribute('data-toggle-catalog');
+          const idStr = id != null ? String(id).trim() : '';
+          if (!idStr) {
+            showToast('Este ítem no tiene id. Recargá la página (F5).', 'warn');
+            return;
+          }
           const cv = btn.dataset.catalogView;
           const apiFile = cv === 'congelados' ? '/congelados.php' : '/productos.php';
           const estadoActual = btn.dataset.estado === '1';
@@ -687,7 +692,7 @@
             confirmLabel: 'Sí',
             cancelLabel: 'No',
             onConfirm: () => {
-              apiPost(apiFile, { action: 'update', id: String(id), estado: nuevoEstado })
+              apiPost(apiFile, { action: 'update', id: idStr, estado: nuevoEstado })
                 .then(() => { showToast('Estado actualizado.', 'success'); reload(); })
                 .catch(err => showToast(err.message || 'Error al cambiar estado', 'error'));
             }
@@ -695,8 +700,8 @@
         };
       });
       content.querySelectorAll('[data-delete-catalog]').forEach(btn => {
-        btn.onclick = () => deleteCatalogItem(btn.dataset.catalogView, btn.dataset.deleteCatalog);
-      });
+        btn.onclick = () => deleteCatalogItem(btn.dataset.catalogView, btn.getAttribute('data-delete-catalog'));
+      };
     }).catch(err => {
       content.innerHTML = '<div class="empty-state"><p class="error-msg">' + escapeHtml(err.message) + '</p></div>';
     });
@@ -1299,12 +1304,17 @@
   }
 
   function deleteCatalogItem(catalogView, id) {
+    const idStr = id != null ? String(id).trim() : '';
+    if (!idStr) {
+      showToast('Este ítem no tiene id. Recargá la página (F5).', 'warn');
+      return;
+    }
     const label = catalogView === 'congelados' ? 'congelado' : 'producto';
     const apiFile = catalogView === 'congelados' ? '/congelados.php' : '/productos.php';
     showConfirmDelete({
       title: 'Eliminar ' + label,
       message: '¿Eliminar este ' + label + '? Esta acción no se puede deshacer.',
-      onConfirm: () => apiPost(apiFile, { action: 'delete', id: String(id) }).then(() => { setView(catalogView); showToast('Eliminado correctamente.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'))
+      onConfirm: () => apiPost(apiFile, { action: 'delete', id: idStr }).then(() => { setView(catalogView); showToast('Eliminado correctamente.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'))
     });
   }
 
@@ -1686,10 +1696,15 @@
 
   // Para editar productos/ofertas necesitamos cargar el item y abrir modal
   const openModalCatalogEdit = (catalogView, id, categoria) => {
+    const idStr = id != null ? String(id).trim() : '';
+    if (!idStr) {
+      showToast('Este ítem no tiene id. Recargá la página (F5) para que el servidor asigne ids.', 'warn');
+      return;
+    }
     const apiFile = catalogView === 'congelados' ? '/congelados.php' : '/productos.php';
-    api(apiFile + '?action=get&id=' + encodeURIComponent(id)).then(({ data }) => {
+    api(apiFile + '?action=get&id=' + encodeURIComponent(idStr)).then(({ data }) => {
       openModal(catalogView, 'edit', { ...data, categoria });
-    }).catch(err => alert(err.message));
+    }).catch(err => showToast(err.message || 'Error al cargar', 'error'));
   };
   const openModalOfertaEdit = (id, categoria) => {
     api('/ofertas.php?action=get&id=' + encodeURIComponent(id)).then(({ data }) => {
