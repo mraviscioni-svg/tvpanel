@@ -722,7 +722,7 @@
     exportJpgBusy = true;
     const btn = document.getElementById('btn-export-jpg-wa');
     if (btn) btn.disabled = true;
-    showToast('Generando JPG… puede tardar varios minutos (videos incluidos).', 'info');
+    showToast('Generando JPG… los videos se reproducen hasta el final (puede tardar).', 'info');
     try {
       const result = await window.exportPromosJpg.run(ofertasData, {
         onProgress: (cur, total, label) => {

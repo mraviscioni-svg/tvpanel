@@ -95,7 +95,7 @@
       const link = document.createElement('link');
       link.id = 'promo-jpg-export-styles';
       link.rel = 'stylesheet';
-      link.href = 'export-promos-jpg.css?v=1';
+      link.href = 'export-promos-jpg.css?v=2';
       document.head.appendChild(link);
     }
     if (!document.getElementById('promo-export-montserrat')) {
@@ -118,47 +118,108 @@
     });
   }
 
-  async function videoFrameToDataUrl(src, timeoutMs = 15000) {
+  /**
+   * Captura el último frame del video (como al terminar en la vidriera).
+   * Primero intenta seek al final; si falla, reproduce hasta ended.
+   */
+  async function videoFrameToDataUrl(src, timeoutMs = 120000) {
     return new Promise((resolve, reject) => {
       const video = document.createElement('video');
       video.crossOrigin = 'anonymous';
       video.muted = true;
       video.playsInline = true;
       video.preload = 'auto';
-      let done = false;
+      let settled = false;
+      /** @type {'idle'|'seek'|'play'|'done'} */
+      let mode = 'idle';
+
       const finish = (ok, val) => {
-        if (done) return;
-        done = true;
+        if (settled) return;
+        settled = true;
         clearTimeout(timer);
-        video.src = '';
+        try { video.pause(); } catch (_) {}
+        video.removeAttribute('src');
         video.load();
         ok ? resolve(val) : reject(val);
       };
+
       const timer = setTimeout(() => finish(false, new Error('timeout video')), timeoutMs);
-      video.onerror = () => finish(false, new Error('video error'));
-      video.onloadeddata = () => {
+
+      function captureFrame() {
         try {
-          video.currentTime = Math.min(0.5, (video.duration || 1) * 0.05);
-        } catch (_) {
-          video.play().then(() => {
-            requestAnimationFrame(() => capture());
-          }).catch(() => finish(false, new Error('play')));
-        }
-      };
-      video.onseeked = () => capture();
-      function capture() {
-        try {
-          const w = video.videoWidth || 1280;
-          const h = video.videoHeight || 720;
+          const w = video.videoWidth || 0;
+          const h = video.videoHeight || 0;
+          if (!w || !h) {
+            finish(false, new Error('video sin dimensiones'));
+            return;
+          }
           const canvas = document.createElement('canvas');
           canvas.width = w;
           canvas.height = h;
           canvas.getContext('2d').drawImage(video, 0, 0, w, h);
-          finish(true, canvas.toDataURL('image/jpeg', 0.9));
+          finish(true, canvas.toDataURL('image/jpeg', 0.92));
         } catch (e) {
           finish(false, e);
         }
       }
+
+      function captureAfterPaint() {
+        requestAnimationFrame(() => requestAnimationFrame(captureFrame));
+      }
+
+      function trySeekToEnd() {
+        const d = video.duration;
+        if (!Number.isFinite(d) || d <= 0) {
+          playToEnd();
+          return;
+        }
+        mode = 'seek';
+        const pad = Math.min(0.2, Math.max(0.05, d * 0.02));
+        try {
+          video.currentTime = Math.max(0, d - pad);
+        } catch (_) {
+          playToEnd();
+        }
+      }
+
+      function playToEnd() {
+        if (mode === 'done' || settled) return;
+        mode = 'play';
+        video.currentTime = 0;
+        video.play().catch(() => finish(false, new Error('no se pudo reproducir el video')));
+      }
+
+      video.addEventListener('error', () => finish(false, new Error('video error')), { once: true });
+
+      video.addEventListener('loadedmetadata', () => {
+        trySeekToEnd();
+      }, { once: true });
+
+      video.addEventListener('seeked', () => {
+        if (mode !== 'seek' || settled) return;
+        const d = video.duration || 0;
+        if (d > 0 && video.currentTime >= d * 0.85) {
+          mode = 'done';
+          captureAfterPaint();
+        }
+      });
+
+      video.addEventListener('ended', () => {
+        if (settled) return;
+        mode = 'done';
+        captureAfterPaint();
+      }, { once: true });
+
+      video.addEventListener('timeupdate', () => {
+        if (mode !== 'play' || settled) return;
+        const d = video.duration;
+        if (d > 0 && video.currentTime >= d - 0.2) {
+          mode = 'done';
+          try { video.pause(); } catch (_) {}
+          captureAfterPaint();
+        }
+      });
+
       video.src = src;
     });
   }

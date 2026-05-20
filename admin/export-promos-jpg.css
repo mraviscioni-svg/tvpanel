@@ -32,6 +32,19 @@
   pointer-events: none;
 }
 
+/* Sin animaciones de la vidriera al capturar */
+#promo-jpg-export-host .promo-capture,
+#promo-jpg-export-host .promo-capture * {
+  animation: none !important;
+  transition: none !important;
+}
+
+#promo-jpg-export-host .slot,
+#promo-jpg-export-host .overlay .name,
+#promo-jpg-export-host .overlay .price {
+  opacity: 1 !important;
+}
+
 #promo-jpg-export-host .header {
   display: flex;
   align-items: center;
