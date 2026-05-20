@@ -807,6 +807,9 @@
                 <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
               </div>
             </div>
+          </div>
+          <div class="toolbar-meta">
+            <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
             <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="ofertas"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
             <button type="button" class="btn btn-secondary btn-sm" id="btn-export-jpg-wa" title="Generar JPG como en la vidriera (1080×1920) para estados de WhatsApp">📲 JPG WhatsApp</button>
           </div>
@@ -815,7 +818,7 @@
       let html = header + `
         <div class="table-wrap">
           <table>
-            <thead><tr>${thSortOferta('_categoria', 'Categoría')}${thSortOferta('nombre', 'Nombre')}${thSortOferta('unidad', 'Unidad')}${thSortOferta('precio', 'Precio')}<th>Imagen/Vídeo</th>${thSortOferta('estado', 'Estado')}<th></th></tr></thead>
+            <thead><tr>${thSortOferta('_categoria', 'Categoría')}${thSortOferta('nombre', 'Nombre')}${thSortOferta('unidad', 'Unidad')}${thSortOferta('precio', 'Precio')}${thSortOferta('updated_at', 'Modificado')}<th>Imagen/Vídeo</th>${thSortOferta('estado', 'Estado')}<th></th></tr></thead>
             <tbody>`;
       rows.forEach(it => {
         const media1 = it.imagen1 || '';
@@ -823,11 +826,15 @@
         const hasMedia = !!(media1 || media2);
         const isVideo = /(\.mp4|\.webm|\.mov)$/i.test(media1 || media2 || '');
         const mediaIcon = isVideo ? '▶' : '🖼';
+        const modRaw = it.updated_at || '';
+        const modRel = formatRelativeDate(modRaw);
+        const tagTimeClass = 'tag-time' + (modRel.isToday ? ' tag-today' : '');
         html += `<tr>
           <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
           <td>${escapeHtml(it.nombre)}</td>
           <td>${escapeHtml(it.unidad)}</td>
           <td><code class="precio">${escapeHtml(formatPrecio(it.precio))}</code></td>
+          <td><span class="${tagTimeClass}" title="${escapeAttr(String(modRaw))}">${escapeHtml(modRel.label)}</span></td>
           <td class="media-cell">${hasMedia ? `<button type="button" class="btn btn-ghost btn-sm media-preview-btn" data-media1="${escapeAttr(media1)}" data-media2="${escapeAttr(media2)}" title="Ver imagen/vídeo">${mediaIcon}</button>` : '<span class="text-muted">—</span>'}</td>
           <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
           <td class="table-actions">
@@ -843,7 +850,7 @@
       bindSearchWithClear(content, 'ofertas-search', 'ofertas', () => loadOfertas(content));
       content.querySelector('[data-export-view="ofertas"]')?.addEventListener('click', () => {
         const rows = getOfertasExportRows();
-        const cols = [{ key: '_categoria', label: 'Categoría' }, { key: 'nombre', label: 'Nombre' }, { key: 'unidad', label: 'Unidad' }, { key: 'precio', label: 'Precio' }, { key: 'estado', label: 'Estado' }];
+        const cols = [{ key: '_categoria', label: 'Categoría' }, { key: 'nombre', label: 'Nombre' }, { key: 'unidad', label: 'Unidad' }, { key: 'precio', label: 'Precio' }, { key: 'updated_at', label: 'Modificado' }, { key: 'estado', label: 'Estado' }];
         downloadCSV(buildCSV(rows.map(r => ({ ...r, estado: r.estado ? 'Activo' : 'Inactivo' })), cols), 'ofertas.csv');
         showToast('Exportado correctamente.', 'success');
       });

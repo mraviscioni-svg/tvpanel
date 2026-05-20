@@ -104,6 +104,10 @@ foreach ($data['categorias'] as $ci => $cat) {
             $data['categorias'][$ci]['items'][$ii]['estado'] = 1;
             $changed = true;
         }
+        if (!isset($item['updated_at']) || $item['updated_at'] === '') {
+            $data['categorias'][$ci]['items'][$ii]['updated_at'] = updatedTimestamp();
+            $changed = true;
+        }
     }
 }
 if ($changed) {
