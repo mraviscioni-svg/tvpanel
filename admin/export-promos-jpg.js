@@ -95,7 +95,7 @@
       const link = document.createElement('link');
       link.id = 'promo-jpg-export-styles';
       link.rel = 'stylesheet';
-      link.href = 'export-promos-jpg.css?v=2';
+      link.href = 'export-promos-jpg.css?v=3';
       document.head.appendChild(link);
     }
     if (!document.getElementById('promo-export-montserrat')) {
@@ -328,6 +328,43 @@
     return wrap;
   }
 
+  /**
+   * html2canvas no respeta bien object-fit; fijamos px con la proporción real.
+   */
+  function layoutMediaForCapture(root) {
+    const stage = root.querySelector('.stage');
+    if (!stage) return;
+    const maxW = stage.clientWidth || 984;
+    const maxH = stage.clientHeight || 1520;
+
+    root.querySelectorAll('.mediaWrap').forEach(wrap => {
+      const isOne = wrap.classList.contains('one');
+      wrap.querySelectorAll('img.media').forEach(img => {
+        const nw = img.naturalWidth || 1;
+        const nh = img.naturalHeight || 1;
+        let boxW = maxW;
+        let boxH = maxH;
+        if (!isOne) {
+          if (img.classList.contains('slot-top')) {
+            boxW = Math.min(680, maxW);
+            boxH = Math.round(maxH * 0.42);
+          } else {
+            boxW = Math.min(640, maxW);
+            boxH = Math.round(maxH * 0.4);
+          }
+        }
+        const scale = Math.min(boxW / nw, boxH / nh);
+        const w = Math.max(1, Math.round(nw * scale));
+        const h = Math.max(1, Math.round(nh * scale));
+        img.style.width = `${w}px`;
+        img.style.height = `${h}px`;
+        img.style.maxWidth = 'none';
+        img.style.maxHeight = 'none';
+        img.style.objectFit = 'fill';
+      });
+    });
+  }
+
   async function prepareEntryMedia(entry) {
     if (entry.type === 'product') {
       const raw = getValidMediaList(entry.item.imagen1, entry.item.imagen2);
@@ -353,6 +390,8 @@
         img.onerror = res;
       });
     }));
+    layoutMediaForCapture(el);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const canvas = await html2canvas(el, {
       width: WA_W,
       height: WA_H,

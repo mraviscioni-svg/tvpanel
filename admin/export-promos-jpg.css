@@ -97,37 +97,59 @@
   position: absolute;
   inset: 0;
   z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#promo-jpg-export-host .mediaWrap.one::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1200px 800px at 50% 35%, transparent 55%, rgba(0, 0, 0, 0.45) 100%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.35), transparent 60%);
+  z-index: 2;
+  pointer-events: none;
 }
 
 #promo-jpg-export-host .media {
-  width: 100%;
-  height: 100%;
   display: block;
   object-fit: contain;
+  object-position: center;
 }
 
 #promo-jpg-export-host .mediaWrap.one .slot-single {
-  position: absolute;
-  inset: 0;
-  object-fit: cover !important;
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+  max-width: 100%;
+  max-height: 100%;
 }
 
-#promo-jpg-export-host .mediaWrap.two .slot-top {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 5%;
-  width: 680px;
-  height: 42%;
+#promo-jpg-export-host .mediaWrap.two {
+  display: block;
 }
 
+#promo-jpg-export-host .mediaWrap.two .slot-top,
 #promo-jpg-export-host .mediaWrap.two .slot-bottom {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  object-fit: contain;
+  z-index: 3;
+}
+
+#promo-jpg-export-host .mediaWrap.two .slot-top {
+  top: 5%;
+  max-width: 680px;
+  max-height: 42%;
+}
+
+#promo-jpg-export-host .mediaWrap.two .slot-bottom {
   bottom: 16%;
-  width: 640px;
-  height: 40%;
+  max-width: 640px;
+  max-height: 40%;
 }
 
 #promo-jpg-export-host .overlay {
