@@ -89,6 +89,25 @@
     return date.getTime();
   }
 
+  const SVG_EDIT = '<svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  const SVG_TOGGLE_ON = '<svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  const SVG_TOGGLE_OFF = '<svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+  const SVG_TRASH = '<svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+
+  /** Botones de fila: iconos compactos (editar / activar-desactivar / eliminar). */
+  function tableRowActionsHtml(opts) {
+    const active = !!opts.active;
+    const toggleTitle = active ? 'Desactivar' : 'Activar';
+    let html = `<button type="button" class="btn btn-icon btn-ghost btn-sm" title="Editar" aria-label="Editar" ${opts.editAttrs || ''}>${SVG_EDIT}</button>`;
+    if (opts.toggleAttrs != null && opts.toggleAttrs !== false) {
+      html += `<button type="button" class="btn btn-icon btn-sm ${active ? 'btn-icon-muted' : 'btn-icon-success'}" title="${toggleTitle}" aria-label="${toggleTitle}" ${opts.toggleAttrs}>${active ? SVG_TOGGLE_OFF : SVG_TOGGLE_ON}</button>`;
+    }
+    if (opts.deleteAttrs) {
+      html += `<button type="button" class="btn btn-icon btn-danger btn-sm" title="Eliminar" aria-label="Eliminar" ${opts.deleteAttrs}>${SVG_TRASH}</button>`;
+    }
+    return html;
+  }
+
   function showToast(message, type) {
     const toast = document.createElement('div');
     toast.className = 'toast toast-' + (type || 'info');
@@ -585,11 +604,12 @@
           <td><code class="precio">${escapeHtml(formatPrecio(it.precio))}</code></td>
           <td><span class="${tagTimeClass}" title="${escapeAttr(String(modRaw))}">${escapeHtml(modRel.label)}</span></td>
           <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
-          <td class="table-actions">
-            <button type="button" class="btn btn-ghost btn-sm" data-edit-catalog="${escapeAttr(it.id)}" data-catalog-view="${escapeAttr(catalogView)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-toggle-catalog="${escapeAttr(it.id)}" data-catalog-view="${escapeAttr(catalogView)}" data-estado="${it.estado ? '1' : '0'}">${it.estado ? 'Desactivar' : 'Activar'}</button>
-            <button type="button" class="btn btn-danger btn-sm" data-delete-catalog="${escapeAttr(it.id)}" data-catalog-view="${escapeAttr(catalogView)}">Eliminar</button>
-          </td>
+          <td class="table-actions">${tableRowActionsHtml({
+            editAttrs: `data-edit-catalog="${escapeAttr(it.id)}" data-catalog-view="${escapeAttr(catalogView)}" data-cat="${escapeAttr(it._categoria)}"`,
+            toggleAttrs: `data-toggle-catalog="${escapeAttr(it.id)}" data-catalog-view="${escapeAttr(catalogView)}" data-estado="${it.estado ? '1' : '0'}"`,
+            deleteAttrs: `data-delete-catalog="${escapeAttr(it.id)}" data-catalog-view="${escapeAttr(catalogView)}"`,
+            active: it.estado,
+          })}</td>
         </tr>`;
       });
       html += '</tbody></table></div></div>';
@@ -838,11 +858,12 @@
           <td><span class="${tagTimeClass}" title="${escapeAttr(String(modRaw))}">${escapeHtml(modRel.label)}</span></td>
           <td class="media-cell">${hasMedia ? `<button type="button" class="btn btn-ghost btn-sm media-preview-btn" data-media1="${escapeAttr(media1)}" data-media2="${escapeAttr(media2)}" title="Ver imagen/vídeo">${mediaIcon}</button>` : '<span class="text-muted">—</span>'}</td>
           <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
-          <td class="table-actions">
-            <button type="button" class="btn btn-ghost btn-sm" data-edit-oferta="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-toggle-oferta="${escapeAttr(it.id)}" data-estado="${it.estado ? '1' : '0'}">${it.estado ? 'Desactivar' : 'Activar'}</button>
-            <button type="button" class="btn btn-danger btn-sm" data-delete-oferta="${escapeAttr(it.id)}">Eliminar</button>
-          </td>
+          <td class="table-actions">${tableRowActionsHtml({
+            editAttrs: `data-edit-oferta="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}"`,
+            toggleAttrs: `data-toggle-oferta="${escapeAttr(it.id)}" data-estado="${it.estado ? '1' : '0'}"`,
+            deleteAttrs: `data-delete-oferta="${escapeAttr(it.id)}"`,
+            active: it.estado,
+          })}</td>
         </tr>`;
       });
       html += '</tbody></table></div></div>';
@@ -954,8 +975,11 @@
               ${url ? `<button type="button" class="btn btn-ghost btn-sm tv-link-btn" data-open-tv-url="${escapeAttr(url)}" aria-label="Probar link"></button>` : ''}
             </div>
             <div class="tv-card-actions">
-              <button type="button" class="btn btn-ghost btn-sm" data-edit-tv="${escapeAttr(t.id)}">Editar</button>
-              <button type="button" class="btn btn-danger btn-sm" data-delete-tv="${escapeAttr(t.id)}">Eliminar</button>
+              ${tableRowActionsHtml({
+                editAttrs: `data-edit-tv="${escapeAttr(t.id)}"`,
+                toggleAttrs: false,
+                deleteAttrs: `data-delete-tv="${escapeAttr(t.id)}"`,
+              })}
             </div>
           </footer>
         </article>`;
@@ -1118,9 +1142,12 @@
       const rowHtml = (u) => {
         const showActions = canEditUser(u);
         const actionsHtml = showActions
-          ? `<button type="button" class="btn btn-ghost btn-sm" data-edit-user="${escapeAttr(u.id)}">Editar</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-toggle-user="${escapeAttr(u.id)}" data-active="${u.active ? '1' : '0'}">${u.active ? 'Desactivar' : 'Activar'}</button>
-            <button type="button" class="btn btn-danger btn-sm" data-delete-user="${escapeAttr(u.id)}">Eliminar</button>`
+          ? tableRowActionsHtml({
+            editAttrs: `data-edit-user="${escapeAttr(u.id)}"`,
+            toggleAttrs: `data-toggle-user="${escapeAttr(u.id)}" data-active="${u.active ? '1' : '0'}"`,
+            deleteAttrs: `data-delete-user="${escapeAttr(u.id)}"`,
+            active: u.active,
+          })
           : '<span class="text-muted">—</span>';
         return `<tr>
           <td><code>${escapeHtml(u._username)}</code></td>
