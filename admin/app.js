@@ -701,7 +701,7 @@
       });
       content.querySelectorAll('[data-delete-catalog]').forEach(btn => {
         btn.onclick = () => deleteCatalogItem(btn.dataset.catalogView, btn.getAttribute('data-delete-catalog'));
-      };
+      });
     }).catch(err => {
       content.innerHTML = '<div class="empty-state"><p class="error-msg">' + escapeHtml(err.message) + '</p></div>';
     });
