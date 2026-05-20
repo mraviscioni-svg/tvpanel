@@ -54,6 +54,7 @@ define('CORTES_VIDEO_REL', trim($mediaVideosPath, '/'));
 define('FILE_USERS', DATA_DIR . '/users.json');
 define('FILE_PRODUCTOS', DATA_DIR . '/productos.json');
 define('FILE_OFERTAS', DATA_DIR . '/ofertas.json');
+define('FILE_CONGELADOS', DATA_DIR . '/congelados.json');
 define('FILE_TVS', DATA_DIR . '/tvs.json');
 
 // Perfiles (mapeo: admin -> Admin, supervisor -> Supervisor, editor -> Usuario)

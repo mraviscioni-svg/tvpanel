@@ -2,7 +2,8 @@
   'use strict';
 
   const API = '/backend';
-  const views = { productos: 'Productos', ofertas: 'Ofertas', tvs: 'Televisores', usuarios: 'Usuarios', config: 'Configuración' };
+  const views = { productos: 'Productos', congelados: 'Congelados', ofertas: 'Ofertas', tvs: 'Televisores', usuarios: 'Usuarios', config: 'Configuración' };
+  const CATALOG_VIEWS = { productos: true, congelados: true };
   const STORAGE_VIEW_KEY = 'tvpanel_admin_last_view';
 
   function getInitialView() {
@@ -17,13 +18,16 @@
   let currentView = getInitialView();
   let user = null;
   let productosData = null;
+  let congeladosData = null;
   let ofertasData = null;
   let tvsData = null;
   let usuariosData = null;
   let mediaConfig = { mediaImagesPath: 'IMG/CORTES', mediaVideosPath: 'IMG/CORTES/VIDEO' };
   let productosCategoriaFilter = 'ALL';
+  let congeladosCategoriaFilter = 'ALL';
   const gridState = {
     productos: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
+    congelados: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
     ofertas: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
     tvs: { page: 1, pageSize: 10, search: '' },
     usuarios: { page: 1, pageSize: 10, search: '', supervisorFilter: 'ALL', viewMode: 'supervisors' }
@@ -249,17 +253,39 @@
     });
   }
 
-  function getProductosExportRows() {
-    if (!productosData?.categorias) return [];
-    const categorias = productosData.categorias || [];
-    const selected = productosCategoriaFilter;
+  function getCatalogData(view) {
+    return view === 'congelados' ? congeladosData : productosData;
+  }
+
+  function getCatalogCategoriaFilter(view) {
+    return view === 'congelados' ? congeladosCategoriaFilter : productosCategoriaFilter;
+  }
+
+  function setCatalogCategoriaFilter(view, val) {
+    if (view === 'congelados') congeladosCategoriaFilter = val;
+    else productosCategoriaFilter = val;
+  }
+
+  function getCatalogExportRows(view) {
+    const data = getCatalogData(view);
+    if (!data?.categorias) return [];
+    const categorias = data.categorias || [];
+    const selected = getCatalogCategoriaFilter(view);
     const flatRows = [];
     categorias.filter(cat => selected === 'ALL' ? true : cat.nombre === selected).forEach(cat => {
       (cat.items || []).forEach(it => flatRows.push({ ...it, _categoria: cat.nombre }));
     });
-    const st = gridState.productos;
+    const st = gridState[view];
     sortProductosLikeGrid(flatRows, st);
     return filterAndPaginate(flatRows, st.search, ['nombre', 'unidad', 'tag', '_categoria'], 1, 999999).rows;
+  }
+
+  function getProductosExportRows() {
+    return getCatalogExportRows('productos');
+  }
+
+  function getCongeladosExportRows() {
+    return getCatalogExportRows('congelados');
   }
 
   function getOfertasExportRows() {
@@ -365,7 +391,7 @@
     } catch (e) {}
     $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
     $('#view-title').textContent = (views[view] || '').toUpperCase();
-    const canCreate = ['productos', 'ofertas', 'tvs'].includes(view) || (view === 'usuarios' && user && (user.perfil === 'Admin' || user.perfil === 'Supervisor'));
+    const canCreate = ['productos', 'congelados', 'ofertas', 'tvs'].includes(view) || (view === 'usuarios' && user && (user.perfil === 'Admin' || user.perfil === 'Supervisor'));
     $('#btn-nuevo').hidden = !canCreate;
     const configNav = document.querySelector('.nav-item-config');
     if (configNav) configNav.style.display = (user && user.perfil === 'Admin') ? '' : 'none';
@@ -380,7 +406,8 @@
   function loadView(view) {
     const content = $('#view-content');
     content.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando…</div>';
-    if (view === 'productos') loadProductos(content);
+    if (view === 'productos') loadCatalog(content, 'productos');
+    else if (view === 'congelados') loadCatalog(content, 'congelados');
     else if (view === 'ofertas') loadOfertas(content);
     else if (view === 'tvs') loadTVs(content);
     else if (view === 'usuarios') loadUsuarios(content);
@@ -426,19 +453,27 @@
       });
   }
 
-  function loadProductos(content) {
-    api('/productos.php?action=list').then(({ data }) => {
-      productosData = data;
+  function loadCatalog(content, catalogView) {
+    const apiPath = catalogView === 'congelados' ? '/congelados.php' : '/productos.php';
+    const prefix = catalogView;
+    const entityLabel = catalogView === 'congelados' ? 'congelado' : 'producto';
+    const emptyMsg = catalogView === 'congelados'
+      ? 'No hay congelados. Agregá uno con + Nuevo o importá el JSON existente en el servidor.'
+      : 'No hay productos. Cargá categorías desde el backend o agregá uno.';
+    const exportFile = catalogView === 'congelados' ? 'congelados.csv' : 'productos.csv';
+
+    api(apiPath + '?action=list').then(({ data }) => {
+      if (catalogView === 'congelados') congeladosData = data;
+      else productosData = data;
       if (!data.categorias || data.categorias.length === 0) {
-        content.innerHTML = '<div class="empty-state"><p>No hay productos. Cargá categorías desde el backend o agregá uno.</p></div>';
+        content.innerHTML = '<div class="empty-state"><p>' + escapeHtml(emptyMsg) + '</p></div>';
         return;
       }
       const categorias = data.categorias || [];
       const categoriaNames = categorias.map(c => c.nombre).filter(Boolean);
-      const selected = (productosCategoriaFilter === 'ALL' || categoriaNames.includes(productosCategoriaFilter))
-        ? productosCategoriaFilter
-        : 'ALL';
-      productosCategoriaFilter = selected;
+      let selected = getCatalogCategoriaFilter(catalogView);
+      selected = (selected === 'ALL' || categoriaNames.includes(selected)) ? selected : 'ALL';
+      setCatalogCategoriaFilter(catalogView, selected);
 
       const flatRows = [];
       categorias
@@ -447,7 +482,7 @@
           (cat.items || []).forEach(it => flatRows.push({ ...it, _categoria: cat.nombre }));
         });
 
-      const st = gridState.productos;
+      const st = gridState[catalogView];
       const sortKey = st.sortKey || '_categoria';
       const sortDir = st.sortDir || 'asc';
       flatRows.sort((a, b) => {
@@ -495,16 +530,16 @@
               <label class="search-label">Buscar</label>
               <div class="search-input-wrap">
                 <span class="search-icon" aria-hidden="true">🔍</span>
-                <input type="text" id="productos-search" class="search-input" placeholder="nombre, unidad, tag..." value="${escapeAttr(st.search)}">
+                <input type="text" id="${prefix}-search" class="search-input" placeholder="nombre, unidad, tag..." value="${escapeAttr(st.search)}">
                 <button type="button" class="search-clear hidden" aria-label="Vaciar búsqueda" title="Vaciar">×</button>
               </div>
             </div>
             <div class="filter-categoria-wrap">
               <label class="filter-categoria-label">Categoría</label>
               <div class="filter-categoria">
-                <input type="hidden" id="productos-filter-value" value="${escapeAttr(selected)}">
-                <button type="button" class="filter-categoria-trigger" id="productos-filter-trigger">${escapeHtml(selected === 'ALL' ? 'Todas' : selected)}</button>
-                <div class="filter-categoria-dropdown hidden" id="productos-filter-dropdown">
+                <input type="hidden" id="${prefix}-filter-value" value="${escapeAttr(selected)}">
+                <button type="button" class="filter-categoria-trigger" id="${prefix}-filter-trigger">${escapeHtml(selected === 'ALL' ? 'Todas' : selected)}</button>
+                <div class="filter-categoria-dropdown hidden" id="${prefix}-filter-dropdown">
                   <button type="button" class="filter-categoria-option" data-value="ALL">Todas</button>
                   ${categoriaNames.map(n => `<button type="button" class="filter-categoria-option" data-value="${escapeAttr(n)}">${escapeHtml(n)}</button>`).join('')}
                 </div>
@@ -513,7 +548,7 @@
           </div>
           <div class="toolbar-meta">
             <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
-            <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="productos"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="${escapeAttr(catalogView)}"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
           </div>
         </div>
       `;
@@ -551,19 +586,20 @@
           <td><span class="${tagTimeClass}" title="${escapeAttr(String(modRaw))}">${escapeHtml(modRel.label)}</span></td>
           <td>${it.estado ? '<span class="badge success">Activo</span>' : '<span class="badge danger">Inactivo</span>'}</td>
           <td class="table-actions">
-            <button type="button" class="btn btn-ghost btn-sm" data-edit-product="${escapeAttr(it.id)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-toggle-product="${escapeAttr(it.id)}" data-estado="${it.estado ? '1' : '0'}">${it.estado ? 'Desactivar' : 'Activar'}</button>
-            <button type="button" class="btn btn-danger btn-sm" data-delete-product="${escapeAttr(it.id)}">Eliminar</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-edit-catalog="${escapeAttr(it.id)}" data-catalog-view="${escapeAttr(catalogView)}" data-cat="${escapeAttr(it._categoria)}">Editar</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle-catalog="${escapeAttr(it.id)}" data-catalog-view="${escapeAttr(catalogView)}" data-estado="${it.estado ? '1' : '0'}">${it.estado ? 'Desactivar' : 'Activar'}</button>
+            <button type="button" class="btn btn-danger btn-sm" data-delete-catalog="${escapeAttr(it.id)}" data-catalog-view="${escapeAttr(catalogView)}">Eliminar</button>
           </td>
         </tr>`;
       });
       html += '</tbody></table></div></div>';
       content.innerHTML = html;
-      renderPagination(content, 'productos', total, page, totalPages, pageSize, () => loadProductos(content));
-      content.querySelector('[data-export-view="productos"]')?.addEventListener('click', () => {
-        const rows = getProductosExportRows();
+      const reload = () => loadCatalog(content, catalogView);
+      renderPagination(content, catalogView, total, page, totalPages, pageSize, reload);
+      content.querySelector('[data-export-view="' + catalogView + '"]')?.addEventListener('click', () => {
+        const rows = getCatalogExportRows(catalogView);
         const cols = [{ key: '_categoria', label: 'Categoría' }, { key: 'nombre', label: 'Nombre' }, { key: 'unidad', label: 'Unidad' }, { key: 'precio', label: 'Precio' }, { key: 'updated_at', label: 'Modificado' }, { key: 'estado', label: 'Estado' }];
-        downloadCSV(buildCSV(rows.map(r => ({ ...r, estado: r.estado ? 'Activo' : 'Inactivo' })), cols), 'productos.csv');
+        downloadCSV(buildCSV(rows.map(r => ({ ...r, estado: r.estado ? 'Activo' : 'Inactivo' })), cols), exportFile);
         showToast('Exportado correctamente.', 'success');
       });
       content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
@@ -572,13 +608,13 @@
           if (st.sortKey === key) st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc';
           else { st.sortKey = key; st.sortDir = 'asc'; }
           st.page = 1;
-          loadProductos(content);
+          reload();
         };
       });
 
-      const filterTrigger = $('#productos-filter-trigger', content);
-      const filterDropdown = $('#productos-filter-dropdown', content);
-      const filterHidden = $('#productos-filter-value', content);
+      const filterTrigger = $('#' + prefix + '-filter-trigger', content);
+      const filterDropdown = $('#' + prefix + '-filter-dropdown', content);
+      const filterHidden = $('#' + prefix + '-filter-value', content);
       if (filterTrigger && filterDropdown && filterHidden) {
         let portalEl = null;
         const closeFilter = () => {
@@ -610,10 +646,10 @@
               const val = this.dataset.value;
               filterHidden.value = val;
               filterTrigger.textContent = val === 'ALL' ? 'Todas' : val;
-              productosCategoriaFilter = val;
-              gridState.productos.page = 1;
+              setCatalogCategoriaFilter(catalogView, val);
+              gridState[catalogView].page = 1;
               closeFilter();
-              loadProductos(content);
+              reload();
             };
             portalEl.appendChild(btn);
           });
@@ -627,37 +663,39 @@
             const val = this.dataset.value;
             filterHidden.value = val;
             filterTrigger.textContent = val === 'ALL' ? 'Todas' : val;
-            productosCategoriaFilter = val;
-            gridState.productos.page = 1;
+            setCatalogCategoriaFilter(catalogView, val);
+            gridState[catalogView].page = 1;
             closeFilter();
-            loadProductos(content);
+            reload();
           };
         });
       }
-      bindSearchWithClear(content, 'productos-search', 'productos', () => loadProductos(content));
-      content.querySelectorAll('[data-edit-product]').forEach(btn => {
-        btn.onclick = () => openModalProductoEdit(btn.dataset.editProduct, btn.dataset.cat);
+      bindSearchWithClear(content, prefix + '-search', catalogView, reload);
+      content.querySelectorAll('[data-edit-catalog]').forEach(btn => {
+        btn.onclick = () => openModalCatalogEdit(btn.dataset.catalogView, btn.dataset.editCatalog, btn.dataset.cat);
       });
-      content.querySelectorAll('[data-toggle-product]').forEach(btn => {
+      content.querySelectorAll('[data-toggle-catalog]').forEach(btn => {
         btn.onclick = () => {
-          const id = btn.dataset.toggleProduct;
+          const id = btn.dataset.toggleCatalog;
+          const cv = btn.dataset.catalogView;
+          const apiFile = cv === 'congelados' ? '/congelados.php' : '/productos.php';
           const estadoActual = btn.dataset.estado === '1';
           const nuevoEstado = estadoActual ? 0 : 1;
           showConfirmDelete({
             title: 'Cambiar estado',
-            message: `¿Seguro que querés ${estadoActual ? 'desactivar' : 'activar'} este producto?`,
+            message: `¿Seguro que querés ${estadoActual ? 'desactivar' : 'activar'} este ${cv === 'congelados' ? 'congelado' : 'producto'}?`,
             confirmLabel: 'Sí',
             cancelLabel: 'No',
             onConfirm: () => {
-              apiPost('/productos.php', { action: 'update', id: String(id), estado: nuevoEstado })
-                .then(() => { showToast('Estado actualizado.', 'success'); loadProductos(content); })
+              apiPost(apiFile, { action: 'update', id: String(id), estado: nuevoEstado })
+                .then(() => { showToast('Estado actualizado.', 'success'); reload(); })
                 .catch(err => showToast(err.message || 'Error al cambiar estado', 'error'));
             }
           });
         };
       });
-      content.querySelectorAll('[data-delete-product]').forEach(btn => {
-        btn.onclick = () => deleteProducto(btn.dataset.deleteProduct);
+      content.querySelectorAll('[data-delete-catalog]').forEach(btn => {
+        btn.onclick = () => deleteCatalogItem(btn.dataset.catalogView, btn.dataset.deleteCatalog);
       });
     }).catch(err => {
       content.innerHTML = '<div class="empty-state"><p class="error-msg">' + escapeHtml(err.message) + '</p></div>';
@@ -1159,7 +1197,7 @@
     return o;
   }
 
-  function saveProducto(mode, id) {
+  function saveCatalogItem(catalogView, mode, id) {
     const d = getFormData(['f-categoria', 'f-nombre', 'f-unidad', 'f-precio', 'f-tag', 'f-estado']);
     d.estado = Number(d.estado);
     const catEl = document.getElementById('f-categoria');
@@ -1168,7 +1206,8 @@
     if (!d.categoria) { showToast('Elegí o ingresá una categoría.', 'warn'); return; }
     const body = { action: mode === 'create' ? 'create' : 'update', categoria: d.categoria, nombre: d.nombre, unidad: d.unidad, precio: d.precio, tag: d.tag, estado: d.estado };
     if (mode === 'edit') body.id = String(id);
-    apiPost('/productos.php', body).then(() => { closeModal(); setView('productos'); showToast('Guardado correctamente.', 'success'); }).catch(err => showToast(err.message || 'Error al guardar', 'error'));
+    const apiFile = catalogView === 'congelados' ? '/congelados.php' : '/productos.php';
+    apiPost(apiFile, body).then(() => { closeModal(); setView(catalogView); showToast('Guardado correctamente.', 'success'); }).catch(err => showToast(err.message || 'Error al guardar', 'error'));
   }
 
   function saveOferta(mode, id) {
@@ -1259,11 +1298,13 @@
     apiPost('/usuarios.php', body).then(() => { closeModal(); setView('usuarios'); showToast('Usuario guardado.', 'success'); }).catch(err => showToast(err.message || 'Error al guardar', 'error'));
   }
 
-  function deleteProducto(id) {
+  function deleteCatalogItem(catalogView, id) {
+    const label = catalogView === 'congelados' ? 'congelado' : 'producto';
+    const apiFile = catalogView === 'congelados' ? '/congelados.php' : '/productos.php';
     showConfirmDelete({
-      title: 'Eliminar producto',
-      message: '¿Eliminar este producto? Esta acción no se puede deshacer.',
-      onConfirm: () => apiPost('/productos.php', { action: 'delete', id: String(id) }).then(() => { setView('productos'); showToast('Producto eliminado.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'))
+      title: 'Eliminar ' + label,
+      message: '¿Eliminar este ' + label + '? Esta acción no se puede deshacer.',
+      onConfirm: () => apiPost(apiFile, { action: 'delete', id: String(id) }).then(() => { setView(catalogView); showToast('Eliminado correctamente.', 'success'); }).catch(err => showToast(err.message || 'Error al eliminar', 'error'))
     });
   }
 
@@ -1373,13 +1414,17 @@
     modal.setAttribute('aria-hidden', 'false');
     body.classList.remove('no-scroll');
 
-    if (view === 'productos') {
-      const catList = (productosData && productosData.categorias) ? productosData.categorias.map(c => c.nombre).filter(Boolean) : [];
+    if (CATALOG_VIEWS[view]) {
+      const catalogData = getCatalogData(view);
+      const catList = (catalogData && catalogData.categorias) ? catalogData.categorias.map(c => c.nombre).filter(Boolean) : [];
       const catSet = new Set(catList);
       const currentCat = (row.categoria || row._categoria || '').trim();
       if (currentCat && !catSet.has(currentCat)) catList.push(currentCat);
       const catOptionsHtml = catList.map(n => `<button type="button" class="custom-categoria-option" data-value="${escapeAttr(n)}">${escapeHtml(n)}</button>`).join('');
-      title.textContent = mode === 'create' ? 'Nuevo producto' : 'Editar producto';
+      const isCongelados = view === 'congelados';
+      title.textContent = mode === 'create'
+        ? (isCongelados ? 'Nuevo congelado' : 'Nuevo producto')
+        : (isCongelados ? 'Editar congelado' : 'Editar producto');
       body.innerHTML = `
         <div class="form-grid">
           <div class="field span-2">
@@ -1464,7 +1509,7 @@
           };
         });
       }
-      body.querySelector('[data-modal-save]').onclick = () => saveProducto(mode, row.id);
+      body.querySelector('[data-modal-save]').onclick = () => saveCatalogItem(view, mode, row.id);
     } else if (view === 'ofertas') {
       const currentCat = (row.categoria || row._categoria || 'Ofertas').trim() || 'Ofertas';
       title.textContent = mode === 'create' ? 'Nueva oferta' : 'Editar oferta';
@@ -1640,9 +1685,10 @@
   }
 
   // Para editar productos/ofertas necesitamos cargar el item y abrir modal
-  const openModalProductoEdit = (id, categoria) => {
-    api('/productos.php?action=get&id=' + encodeURIComponent(id)).then(({ data }) => {
-      openModal('productos', 'edit', { ...data, categoria });
+  const openModalCatalogEdit = (catalogView, id, categoria) => {
+    const apiFile = catalogView === 'congelados' ? '/congelados.php' : '/productos.php';
+    api(apiFile + '?action=get&id=' + encodeURIComponent(id)).then(({ data }) => {
+      openModal(catalogView, 'edit', { ...data, categoria });
     }).catch(err => alert(err.message));
   };
   const openModalOfertaEdit = (id, categoria) => {

@@ -18,7 +18,7 @@ Podés poner otra ruta relativa a la raíz del proyecto (ej. `"dataPath": "data"
 
 ## Estructura
 
-- **JSON/** (o la carpeta que definas en `config.json`) — users.json, productos.json, ofertas.json, tvs.json (misma altura que `backend/`)
+- **JSON/** (o la carpeta que definas en `config.json`) — users.json, productos.json, congelados.json, ofertas.json, tvs.json (misma altura que `backend/`)
 - **IMG/CORTES/** — Imágenes de promociones
 - **IMG/CORTES/VIDEO/** — Videos de promociones
 - **backend/** — Scripts PHP de la API y `config.json`
@@ -37,7 +37,7 @@ Podés poner otra ruta relativa a la raíz del proyecto (ej. `"dataPath": "data"
 ## Estructura de los JSON (referencia)
 
 - **users.json**: `{ "updated": "...", "users": [ { "id", "username", "password", "name", "role": "admin"|"editor", "active": 1 } ] }`
-- **productos.json**: `{ "updated", "moneda": "ARS", "categorias": [ { "nombre", "items": [ { "id", "nombre", "unidad", "precio", "tag", "estado" } ] } ] }`
+- **productos.json** / **congelados.json**: `{ "updated", "moneda": "ARS", "categorias": [ { "nombre", "items": [ { "id", "nombre", "unidad", "precio", "tag", "estado" } ] } ] }`
 - **ofertas.json**: `{ "updated", "moneda", "categorias": [ { "nombre", "items": [ { "id"?, "nombre", "unidad", "precio", "imagen1", "imagen2" } ] } ] }` (los ítems nuevos reciben `id` al crear)
 - **tvs.json**: `{ "header": { "title", "hint" }, "tvs": [ { "id", "title", "tag", "description", "url", "active" } ] }`
 
@@ -68,6 +68,14 @@ Base: **https://tvpanel.tallerboedo.com.ar/backend/** (raíz del sitio = TEST).
 | Crear | POST productos.php | action=create, nombre, precio, descripcion, categoria, activo |
 | Actualizar | POST productos.php | action=update, id, nombre, precio, descripcion, categoria, activo |
 | Eliminar | POST productos.php | action=delete, id |
+
+**Congelados** (misma API que productos, archivo `congelados.json`):
+
+| Acción | Método | Parámetros |
+|--------|--------|------------|
+| Listar | GET congelados.php?action=list | — |
+| Ver uno | GET congelados.php?action=get&id=1 | — |
+| Crear / Actualizar / Eliminar | POST congelados.php | Igual que productos |
 
 ### Ofertas (requiere login, con imagen/video)
 
