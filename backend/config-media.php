@@ -14,7 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $cfg = readJson($configPath);
     $out = [
         'mediaImagesPath' => isset($cfg['mediaImagesPath']) ? trim($cfg['mediaImagesPath']) : 'IMG/CORTES',
-        'mediaVideosPath' => isset($cfg['mediaVideosPath']) ? trim($cfg['mediaVideosPath']) : 'IMG/CORTES/VIDEO'
+        'mediaVideosPath' => isset($cfg['mediaVideosPath']) ? trim($cfg['mediaVideosPath']) : 'IMG/CORTES/VIDEO',
+        'publicBaseUrl' => getSitePublicBaseUrl(),
     ];
     if ($out['mediaImagesPath'] === '') $out['mediaImagesPath'] = 'IMG/CORTES';
     if ($out['mediaVideosPath'] === '') $out['mediaVideosPath'] = 'IMG/CORTES/VIDEO';

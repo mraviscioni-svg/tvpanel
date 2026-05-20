@@ -1,3 +1,4 @@
 {
-    "dataPath": "JSON"
+    "dataPath": "JSON",
+    "publicBaseUrl": "https://tvpanel.tallerboedo.com.ar"
 }

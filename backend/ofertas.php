@@ -52,26 +52,22 @@ function subirArchivoOferta($fileKey, $tipo = 'imagen') {
     if (!move_uploaded_file($f['tmp_name'], $destino)) {
         return null;
     }
-    return $pathReturn;
+    return mediaPublicUrl($pathReturn);
 }
 
 function eliminarArchivoOferta($path) {
     if (empty($path)) return;
-    $path = normalizarPathMedia($path);
-    $candidates = [$path];
-    if (preg_match('#^(.+)/([^/]+)$#', $path, $m)) {
+    $rel = mediaPathToRelative($path);
+    $candidates = [$rel];
+    if (preg_match('#^(.+)/([^/]+)$#', $rel, $m)) {
         $file = $m[2];
         $candidates[] = 'VIDEO/' . $file;
         $candidates[] = 'CORTES/VIDEO/' . $file;
         $candidates[] = 'CORTES/' . $file;
     }
-    $candidates = array_unique($candidates);
-    foreach ($candidates as $rel) {
-        if (strpos($rel, '/') === 0) {
-            $full = $rel;
-        } else {
-            $full = ROOT . '/' . ltrim($rel, '/');
-        }
+    $candidates = array_unique(array_filter($candidates));
+    foreach ($candidates as $candidate) {
+        $full = ROOT . '/' . ltrim($candidate, '/');
         if (file_exists($full)) {
             @unlink($full);
         }
@@ -125,44 +121,9 @@ function findItemOfertas($data, $id) {
     return [null, null, null];
 }
 
-/**
- * Ruta relativa al sitio para mostrar/guardar media de ofertas.
- * Corrige legado VIDEO/archivo.mp4 → IMG/CORTES/VIDEO/archivo.mp4 (o rutas de Configuración).
- */
+/** Guarda en JSON la URL absoluta del archivo (https://dominio/IMG/CORTES/...). */
 function normalizarPathMedia($path) {
-    if ($path === null || $path === '') return '';
-    $path = trim(str_replace('\\', '/', (string)$path));
-    if ($path === '') return '';
-    if (preg_match('#^https?://#i', $path)) {
-        return $path;
-    }
-
-    $imgRel = trim(CORTES_DIR_REL, '/');
-    $vidRel = trim(CORTES_VIDEO_REL, '/');
-
-    if (preg_match('#^VIDEO/(.+)$#i', $path, $m)) {
-        return $vidRel . '/' . $m[1];
-    }
-    if (preg_match('#^CORTES/VIDEO/(.+)$#i', $path, $m)) {
-        return $vidRel . '/' . $m[1];
-    }
-    if (preg_match('#^CORTES/(.+)$#i', $path, $m)) {
-        return $imgRel . '/' . $m[1];
-    }
-
-    if (strpos($path, $imgRel . '/') === 0 || strpos($path, $vidRel . '/') === 0) {
-        return $path;
-    }
-
-    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-    $isVideo = in_array($ext, ['mp4', 'webm', 'mov'], true);
-    $base = $isVideo ? $vidRel : $imgRel;
-
-    if (strpos($path, '/') === false) {
-        return $base . '/' . $path;
-    }
-
-    return $path;
+    return mediaPublicUrl($path);
 }
 
 /** Tras create/update, asegura imagen1/imagen2 normalizadas en el ítem. */
@@ -281,7 +242,7 @@ switch ($action) {
         } elseif (array_key_exists('imagen1', $input)) {
             $data['categorias'][$ci]['items'][$ii]['imagen1'] = normalizarPathMedia(trim($input['imagen1']));
         }
-        $up2 = subirArchivoOferta('imagen2', 'imagen');
+        $up2 = subirArchivoOferta('imagen2', 'auto');
         if ($up2) {
             eliminarArchivoOferta($data['categorias'][$ci]['items'][$ii]['imagen2'] ?? '');
             $data['categorias'][$ci]['items'][$ii]['imagen2'] = $up2;

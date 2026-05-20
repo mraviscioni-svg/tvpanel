@@ -101,3 +101,89 @@ function requireAdminOrSupervisor() {
     }
     return $user;
 }
+
+/** URL pública del sitio (config.json → publicBaseUrl, o inferida del request). */
+function getSitePublicBaseUrl() {
+    static $base = null;
+    if ($base !== null) {
+        return $base;
+    }
+    $configPath = __DIR__ . '/config.json';
+    if (file_exists($configPath)) {
+        $decoded = @json_decode(file_get_contents($configPath), true);
+        if (is_array($decoded) && !empty($decoded['publicBaseUrl'])) {
+            $base = rtrim(trim($decoded['publicBaseUrl']), '/');
+            return $base;
+        }
+    }
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $base = ($https ? 'https' : 'http') . '://' . $host;
+    return $base;
+}
+
+/**
+ * Path relativo al document root (para disco y JSON interno).
+ * Acepta URL absoluta, legado VIDEO/… o IMG/CORTES/….
+ */
+function mediaPathToRelative($path) {
+    if ($path === null || $path === '') {
+        return '';
+    }
+    $path = trim(str_replace('\\', '/', (string)$path));
+    if ($path === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $path)) {
+        $base = getSitePublicBaseUrl();
+        if (stripos($path, $base . '/') === 0) {
+            $path = substr($path, strlen($base) + 1);
+        } else {
+            $parsed = parse_url($path);
+            $path = ltrim($parsed['path'] ?? '', '/');
+        }
+    }
+
+    $imgRel = trim(CORTES_DIR_REL, '/');
+    $vidRel = trim(CORTES_VIDEO_REL, '/');
+
+    if (preg_match('#^VIDEO/(.+)$#i', $path, $m)) {
+        return $vidRel . '/' . $m[1];
+    }
+    if (preg_match('#^CORTES/VIDEO/(.+)$#i', $path, $m)) {
+        return $vidRel . '/' . $m[1];
+    }
+    if (preg_match('#^CORTES/(.+)$#i', $path, $m)) {
+        return $imgRel . '/' . $m[1];
+    }
+    if (strpos($path, $imgRel . '/') === 0 || strpos($path, $vidRel . '/') === 0) {
+        return $path;
+    }
+
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $isVideo = in_array($ext, ['mp4', 'webm', 'mov'], true);
+    $baseRel = $isVideo ? $vidRel : $imgRel;
+
+    if (strpos($path, '/') === false) {
+        return $baseRel . '/' . $path;
+    }
+
+    return $path;
+}
+
+/** URL absoluta para guardar en JSON y consumir en TVs / admin. */
+function mediaPublicUrl($path) {
+    if ($path === null || $path === '') {
+        return '';
+    }
+    $path = trim((string)$path);
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+    $rel = mediaPathToRelative($path);
+    if ($rel === '') {
+        return '';
+    }
+    return getSitePublicBaseUrl() . '/' . ltrim($rel, '/');
+}

@@ -1329,9 +1329,12 @@
     return s;
   }
 
-  /** Para ofertas: URL pública usando rutas de configuración (imágenes/videos). */
+  /** Para ofertas: usa URL absoluta del JSON; si es relativa, la completa con el origen. */
   function buildOfertaMediaUrl(src) {
-    return buildMediaUrl(resolveOfertaMediaPath(src));
+    if (!src || typeof src !== 'string') return '';
+    const s = src.trim();
+    if (/^https?:\/\//i.test(s)) return s;
+    return buildMediaUrl(resolveOfertaMediaPath(s));
   }
 
   function deleteTV(id) {
