@@ -707,6 +707,40 @@
     });
   }
 
+  let exportJpgBusy = false;
+
+  async function exportOfertasJpgWhatsApp() {
+    if (exportJpgBusy) return;
+    if (!ofertasData?.categorias?.length) {
+      showToast('No hay ofertas cargadas.', 'warn');
+      return;
+    }
+    if (!window.exportPromosJpg) {
+      showToast('Falta cargar export-promos-jpg.js', 'error');
+      return;
+    }
+    exportJpgBusy = true;
+    const btn = document.getElementById('btn-export-jpg-wa');
+    if (btn) btn.disabled = true;
+    showToast('Generando JPG… puede tardar varios minutos (videos incluidos).', 'info');
+    try {
+      const result = await window.exportPromosJpg.run(ofertasData, {
+        onProgress: (cur, total, label) => {
+          if (btn) btn.textContent = `📲 ${cur}/${total}`;
+        },
+      });
+      showToast(`Listo: ${result.count} imágenes en el ZIP.`, 'success');
+    } catch (err) {
+      showToast(err.message || 'Error al generar JPG', 'error');
+    } finally {
+      exportJpgBusy = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '📲 JPG WhatsApp';
+      }
+    }
+  }
+
   function loadOfertas(content) {
     api('/config-media.php').then(data => {
       mediaConfig.mediaImagesPath = data.mediaImagesPath || 'IMG/CORTES';
@@ -774,6 +808,7 @@
               </div>
             </div>
             <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="ofertas"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-export-jpg-wa" title="Generar JPG como en la vidriera (1080×1920) para estados de WhatsApp">📲 JPG WhatsApp</button>
           </div>
         </div>
       `;
@@ -812,6 +847,7 @@
         downloadCSV(buildCSV(rows.map(r => ({ ...r, estado: r.estado ? 'Activo' : 'Inactivo' })), cols), 'ofertas.csv');
         showToast('Exportado correctamente.', 'success');
       });
+      content.querySelector('#btn-export-jpg-wa')?.addEventListener('click', () => exportOfertasJpgWhatsApp());
       content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
         th.onclick = function () {
           const key = this.dataset.sort;
