@@ -1,0 +1,155 @@
+{
+    "updated": "20-05-2026 10:10",
+    "moneda": "ARS",
+    "categorias": [
+        {
+            "nombre": "Congelados",
+            "items": [
+                {
+                    "nombre": "Patitas de Pollo",
+                    "unidad": "pack",
+                    "precio": 14500,
+                    "id": "1",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Caritas de Papa",
+                    "unidad": "pack",
+                    "precio": 18900,
+                    "id": "2",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Medallones de Pollo",
+                    "unidad": "pack",
+                    "precio": 15000,
+                    "id": "3",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Filet de Merluza",
+                    "unidad": "pack",
+                    "precio": 19000,
+                    "id": "4",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Bastón de Muzzarella",
+                    "unidad": "pack",
+                    "precio": 19000,
+                    "id": "5",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Nuggets de Pollo",
+                    "unidad": "pack",
+                    "precio": 16000,
+                    "id": "6",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Papas Bastón",
+                    "unidad": "pack",
+                    "precio": 11500,
+                    "id": "7",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Papas Noisettes",
+                    "unidad": "pack",
+                    "precio": 17000,
+                    "id": "8",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Tortilla de Espinaca",
+                    "unidad": "pack",
+                    "precio": 13000,
+                    "id": "9",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Rabas",
+                    "unidad": "pack",
+                    "precio": 28500,
+                    "id": "10",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Nuggets Tempura",
+                    "unidad": "pack",
+                    "precio": 18000,
+                    "id": "11",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Aros de Cebolla",
+                    "unidad": "pack",
+                    "precio": 21000,
+                    "id": "12",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Bocaditos de Muzzarella",
+                    "unidad": "pack",
+                    "precio": 19000,
+                    "id": "13",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Bocaditos de Verdura",
+                    "unidad": "pack",
+                    "precio": 18000,
+                    "id": "14",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Ricosaurios",
+                    "unidad": "pack",
+                    "precio": 15200,
+                    "id": "15",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Finger de Pollo",
+                    "unidad": "pack",
+                    "precio": 17500,
+                    "id": "16",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Hamburguesa Pollo (3 Arrollos)",
+                    "unidad": "pack",
+                    "precio": 9500,
+                    "id": "17",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                },
+                {
+                    "nombre": "Hamburguesa (Paty)",
+                    "unidad": "unidad",
+                    "precio": 6000,
+                    "id": "18",
+                    "estado": 1,
+                    "updated_at": "20-05-2026 10:10"
+                }
+            ]
+        }
+    ]
+}

@@ -31,8 +31,16 @@ CORTES/*
 !CORTES/VIDEO/
 CORTES/VIDEO/*
 !CORTES/VIDEO/.gitkeep
+# Assets de cartelera (sincronizados desde TEST); uploads sueltos del admin quedan fuera
 IMG/CORTES/*
 !IMG/CORTES/.gitkeep
+!IMG/CORTES/*.jpg
+!IMG/CORTES/*.jpeg
+!IMG/CORTES/*.png
+!IMG/CORTES/*.webp
+!IMG/CORTES/*.gif
 !IMG/CORTES/VIDEO/
 IMG/CORTES/VIDEO/*
-!IMG/CORTES/VIDEO/.gitkeep
+!IMG/CORTES/VIDEO/*.mp4
+!IMG/CORTES/VIDEO/*.webm
+!IMG/CORTES/VIDEO/*.mov

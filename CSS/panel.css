@@ -1,0 +1,66 @@
+:root{
+  --bg:#0a0a0a; --accent:#e11d48; --accent-2:#ffd23f; --text:#f5f5f5; --muted:#bdbdbd;
+  --header-h: clamp(92px, 14dvh, 128px);
+  --footer-h: clamp(64px, 13dvh, 100px);
+  --fs-scale: 1.30;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:"Montserrat",system-ui,Segoe UI,Roboto,Arial,sans-serif}
+body{overflow:hidden}
+.app{display:grid;grid-template-rows: var(--header-h) 1fr;min-height:100dvh}
+
+/* HEADER */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:28px 18px 22px;background:linear-gradient(180deg,#111,#0b0b0b);border-bottom:1px solid #1e1e1e
+}
+.brand{display:flex;align-items:center;gap:14px}
+.brand img{max-height:80px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4)); margin-block: 4px;}
+.clock{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
+.clock-date{font-weight:700;letter-spacing:.2px;font-size:clamp(12px,1.7vh,16px)}
+.clock-time{display:flex;align-items:baseline;gap:8px}
+.clock-time .hm{font-weight:800;letter-spacing:.5px;font-size:clamp(28px,5vh,56px)}
+.clock-time .ampm{font-weight:800;font-variant:small-caps;font-size:clamp(12px,2vh,18px)}
+
+/* MAIN */
+main{
+  padding:18px;overflow:auto;
+  background:radial-gradient(1200px 1200px at 100% -10%, rgba(225,29,72,.08), transparent 60%),
+             radial-gradient(1000px 1000px at -10% 100%, rgba(255,210,63,.06), transparent 55%);
+}
+.panel{max-width:1200px;margin:0 auto}
+.panel-title{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:6px 4px 18px}
+.panel-title h1{margin:0;font-size:clamp(20px,3.4vh,30px);font-weight:900;letter-spacing:.4px;text-transform:uppercase}
+.hint{color:var(--muted);font-size:clamp(12px,1.8vh,14px)}
+
+.cards{display:grid;grid-template-columns: repeat(5, minmax(0,1fr));gap:16px}
+@media (max-width:1200px){ .cards{grid-template-columns: repeat(3, minmax(0,1fr));} }
+@media (max-width:800px) { .cards{grid-template-columns: repeat(2, minmax(0,1fr));} }
+@media (max-width:520px) { .cards{grid-template-columns: 1fr;} }
+
+.card{
+  position:relative;overflow:hidden;border-radius:16px;background:linear-gradient(180deg,#141414,#0f0f0f);
+  border:1px solid #1e1e1e;transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  min-height:140px;display:flex;flex-direction:column;justify-content:space-between;
+}
+.card::before{content:""; position:absolute; inset:0;background:linear-gradient(180deg, rgba(225,29,72,.12), transparent 35%);pointer-events:none}
+.card:hover{transform:translateY(-2px);border-color:rgba(225,29,72,.45);box-shadow:0 6px 28px rgba(225,29,72,.18), inset 0 1px 0 rgba(255,255,255,.06)}
+.card.disabled{opacity:.55; filter:grayscale(.25); pointer-events:none}
+
+.card-body{padding:18px 18px 0;display:flex; align-items:flex-start; gap:12px}
+.pill{font-weight:900;font-size:12px;letter-spacing:.4px;color:#111;background:var(--accent-2);padding:4px 10px;border-radius:999px;text-transform:uppercase}
+.title{margin:2px 0 4px;font-size:clamp(18px,2.7vh,22px);font-weight:800;letter-spacing:.2px}
+.desc{margin:0;color:var(--muted);font-size:clamp(12px,1.9vh,14px)}
+.card-foot{display:flex; align-items:center; justify-content:space-between;padding:14px 16px 16px; gap:8px}
+.btn{
+  display:inline-flex; align-items:center; gap:10px;padding:10px 14px;border-radius:12px;
+  background:rgba(225,29,72,.14);border:1px solid rgba(225,29,72,.35);color:var(--text);
+  font-weight:800; text-decoration:none;transition:background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.btn:hover{ background:rgba(225,29,72,.22); border-color:rgba(225,29,72,.6); transform:translateX(2px) }
+.btn svg{ width:18px; height:18px }
+.badge-right{display:inline-flex; align-items:center; gap:8px;font-size:12px; color:var(--muted)}
+.dot{width:8px; height:8px; border-radius:50%; background: radial-gradient(circle at 30% 30%, var(--accent-2), #a37c16); box-shadow: 0 0 8px rgba(255,210,63,.45)}
+
+/* nieve opcional si el theme la usa */
+html.snow-enabled .snow{pointer-events:none; position:fixed; inset:0; z-index:9999}

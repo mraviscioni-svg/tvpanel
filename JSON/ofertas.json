@@ -1,186 +1,186 @@
 {
-  "updated": "10-11-2025",
-  "moneda": "ARS",
-  "categorias": [
-    {
-      "nombre": "Ofertas",
-      "items": [
+    "updated": "20-05-2026 10:01",
+    "moneda": "ARS",
+    "categorias": [
         {
-          "nombre": "Pata Muslo 3kg",
-          "unidad": "",
-          "precio": 13500,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/pataymuslo.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "1",
-          "estado": 1
+            "nombre": "Ofertas",
+            "items": [
+                {
+                    "nombre": "Pata Muslo 3kg",
+                    "unidad": "",
+                    "precio": 13500,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/pataymuslo.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "1",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Suprema 2kg",
+                    "unidad": "",
+                    "precio": 28000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/suprema.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "2",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Milanesa Pollo 2kg",
+                    "unidad": "",
+                    "precio": 26000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/milanesa-carne.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "3",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Milanesa Carne 2kg",
+                    "unidad": "",
+                    "precio": 26000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/milanesa-pollo.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "4",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Alitas 1kg",
+                    "unidad": "",
+                    "precio": 2000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/alitas.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "5",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Osobuco 2kg",
+                    "unidad": "",
+                    "precio": 25000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/osobuco.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "6",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Espinazo 2kg",
+                    "unidad": "",
+                    "precio": 16000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/espinazo.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "7",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Bife Ancho 1kg",
+                    "unidad": "",
+                    "precio": 18400,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/bife.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "8",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Asado 2kg",
+                    "unidad": "",
+                    "precio": 42000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/asado.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "9",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Menudo 1kg",
+                    "unidad": "",
+                    "precio": 1000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/menudo.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "10",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Vacío 2kg",
+                    "unidad": "",
+                    "precio": 42000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/vacio.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "11",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Paleta 2kg",
+                    "unidad": "",
+                    "precio": 36000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/paleta.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "12",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Roast Beef 2kg",
+                    "unidad": "",
+                    "precio": 36000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/roastbeef.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "13",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Hamburguesas 1kg",
+                    "unidad": "",
+                    "precio": 19000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/hamburguesa.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "14",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Picada 2kg",
+                    "unidad": "",
+                    "precio": 32000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/picada.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "15",
+                    "estado": 1
+                }
+            ]
         },
         {
-          "nombre": "Suprema 2kg",
-          "unidad": "",
-          "precio": 28000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/suprema.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "2",
-          "estado": 1
-        },
-        {
-          "nombre": "Milanesa Pollo 2kg",
-          "unidad": "",
-          "precio": 26000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/milanesa-carne.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "3",
-          "estado": 1
-        },
-        {
-          "nombre": "Milanesa Carne 2kg",
-          "unidad": "",
-          "precio": 26000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/milanesa-pollo.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "4",
-          "estado": 1
-        },
-        {
-          "nombre": "Alitas 1kg",
-          "unidad": "",
-          "precio": 2000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/alitas.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "5",
-          "estado": 1
-        },
-        {
-          "nombre": "Osobuco 2kg",
-          "unidad": "",
-          "precio": 25000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/osobuco.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "6",
-          "estado": 1
-        },
-        {
-          "nombre": "Espinazo 2kg",
-          "unidad": "",
-          "precio": 16000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/espinazo.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "7",
-          "estado": 1
-        },
-        {
-          "nombre": "Bife Ancho 1kg",
-          "unidad": "",
-          "precio": 18400,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/bife.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "8",
-          "estado": 1
-        },
-        {
-          "nombre": "Asado 2kg",
-          "unidad": "",
-          "precio": 42000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/asado.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "9",
-          "estado": 1
-        },
-        {
-          "nombre": "Menudo 1kg",
-          "unidad": "",
-          "precio": 1000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/menudo.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "10",
-          "estado": 1
-        },
-        {
-          "nombre": "Vac?o 2kg",
-          "unidad": "",
-          "precio": 42000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/vacio.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "11",
-          "estado": 1
-        },
-        {
-          "nombre": "Paleta 2kg",
-          "unidad": "",
-          "precio": 36000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/paleta.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "12",
-          "estado": 1
-        },
-        {
-          "nombre": "Roast Beef 2kg",
-          "unidad": "",
-          "precio": 36000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/roastbeef.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "13",
-          "estado": 1
-        },
-        {
-          "nombre": "Hamburguesas 1kg",
-          "unidad": "",
-          "precio": 19000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/hamburguesa.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "14",
-          "estado": 1
-        },
-        {
-          "nombre": "Picada 2kg",
-          "unidad": "",
-          "precio": 32000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/picada.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "15",
-          "estado": 1
+            "nombre": "Varios",
+            "items": [
+                {
+                    "nombre": "Carbón",
+                    "unidad": "bolsa",
+                    "precio": 5000,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/carbon.mp4",
+                    "imagen2": "",
+                    "updated_at": "20-05-2026 10:01",
+                    "id": "16",
+                    "estado": 1
+                },
+                {
+                    "nombre": "Carcaza",
+                    "unidad": "kg",
+                    "precio": 350,
+                    "imagen1": "https:\/\/tvpanel.tallerboedo.com.ar\/IMG\/CORTES\/VIDEO\/carcaza.mp4",
+                    "imagen2": "",
+                    "updated_at": "03-03-2025 12:00",
+                    "id": "17",
+                    "estado": 1
+                }
+            ]
         }
-      ]
-    },
-    {
-      "nombre": "Varios",
-      "items": [
-        {
-          "nombre": "Carb?n",
-          "unidad": "bolsa",
-          "precio": 5000,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/carbon.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "16",
-          "estado": 1
-        },
-        {
-          "nombre": "Carcaza",
-          "unidad": "kg",
-          "precio": 350,
-          "imagen1": "https://tvpanel.tallerboedo.com.ar/IMG/CORTES/VIDEO/carcaza.mp4",
-          "imagen2": "",
-          "updated_at": "03-03-2025 12:00",
-          "id": "17",
-          "estado": 1
-        }
-      ]
-    }
-  ]
+    ]
 }

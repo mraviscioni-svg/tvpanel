@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Estancia Cardoso | Panel de TVs</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+
+<!-- CSS base del panel -->
+<link rel="stylesheet" href="CSS/panel.css">
+
+<!-- Theme dinámico -->
+<link id="theme-css" rel="stylesheet" href="CSS/themes/default.css">
+</head>
+<body>
+<div class="app">
+  <!-- HEADER -->
+  <header>
+    <div class="brand"><img src="IMG/Logo.png" alt="Logo Carnicería"></div>
+    <div class="clock" id="clock">
+      <div class="clock-date">—</div>
+      <div class="clock-time"><span class="hm">--:--</span><span class="ampm">AM</span></div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="panel">
+      <div class="panel-title">
+        <h1 id="panel-title">Panel de TVs</h1>
+        <div class="hint" id="panel-hint">Elegí una pantalla para abrir su cartelera</div>
+      </div>
+
+      <div class="cards" id="cards">
+        <!-- Se llena por JS -->
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- App -->
+ <!-- Lógica completa en app.js -->
+<script src="JS/app.js?v=20251104"></script>
+
+<!-- Capa de nieve (si snow=1, app.js la animará) -->
+<div class="snow" aria-hidden="true"></div>
+<script src="JS/panel.js"></script>
+</body>
+</html>
