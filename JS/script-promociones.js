@@ -2,36 +2,100 @@ const SLIDE_MS = 13000;
 const INTRO_MS = 7000;
 const PLACEHOLDER_IMG = '/IMG/CORTES/placeholder.png';
 const PROMOS_JSON = '/JSON/ofertas.json';
+const REFRESH_MIN_MS = 450;
 
 let slides = [];
 let current = 0;
 let timer = null;
 let promosPollTimer = null;
+let promosJsonPath = PROMOS_JSON;
 
-function bootPromociones() {
-  fetch(PROMOS_JSON, { cache: 'no-store' })
-    .then(r => {
+function promosRefreshUi() {
+  return window.LiveJsonSync && window.LiveJsonSync.TvRefreshUI
+    ? window.LiveJsonSync.TvRefreshUI
+    : null;
+}
+
+function yieldToPaint() {
+  return new Promise(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+}
+
+function itemActivoEnPromo(item) {
+  if (!item || typeof item !== 'object') return true;
+  if (!('estado' in item)) return true;
+  return item.estado !== 0 && item.estado !== false && item.estado !== '0';
+}
+
+async function applyPromosUpdate(data, opts = {}) {
+  const ui = promosRefreshUi();
+  const showOverlay = !opts.silent && ui;
+  const started = Date.now();
+  if (showOverlay) ui.show(opts.message || 'Actualizando promociones…');
+  try {
+    if (timer) clearTimeout(timer);
+    await yieldToPaint();
+    init(data);
+    await yieldToPaint();
+  } finally {
+    if (showOverlay) {
+      const wait = Math.max(0, REFRESH_MIN_MS - (Date.now() - started));
+      if (wait) await new Promise(r => setTimeout(r, wait));
+      ui.hide();
+    }
+  }
+}
+
+async function bootPromociones() {
+  promosJsonPath = window.LiveJsonSync
+    ? window.LiveJsonSync.resolveJsonUrl(PROMOS_JSON)
+    : PROMOS_JSON;
+
+  if (window.LiveJsonSync && window.LiveJsonSync.preloadJson) {
+    window.LiveJsonSync.preloadJson(promosJsonPath);
+  }
+
+  const ui = promosRefreshUi();
+  if (ui) ui.show('Cargando promociones…');
+
+  let data;
+  try {
+    if (window.LiveJsonSync && window.LiveJsonSync.fetchJson) {
+      data = await window.LiveJsonSync.fetchJson(promosJsonPath);
+    } else {
+      const r = await fetch(promosJsonPath, { cache: 'no-store' });
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(data => {
-      init(data);
-      if (promosPollTimer) clearInterval(promosPollTimer);
-      promosPollTimer = window.LiveJsonSync.start({
-        path: PROMOS_JSON,
-        intervalMs: window.LiveJsonSync.getPollIntervalMs(),
-        initialStamp: window.LiveJsonSync.stampFromJson(data),
-        onUpdate: (fresh) => {
-          if (timer) clearTimeout(timer);
-          init(fresh);
-        },
-      });
-    })
-    .catch(err => console.error('[PROMOS] Error cargando JSON:', err));
+      data = await r.json();
+    }
+    await applyPromosUpdate(data, { silent: true });
+  } catch (err) {
+    console.error('[PROMOS] Error cargando JSON:', err);
+  } finally {
+    if (ui) ui.hide();
+  }
+
+  if (!window.LiveJsonSync || !data) return;
+
+  if (promosPollTimer) clearInterval(promosPollTimer);
+  promosPollTimer = window.LiveJsonSync.start({
+    path: promosJsonPath,
+    intervalMs: window.LiveJsonSync.getPollIntervalMs(),
+    initialStamp: window.LiveJsonSync.stampFromJson(data),
+    onRefreshStart: () => {
+      const u = promosRefreshUi();
+      if (u) u.show('Actualizando promociones…');
+    },
+    onUpdate: (fresh) => applyPromosUpdate(fresh, { silent: true }),
+    onRefreshEnd: () => {
+      const u = promosRefreshUi();
+      if (u) u.hide();
+    },
+  });
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bootPromociones);
+  document.addEventListener('DOMContentLoaded', () => bootPromociones());
 } else {
   bootPromociones();
 }
@@ -53,6 +117,7 @@ function init(data) {
     const productSlides = [];
     const items = Array.isArray(cat?.items) ? cat.items : [];
     items.forEach(item => {
+      if (!itemActivoEnPromo(item)) return;
       const slide = createProductSlide(item);
       if (slide) productSlides.push(slide);
     });
