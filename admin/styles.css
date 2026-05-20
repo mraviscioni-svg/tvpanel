@@ -654,9 +654,14 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 /* ===== Tablas (CRM compact) ===== */
 .table-scroll-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   position: relative;
   z-index: 1;
   margin-top: 0.25rem;
+}
+.table-scroll-wrap > .table-wrap {
+  overflow: visible;
+  min-width: min(100%, 960px);
 }
 .table-wrap {
   position: relative;
@@ -705,8 +710,37 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 .table-wrap tr:last-child td { border-bottom: none; }
 .table-wrap tr:hover td { background: rgba(255,255,255,0.03); }
-.table-actions { display: flex; gap: 0.35rem; }
-.table-actions .btn { padding: 0.25rem 0.5rem; font-size: var(--text-xs); }
+.table-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  min-width: 15.5rem;
+}
+.table-actions .btn {
+  flex-shrink: 0;
+  padding: 0.3rem 0.6rem;
+  font-size: var(--text-xs);
+}
+.table-wrap th.th-actions,
+.table-wrap td.table-actions {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  padding-right: 0.85rem;
+  background: var(--bg-card);
+  box-shadow: -10px 0 14px rgba(0, 0, 0, 0.35);
+}
+.table-wrap th.th-actions {
+  background: var(--bg-elevated);
+}
+.table-wrap tr:hover td.table-actions {
+  background: #1c1c1f;
+}
+.table-wrap--ofertas table {
+  min-width: 880px;
+}
 .empty-state {
   text-align: center;
   padding: 2rem 1.5rem;

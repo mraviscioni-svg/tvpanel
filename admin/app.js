@@ -816,9 +816,10 @@
         </div>
       `;
       let html = header + `
-        <div class="table-wrap">
+        <div class="table-scroll-wrap">
+        <div class="table-wrap table-wrap--ofertas">
           <table>
-            <thead><tr>${thSortOferta('_categoria', 'Categoría')}${thSortOferta('nombre', 'Nombre')}${thSortOferta('unidad', 'Unidad')}${thSortOferta('precio', 'Precio')}${thSortOferta('updated_at', 'Modificado')}<th>Imagen/Vídeo</th>${thSortOferta('estado', 'Estado')}<th></th></tr></thead>
+            <thead><tr>${thSortOferta('_categoria', 'Categoría')}${thSortOferta('nombre', 'Nombre')}${thSortOferta('unidad', 'Unidad')}${thSortOferta('precio', 'Precio')}${thSortOferta('updated_at', 'Modificado')}<th>Imagen/Vídeo</th>${thSortOferta('estado', 'Estado')}<th class="th-actions">Acciones</th></tr></thead>
             <tbody>`;
       rows.forEach(it => {
         const media1 = it.imagen1 || '';
@@ -844,7 +845,7 @@
           </td>
         </tr>`;
       });
-      html += '</tbody></table></div>';
+      html += '</tbody></table></div></div>';
       content.innerHTML = html;
       renderPagination(content, 'ofertas', total, page, totalPages, pageSize, () => loadOfertas(content));
       bindSearchWithClear(content, 'ofertas-search', 'ofertas', () => loadOfertas(content));
