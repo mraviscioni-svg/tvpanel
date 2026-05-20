@@ -442,56 +442,117 @@ async function buildDynamicRightCarousel(){
 
 
 /* =========================
-   INIT GENERAL
+   INIT GENERAL + auto-refresh JSON
    ========================= */
-async function init(){
+let __listPollTimer = null;
+let __carouselPollTimer = null;
+let __layoutObserversAttached = false;
+
+function getListRenderConfig() {
   const base = window.APP_CONFIG || {};
-  // Productos
   const cols = qsParamInt('cols', base.cols ?? 3);
   const productsPerColumn = qsParamInt('ppc', base.productsPerColumn ?? 15);
   const startIndex = qsParamInt('start', base.startIndex ?? 0);
-  const productsPerPage = qsParamInt('ppp', base.productsPerPage ?? (cols*productsPerColumn));
+  const productsPerPage = qsParamInt('ppp', base.productsPerPage ?? (cols * productsPerColumn));
   const jsonPath = qsParamStr('j', base.jsonPath || 'JSON/productos.json');
-
-  // Lado imagen (alterno por página o forzado por ?side=left/right)
   const p = qsParamInt('p', 1);
   const overrideSide = qsParamStr('side', '').toLowerCase();
-  const main = document.getElementById('mainLayout');
-  if(main){
-    const useLeft = overrideSide ? (['left','izq','l'].includes(overrideSide)) : ((p % 2) === 1);
-    main.classList.toggle('image-left', useLeft);
-    main.classList.toggle('image-right', !useLeft);
-  }
+  const qs = new URL(location).searchParams;
+  const cfg = window.APP_CONFIG || {};
+  const carouselJson = qs.get('cj') || qs.get('carousel') || cfg.carouselJson || '';
+  return {
+    cols,
+    productsPerColumn,
+    startIndex,
+    productsPerPage,
+    jsonPath,
+    p,
+    overrideSide,
+    carouselJson: carouselJson.trim(),
+  };
+}
 
-  // Cargar productos + render
-  const { ORDER, data } = await loadData(jsonPath);
+function applyListLayoutSide(config) {
+  const main = document.getElementById('mainLayout');
+  if (!main) return;
+  const useLeft = config.overrideSide
+    ? (['left', 'izq', 'l'].includes(config.overrideSide))
+    : ((config.p % 2) === 1);
+  main.classList.toggle('image-left', useLeft);
+  main.classList.toggle('image-right', !useLeft);
+}
+
+function renderProductListFromJson(j, config) {
+  const { ORDER, data } = normalizeJson(j);
   const ordered = sortByOrder(data, ORDER);
   const flat = flattenItems(ordered);
-
-  const capacity = cols * productsPerColumn;
-  const pageSize = Math.min(productsPerPage, capacity);
-  const safeStart = Math.max(0, Math.min(startIndex, Math.max(0, flat.length - 1)));
+  const capacity = config.cols * config.productsPerColumn;
+  const pageSize = Math.min(config.productsPerPage, capacity);
+  const safeStart = Math.max(0, Math.min(config.startIndex, Math.max(0, flat.length - 1)));
   const slice = flat.slice(safeStart, safeStart + pageSize);
-
-  const columns = buildColumns(slice, cols, productsPerColumn);
+  const columns = buildColumns(slice, config.cols, config.productsPerColumn);
   renderColumns(columns);
+  fitMenuToHeightRobust();
+}
 
-  // Fit
+function attachLayoutObserversOnce() {
+  if (__layoutObserversAttached) return;
+  __layoutObserversAttached = true;
   const body = document.getElementById('menuBody');
-  const ro = new ResizeObserver(()=>fitMenuToHeightRobust());
-  if(body) ro.observe(body);
-  if(main) ro.observe(main);
-  const mo = new MutationObserver(()=>fitMenuToHeightRobust());
-  mo.observe(document.getElementById('columns'), {childList:true, subtree:true});
-  if(document.fonts && document.fonts.ready){ await document.fonts.ready; }
+  const main = document.getElementById('mainLayout');
+  const ro = new ResizeObserver(() => fitMenuToHeightRobust());
+  if (body) ro.observe(body);
+  if (main) ro.observe(main);
+  const colsEl = document.getElementById('columns');
+  if (colsEl) {
+    const mo = new MutationObserver(() => fitMenuToHeightRobust());
+    mo.observe(colsEl, { childList: true, subtree: true });
+  }
+}
+
+async function init() {
+  const config = getListRenderConfig();
+  applyListLayoutSide(config);
+
+  let listJson;
+  try {
+    const res = await fetch(config.jsonPath, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    listJson = await res.json();
+  } catch (e) {
+    console.error('No se pudo cargar JSON de listado:', e);
+    listJson = { categorias: [] };
+  }
+
+  renderProductListFromJson(listJson, config);
+  attachLayoutObserversOnce();
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
   fitMenuToHeightRobust();
 
-  // Media + footer
   ensureVideo();
   startFooterCarousel();
-
-  // Carrusel derecha dinámico (1..3 stacks)
   await buildDynamicRightCarousel();
+
+  if (window.LiveJsonSync) {
+    if (__listPollTimer) clearInterval(__listPollTimer);
+    __listPollTimer = window.LiveJsonSync.start({
+      path: config.jsonPath,
+      intervalMs: window.LiveJsonSync.getPollIntervalMs(),
+      initialStamp: window.LiveJsonSync.stampFromJson(listJson),
+      onUpdate: (fresh) => renderProductListFromJson(fresh, config),
+    });
+
+    const cj = config.carouselJson;
+    if (cj && cj !== config.jsonPath) {
+      if (__carouselPollTimer) clearInterval(__carouselPollTimer);
+      __carouselPollTimer = window.LiveJsonSync.start({
+        path: cj,
+        intervalMs: window.LiveJsonSync.getPollIntervalMs(),
+        initialStamp: '',
+        onUpdate: () => buildDynamicRightCarousel(),
+      });
+    }
+  }
 }
 document.addEventListener('DOMContentLoaded', init);
 

@@ -1,15 +1,40 @@
 const SLIDE_MS = 13000;
 const INTRO_MS = 7000;
 const PLACEHOLDER_IMG = '/IMG/CORTES/placeholder.png';
+const PROMOS_JSON = '/JSON/ofertas.json';
 
 let slides = [];
 let current = 0;
 let timer = null;
+let promosPollTimer = null;
 
-fetch('/JSON/ofertas.json')
-  .then(r => r.json())
-  .then(init)
-  .catch(err => console.error('[PROMOS] Error cargando JSON:', err));
+function bootPromociones() {
+  fetch(PROMOS_JSON, { cache: 'no-store' })
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(data => {
+      init(data);
+      if (promosPollTimer) clearInterval(promosPollTimer);
+      promosPollTimer = window.LiveJsonSync.start({
+        path: PROMOS_JSON,
+        intervalMs: window.LiveJsonSync.getPollIntervalMs(),
+        initialStamp: window.LiveJsonSync.stampFromJson(data),
+        onUpdate: (fresh) => {
+          if (timer) clearTimeout(timer);
+          init(fresh);
+        },
+      });
+    })
+    .catch(err => console.error('[PROMOS] Error cargando JSON:', err));
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootPromociones);
+} else {
+  bootPromociones();
+}
 
 function init(data) {
   const root = document.getElementById('carousel');
