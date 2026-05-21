@@ -1,5 +1,10 @@
 /* Contenedor off-screen para captura html2canvas (1080×1920 — formato estado WA) */
 #promo-jpg-export-host {
+  --export-pad: 52px;
+  --header-logo-top: 40px;
+  --stage-inner-pad: 40px;
+  --overlay-block: 220px;
+
   position: fixed;
   left: -12000px;
   top: 0;
@@ -20,22 +25,29 @@
   height: 1920px;
   position: relative;
   box-sizing: border-box;
-  padding: 36px 40px 44px;
+  padding: var(--export-pad);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 #promo-jpg-export-host .slide,
 #promo-jpg-export-host .intermediate {
   position: absolute;
-  inset: 0;
+  inset: var(--export-pad);
   opacity: 1 !important;
   transform: none !important;
   pointer-events: none;
+  box-sizing: border-box;
 }
 
 #promo-jpg-export-host .slide.active {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  justify-content: center;
+  gap: 20px;
 }
 
 #promo-jpg-export-host .promo-capture,
@@ -56,21 +68,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 16px;
+  padding-top: var(--header-logo-top);
+  padding-bottom: 8px;
 }
 
 #promo-jpg-export-host .header-logo {
-  width: 400px;
-  max-height: 100px;
+  width: min(380px, 100%);
+  max-height: 96px;
   object-fit: contain;
   filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.45));
 }
 
 #promo-jpg-export-host .stage {
   position: relative;
-  flex: 1;
+  flex: 1 1 auto;
+  width: 100%;
   min-height: 0;
-  margin-top: 8px;
+  max-height: calc(1920px - (var(--export-pad) * 2) - var(--header-logo-top) - 120px);
+  margin: 0;
   border-radius: 24px;
   overflow: hidden;
   background:
@@ -101,18 +116,15 @@
   pointer-events: none;
 }
 
-/* Zona media centrada (deja espacio al pie para nombre/precio) */
+/* Media centrada con mismo aire en los cuatro lados del stage */
 #promo-jpg-export-host .mediaWrap {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 248px;
+  inset: var(--stage-inner-pad);
+  bottom: calc(var(--stage-inner-pad) + var(--overlay-block));
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 28px;
   box-sizing: border-box;
 }
 
@@ -142,42 +154,38 @@
 
 #promo-jpg-export-host .mediaWrap.two {
   display: block;
-  align-items: stretch;
-  justify-content: stretch;
-  padding: 16px 24px 24px;
 }
 
 #promo-jpg-export-host .mediaWrap.two .slot-top,
 #promo-jpg-export-host .mediaWrap.two .slot-bottom {
   position: absolute;
   left: 50%;
-  margin-left: 0;
   transform: translateX(-50%);
   object-fit: contain;
   z-index: 3;
 }
 
 #promo-jpg-export-host .mediaWrap.two .slot-top {
-  top: 6%;
-  max-width: 700px;
-  max-height: 44%;
+  top: 8%;
+  max-width: 680px;
+  max-height: 42%;
 }
 
 #promo-jpg-export-host .mediaWrap.two .slot-bottom {
-  top: auto;
-  bottom: 12%;
-  max-width: 660px;
+  bottom: 10%;
+  max-width: 640px;
   max-height: 38%;
 }
 
-/* Pie centrado */
+/* Pie alineado al padding inferior del stage (simétrico) */
 #promo-jpg-export-host .overlay {
   position: absolute;
-  left: 50%;
-  bottom: 5%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 920px;
+  left: var(--stage-inner-pad);
+  right: var(--stage-inner-pad);
+  bottom: var(--stage-inner-pad);
+  width: auto;
+  max-width: none;
+  transform: none;
   z-index: 4;
   display: flex;
   flex-direction: column;
@@ -231,13 +239,14 @@
   justify-content: center;
   gap: 22px;
   text-align: center;
-  padding: 48px;
+  padding: var(--export-pad);
 }
 
 #promo-jpg-export-host .intermediate .logo {
-  width: 480px;
-  max-height: 190px;
+  width: min(460px, 88%);
+  max-height: 180px;
   object-fit: contain;
+  margin-top: var(--header-logo-top);
 }
 
 #promo-jpg-export-host .intermediate .headline {
@@ -297,14 +306,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: var(--export-pad);
 }
 
 #promo-jpg-export-host .intermediate-poster .poster-full {
   width: auto;
   height: auto;
-  max-width: 92%;
-  max-height: 1680px;
+  max-width: calc(100% - (var(--export-pad) * 2));
+  max-height: calc(1920px - (var(--export-pad) * 2));
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 22px 56px rgba(0, 0, 0, 0.55));

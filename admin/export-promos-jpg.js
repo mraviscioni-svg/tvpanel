@@ -95,7 +95,7 @@
       const link = document.createElement('link');
       link.id = 'promo-jpg-export-styles';
       link.rel = 'stylesheet';
-      link.href = 'export-promos-jpg.css?v=4';
+      link.href = 'export-promos-jpg.css?v=5';
       document.head.appendChild(link);
     }
     if (!document.getElementById('promo-export-montserrat')) {
@@ -334,18 +334,16 @@
   function layoutMediaForCapture(root) {
     const stage = root.querySelector('.stage');
     if (!stage) return;
-    const stageW = stage.clientWidth || 984;
-    const stageH = stage.clientHeight || 1520;
-    const overlayReserve = 248;
-    const padX = 56;
-    const mediaZoneH = stageH - overlayReserve;
-    const mediaZoneW = stageW - padX;
+    const stageW = stage.clientWidth || 976;
+    const stageH = stage.clientHeight || 1400;
+    const innerPad = 40;
+    const overlayBlock = 220;
 
     root.querySelectorAll('.mediaWrap').forEach(wrap => {
       const isOne = wrap.classList.contains('one');
       const wrapRect = wrap.getBoundingClientRect();
-      const zoneW = wrapRect.width > 0 ? wrapRect.width - 40 : mediaZoneW;
-      const zoneH = wrapRect.height > 0 ? wrapRect.height - 40 : mediaZoneH;
+      const zoneW = wrapRect.width > 0 ? wrapRect.width : Math.max(1, stageW - innerPad * 2);
+      const zoneH = wrapRect.height > 0 ? wrapRect.height : Math.max(1, stageH - innerPad * 2 - overlayBlock);
 
       wrap.querySelectorAll('img.media').forEach(img => {
         const nw = img.naturalWidth || 1;
