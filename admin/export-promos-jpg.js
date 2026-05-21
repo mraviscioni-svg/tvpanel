@@ -8,6 +8,26 @@
   const JPG_QUALITY = 0.92;
   const PLACEHOLDER = '/IMG/Logo.png';
 
+  const PAY_LOGOS = [
+    { src: '/IMG/pagos/visa.png', alt: 'Visa' },
+    { src: '/IMG/pagos/mastercard.png', alt: 'Mastercard' },
+    { src: '/IMG/pagos/amex.png', alt: 'Amex' },
+    { src: '/IMG/pagos/mercadopago.png', alt: 'Mercado Pago' },
+    { src: '/IMG/pagos/debito.png', alt: 'Débito' },
+    { src: '/IMG/pagos/efectivo.png', alt: 'Efectivo' },
+  ];
+
+  function paymentFooterHtml() {
+    const imgs = PAY_LOGOS.map(
+      p => `<img src="${p.src}" alt="${escapeHtml(p.alt)}">`
+    ).join('');
+    return `
+      <div class="export-pay-footer" aria-hidden="true">
+        <span class="foot-title">Aceptamos estos métodos de pago</span>
+        <div class="pay-logos">${imgs}</div>
+      </div>`;
+  }
+
   function escapeHtml(str) {
     return String(str)
       .replaceAll('&', '&amp;')
@@ -95,7 +115,7 @@
       const link = document.createElement('link');
       link.id = 'promo-jpg-export-styles';
       link.rel = 'stylesheet';
-      link.href = 'export-promos-jpg.css?v=5';
+      link.href = 'export-promos-jpg.css?v=6';
       document.head.appendChild(link);
     }
     if (!document.getElementById('promo-export-montserrat')) {
@@ -277,13 +297,16 @@
     if (entry.type === 'whatsapp') {
       wrap.innerHTML = `
         <div class="intermediate active">
-          <img class="logo" src="/IMG/Logo.png" alt="Logo">
-          <div class="headline">PEDIDOS POR WHATSAPP</div>
-          <div class="copy">Escaneá el QR y hacé tu pedido en segundos.<br>Te respondemos a la brevedad.</div>
-          <div class="qrCenter">
-            <div class="qrCard"><img src="/IMG/qrcode.jpg" alt="QR"></div>
-            <div class="chip">📲 WHATSAPP</div>
+          <div class="intermediate-body">
+            <img class="logo" src="/IMG/Logo.png" alt="Logo">
+            <div class="headline">PEDIDOS POR WHATSAPP</div>
+            <div class="copy">Escaneá el QR y hacé tu pedido en segundos.<br>Te respondemos a la brevedad.</div>
+            <div class="qrCenter">
+              <div class="qrCard"><img src="/IMG/qrcode.jpg" alt="QR"></div>
+              <div class="chip">📲 WHATSAPP</div>
+            </div>
           </div>
+          ${paymentFooterHtml()}
         </div>`;
       return wrap;
     }
@@ -291,7 +314,10 @@
     if (entry.type === 'efectivo10') {
       wrap.innerHTML = `
         <div class="intermediate intermediate-poster active">
-          <img class="poster-full" src="/IMG/promo-descuento-efectivo-10.png" alt="10% efectivo">
+          <div class="intermediate-body">
+            <img class="poster-full" src="/IMG/promo-descuento-efectivo-10.png" alt="10% efectivo">
+          </div>
+          ${paymentFooterHtml()}
         </div>`;
       return wrap;
     }
@@ -313,7 +339,8 @@
             <span class="amount">${price.toLocaleString('es-AR')}</span>
           </div>
         </div>
-      </div>`;
+      </div>
+      ${paymentFooterHtml()}`;
     const mediaWrap = slide.querySelector('.mediaWrap');
     medias.forEach((src, i) => {
       const img = document.createElement('img');

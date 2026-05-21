@@ -4,6 +4,8 @@
   --header-logo-top: 40px;
   --stage-inner-pad: 40px;
   --overlay-block: 220px;
+  --export-footer-h: 92px;
+  --export-footer-gap: 16px;
 
   position: fixed;
   left: -12000px;
@@ -46,8 +48,8 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
-  gap: 20px;
+  justify-content: flex-start;
+  gap: var(--export-footer-gap);
 }
 
 #promo-jpg-export-host .promo-capture,
@@ -84,7 +86,10 @@
   flex: 1 1 auto;
   width: 100%;
   min-height: 0;
-  max-height: calc(1920px - (var(--export-pad) * 2) - var(--header-logo-top) - 120px);
+  max-height: calc(
+    1920px - (var(--export-pad) * 2) - var(--header-logo-top) - 120px
+    - var(--export-footer-h) - var(--export-footer-gap)
+  );
   margin: 0;
   border-radius: 24px;
   overflow: hidden;
@@ -235,11 +240,62 @@
 #promo-jpg-export-host .intermediate {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--export-footer-gap);
+  text-align: center;
+  padding: 0;
+}
+
+#promo-jpg-export-host .intermediate-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 22px;
   text-align: center;
-  padding: var(--export-pad);
+}
+
+#promo-jpg-export-host .export-pay-footer {
+  flex-shrink: 0;
+  width: 100%;
+  height: var(--export-footer-h);
+  min-height: var(--export-footer-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 10px 18px;
+  margin-top: auto;
+  background: #101010;
+  border: 1px solid #1e1e1e;
+  border-radius: 14px;
+}
+
+#promo-jpg-export-host .export-pay-footer .foot-title {
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+}
+
+#promo-jpg-export-host .export-pay-footer .pay-logos {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+#promo-jpg-export-host .export-pay-footer .pay-logos img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  filter: grayscale(0.1) brightness(1.05) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
 }
 
 #promo-jpg-export-host .intermediate .logo {
@@ -302,18 +358,17 @@
   letter-spacing: 0.1em;
 }
 
-#promo-jpg-export-host .intermediate-poster {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--export-pad);
+#promo-jpg-export-host .intermediate-poster .intermediate-body {
+  padding: 0;
 }
 
 #promo-jpg-export-host .intermediate-poster .poster-full {
   width: auto;
   height: auto;
-  max-width: calc(100% - (var(--export-pad) * 2));
-  max-height: calc(1920px - (var(--export-pad) * 2));
+  max-width: 100%;
+  max-height: calc(
+    1920px - (var(--export-pad) * 2) - var(--export-footer-h) - var(--export-footer-gap)
+  );
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 22px 56px rgba(0, 0, 0, 0.55));

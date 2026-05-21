@@ -39,6 +39,29 @@
     return '$ ' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   }
 
+  /** Quita prefijo /admin/ de rutas guardadas o absolutas. */
+  function normalizePublicPath(url) {
+    const u = String(url || '').trim();
+    if (!u) return '';
+    if (/^https?:\/\//i.test(u)) {
+      return u.replace(/^(https?:\/\/[^/]+)\/admin\//i, '$1/');
+    }
+    return u.replace(/^\.\//, '').replace(/^\/+/, '').replace(/^admin\//i, '');
+  }
+
+  /** Abre URLs de carteleras desde /admin/ apuntando a la raíz del sitio. */
+  function resolvePublicUrl(url) {
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) {
+      return normalizePublicPath(raw);
+    }
+    const rel = normalizePublicPath(raw);
+    const origin = location.origin;
+    const basePath = location.pathname.replace(/\/admin(?:\/.*)?$/i, '').replace(/\/$/, '');
+    return origin + (basePath || '') + '/' + rel;
+  }
+
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => el.querySelectorAll(sel);
 
@@ -567,6 +590,7 @@
           </div>
           <div class="toolbar-meta">
             <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
+            ${catalogView === 'productos' ? '<button type="button" class="btn btn-ghost btn-sm" id="btn-ajustar-precios">Ajustar precios</button>' : ''}
             <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="${escapeAttr(catalogView)}"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
           </div>
         </div>
@@ -622,6 +646,9 @@
         downloadCSV(buildCSV(rows.map(r => ({ ...r, estado: r.estado ? 'Activo' : 'Inactivo' })), cols), exportFile);
         showToast('Exportado correctamente.', 'success');
       });
+      if (catalogView === 'productos') {
+        content.querySelector('#btn-ajustar-precios')?.addEventListener('click', () => openPriceAdjustModal(reload));
+      }
       content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
         th.onclick = function () {
           const key = this.dataset.sort;
@@ -996,7 +1023,7 @@
       });
       content.querySelectorAll('[data-open-tv-url]').forEach(btn => {
         btn.onclick = () => {
-          const url = btn.dataset.openTvUrl;
+          const url = resolvePublicUrl(btn.dataset.openTvUrl);
           if (url) window.open(url, '_blank');
         };
       });
@@ -1361,7 +1388,7 @@
 
   function saveTV(mode, id) {
     const d = getFormData(['f-id', 'f-title', 'f-tag', 'f-description', 'f-url', 'f-active']);
-    const body = { action: mode === 'create' ? 'create' : 'update', id: d.id, title: d.title, tag: d.tag, description: d.description, url: d.url, active: d.active === 1 || d.active === '1' };
+    const body = { action: mode === 'create' ? 'create' : 'update', id: d.id, title: d.title, tag: d.tag, description: d.description, url: normalizePublicPath(d.url), active: d.active === 1 || d.active === '1' };
     if (mode === 'edit') body.id = id;
     apiPost('/tvs.php', body).then(() => { closeModal(); setView('tvs'); }).catch(err => alert(err.message));
   }
@@ -1484,6 +1511,98 @@
   function escapeAttr(s) {
     if (s == null) return '';
     return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function openPriceAdjustModal(onDone) {
+    const modal = $('#modal');
+    const title = $('#modal-title');
+    const body = $('#modal-body');
+    if (!modal || !title || !body) return;
+
+    const st = gridState.productos;
+    const catFilter = getCatalogCategoriaFilter('productos');
+    const catLabel = catFilter === 'ALL' ? 'Todas las categorías' : catFilter;
+    const searchHint = (st.search || '').trim()
+      ? ` · búsqueda: “${st.search.trim()}”`
+      : '';
+
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    title.textContent = 'Ajustar precios';
+    body.innerHTML = `
+      <p class="help" style="margin:0 0 1rem">Se aplicará a productos visibles según filtros actuales: <strong>${escapeHtml(catLabel)}</strong>${escapeHtml(searchHint)}.</p>
+      <div class="form-grid">
+        <div class="field">
+          <label for="adj-direction">Operación</label>
+          <select id="adj-direction" class="select">
+            <option value="up">Aumentar</option>
+            <option value="down">Reducir</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="adj-mode">Tipo</label>
+          <select id="adj-mode" class="select">
+            <option value="percent">Porcentaje (%)</option>
+            <option value="fixed">Monto fijo ($)</option>
+          </select>
+        </div>
+        <div class="field span-2">
+          <label for="adj-value">Valor</label>
+          <input type="number" id="adj-value" min="0.01" step="0.01" inputmode="decimal" placeholder="Ej: 10" required>
+        </div>
+        <div class="field span-2">
+          <label><input type="checkbox" id="adj-only-active" checked> Solo productos activos</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
+        <button type="button" class="btn btn-primary" id="adj-apply">Aplicar</button>
+      </div>`;
+
+    const close = () => closeModal();
+    body.querySelector('[data-modal-cancel]')?.addEventListener('click', close);
+    body.querySelector('#adj-apply')?.addEventListener('click', () => {
+      const direction = body.querySelector('#adj-direction')?.value === 'down' ? 'down' : 'up';
+      const mode = body.querySelector('#adj-mode')?.value === 'fixed' ? 'fixed' : 'percent';
+      const value = Number(body.querySelector('#adj-value')?.value);
+      const onlyActive = !!body.querySelector('#adj-only-active')?.checked;
+      if (!Number.isFinite(value) || value <= 0) {
+        showToast('Ingresá un valor mayor a 0.', 'warn');
+        return;
+      }
+      if (mode === 'percent' && value > 100 && direction === 'down') {
+        showToast('No se puede reducir más del 100%.', 'warn');
+        return;
+      }
+      const dirLabel = direction === 'up' ? 'aumentar' : 'reducir';
+      const valLabel = mode === 'percent'
+        ? `${value}%`
+        : `$ ${value.toLocaleString('es-AR')}`;
+      close();
+      showConfirmDelete({
+        title: 'Confirmar ajuste de precios',
+        message: `¿${dirLabel.charAt(0).toUpperCase() + dirLabel.slice(1)} ${valLabel} en ${catLabel}${searchHint}? Los precios no quedarán por debajo de $0.`,
+        confirmLabel: 'Aplicar',
+        cancelLabel: 'Cancelar',
+        onConfirm: () => {
+          apiPost('/productos.php', {
+            action: 'adjust_prices',
+            direction,
+            mode,
+            value,
+            categoria: catFilter,
+            only_active: onlyActive ? 1 : 0,
+            search: (st.search || '').trim(),
+          })
+            .then((res) => {
+              showToast(`Precios actualizados (${res.changed || 0} productos).`, 'success');
+              if (onDone) onDone();
+              else setView('productos');
+            })
+            .catch(err => showToast(err.message || 'Error al ajustar precios', 'error'));
+        },
+      });
+    });
   }
 
   // Modals para editar: cargar datos del item

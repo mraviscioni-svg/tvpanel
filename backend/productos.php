@@ -128,6 +128,79 @@ switch ($action) {
         jsonResponse(['ok' => true, 'data' => $updatedItem ?? $item]);
         break;
 
+    case 'adjust_prices':
+        $mode = trim((string)($input['mode'] ?? ''));
+        $value = (float)($input['value'] ?? 0);
+        $direction = (($input['direction'] ?? 'up') === 'down') ? 'down' : 'up';
+        $categoriaFilter = trim((string)($input['categoria'] ?? ''));
+        $onlyActive = !empty($input['only_active']);
+        $search = trim((string)($input['search'] ?? ''));
+
+        if (!in_array($mode, ['percent', 'fixed'], true)) {
+            jsonError('Modo inválido (percent o fixed)');
+        }
+        if ($value <= 0) {
+            jsonError('El valor debe ser mayor a 0');
+        }
+        if ($mode === 'percent' && $value > 100 && $direction === 'down') {
+            jsonError('No se puede reducir más del 100%');
+        }
+
+        $searchNorm = $search !== '' ? strtolower($search) : '';
+        $applyAllCats = ($categoriaFilter === '' || strtoupper($categoriaFilter) === 'ALL');
+        $changed = 0;
+
+        foreach ($data['categorias'] as $ci => &$cat) {
+            $catName = trim((string)($cat['nombre'] ?? ''));
+            if (!$applyAllCats && $catName !== $categoriaFilter) {
+                continue;
+            }
+            if (empty($cat['items']) || !is_array($cat['items'])) {
+                continue;
+            }
+            foreach ($cat['items'] as $ii => &$item) {
+                if ($onlyActive && empty($item['estado'])) {
+                    continue;
+                }
+                if ($searchNorm !== '') {
+                    $hay = strtolower(
+                        $catName . ' ' . ($item['nombre'] ?? '') . ' ' . ($item['unidad'] ?? '') . ' ' . ($item['tag'] ?? '')
+                    );
+                    if (strpos($hay, $searchNorm) === false) {
+                        continue;
+                    }
+                }
+                $precio = (int)($item['precio'] ?? 0);
+                if ($mode === 'percent') {
+                    $factor = $direction === 'up'
+                        ? (1 + $value / 100)
+                        : (1 - $value / 100);
+                    $precio = (int) round($precio * $factor);
+                } else {
+                    $delta = (int) round($value);
+                    $precio = $direction === 'up' ? $precio + $delta : $precio - $delta;
+                }
+                if ($precio < 0) {
+                    $precio = 0;
+                }
+                $item['precio'] = $precio;
+                $item['updated_at'] = updatedTimestamp();
+                $changed++;
+            }
+            unset($item);
+        }
+        unset($cat);
+
+        if ($changed === 0) {
+            jsonError('No hay productos que coincidan con el criterio');
+        }
+        $data['updated'] = updatedTimestamp();
+        if (!writeJson(FILE_PRODUCTOS, $data)) {
+            jsonError('Error al guardar', 500);
+        }
+        jsonResponse(['ok' => true, 'changed' => $changed]);
+        break;
+
     case 'delete':
         if ($id === '') {
             jsonError('id requerido');
