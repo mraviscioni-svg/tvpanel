@@ -265,6 +265,73 @@ switch ($action) {
         jsonResponse(['ok' => true, 'data' => $data['categorias'][$ci]['items'][$ii]]);
         break;
 
+    case 'adjust_prices':
+        $mode = trim((string)($input['mode'] ?? ''));
+        $value = (float)($input['value'] ?? 0);
+        $direction = (($input['direction'] ?? 'up') === 'down') ? 'down' : 'up';
+        $rawIds = $input['ids'] ?? [];
+        if (!is_array($rawIds)) {
+            $rawIds = [];
+        }
+        $idSet = [];
+        foreach ($rawIds as $rid) {
+            $sid = trim((string)$rid);
+            if ($sid !== '') {
+                $idSet[$sid] = true;
+            }
+        }
+        if (count($idSet) === 0) {
+            jsonError('Seleccioná al menos una oferta');
+        }
+        if (!in_array($mode, ['percent', 'fixed'], true)) {
+            jsonError('Modo inválido (percent o fixed)');
+        }
+        if ($value <= 0) {
+            jsonError('El valor debe ser mayor a 0');
+        }
+        if ($mode === 'percent' && $value > 100 && $direction === 'down') {
+            jsonError('No se puede reducir más del 100%');
+        }
+        $changed = 0;
+        foreach ($data['categorias'] as $ci => &$cat) {
+            if (empty($cat['items']) || !is_array($cat['items'])) {
+                continue;
+            }
+            foreach ($cat['items'] as $ii => &$item) {
+                $itemId = isset($item['id']) ? (string)$item['id'] : '';
+                if ($itemId === '' || !isset($idSet[$itemId])) {
+                    continue;
+                }
+                $precio = (int)($item['precio'] ?? 0);
+                if ($mode === 'percent') {
+                    $factor = $direction === 'up'
+                        ? (1 + $value / 100)
+                        : (1 - $value / 100);
+                    $precio = (int) round($precio * $factor);
+                } else {
+                    $delta = (int) round($value);
+                    $precio = $direction === 'up' ? $precio + $delta : $precio - $delta;
+                }
+                if ($precio < 0) {
+                    $precio = 0;
+                }
+                $item['precio'] = $precio;
+                $item['updated_at'] = updatedTimestamp();
+                $changed++;
+            }
+            unset($item);
+        }
+        unset($cat);
+        if ($changed === 0) {
+            jsonError('No hay ofertas que coincidan con el criterio');
+        }
+        $data['updated'] = updatedTimestamp();
+        if (!writeJson(FILE_OFERTAS, $data)) {
+            jsonError('Error al guardar', 500);
+        }
+        jsonResponse(['ok' => true, 'changed' => $changed]);
+        break;
+
     case 'delete':
         if ($id === '') {
             jsonError('id requerido');

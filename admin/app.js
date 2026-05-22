@@ -4,6 +4,7 @@
   const API = '/backend';
   const views = { productos: 'Productos', congelados: 'Congelados', ofertas: 'Ofertas', tvs: 'Televisores', usuarios: 'Usuarios', config: 'Configuración' };
   const CATALOG_VIEWS = { productos: true, congelados: true };
+  const CATALOG_PRICE_VIEWS = { productos: true, congelados: true, ofertas: true };
   const STORAGE_VIEW_KEY = 'tvpanel_admin_last_view';
 
   function getInitialView() {
@@ -25,8 +26,12 @@
   let mediaConfig = { mediaImagesPath: 'IMG/CORTES', mediaVideosPath: 'IMG/CORTES/VIDEO' };
   let productosCategoriaFilter = 'ALL';
   let congeladosCategoriaFilter = 'ALL';
-  /** IDs de productos marcados en la grilla para ajuste masivo de precios. */
-  const productosSelectedIds = new Set();
+  /** IDs marcados en grilla para ajuste masivo de precios (productos / congelados / ofertas). */
+  const catalogSelectedIds = {
+    productos: new Set(),
+    congelados: new Set(),
+    ofertas: new Set(),
+  };
   const gridState = {
     productos: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
     congelados: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
@@ -328,12 +333,55 @@
     return getCatalogExportRows('productos');
   }
 
-  function updateProductosSelectionUi(content) {
-    if (!content) return;
-    const n = productosSelectedIds.size;
-    const btn = content.querySelector('#btn-ajustar-precios');
-    const countEl = content.querySelector('#productos-sel-count');
-    const clearBtn = content.querySelector('#btn-productos-sel-clear');
+  function catalogApiPath(view) {
+    if (view === 'congelados') return '/congelados.php';
+    if (view === 'ofertas') return '/ofertas.php';
+    return '/productos.php';
+  }
+
+  function getCatalogPriceExportRows(view) {
+    if (view === 'ofertas') return getOfertasExportRows();
+    return getCatalogExportRows(view);
+  }
+
+  function catalogEntityLabel(view, count) {
+    const labels = {
+      productos: ['producto', 'productos'],
+      congelados: ['congelado', 'congelados'],
+      ofertas: ['oferta', 'ofertas'],
+    };
+    const pair = labels[view] || ['ítem', 'ítems'];
+    return count === 1 ? pair[0] : pair[1];
+  }
+
+  function catalogPriceToolbarHtml(view) {
+    return `
+            <span class="tag-selection" id="${view}-sel-count" hidden></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-${view}-sel-all-filtered" title="Marcar todos del listado (según filtros)">Todos</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-${view}-sel-clear" hidden title="Quitar selección">Limpiar</button>
+            <button type="button" class="btn btn-primary btn-sm btn-catalog-ajustar-precios" id="btn-${view}-ajustar-precios" disabled>Modificar precios</button>`;
+  }
+
+  function catalogPriceTheadCell(view) {
+    return `<th class="th-check"><input type="checkbox" id="${view}-select-page" aria-label="Seleccionar página"></th>`;
+  }
+
+  function catalogPriceRowExtras(view, it) {
+    const pid = String(it.id);
+    const selected = catalogSelectedIds[view].has(pid);
+    return {
+      checkTd: `<td class="td-check"><input type="checkbox" class="catalog-row-cb" data-catalog-view="${escapeAttr(view)}" data-id="${escapeAttr(pid)}" aria-label="Seleccionar ${escapeAttr(it.nombre || '')}"${selected ? ' checked' : ''}></td>`,
+      trClass: ` tr-selectable${selected ? ' tr-selected' : ''}`,
+      trAttr: ` data-catalog-row-id="${escapeAttr(pid)}" data-catalog-view="${escapeAttr(view)}"`,
+    };
+  }
+
+  function updateCatalogSelectionUi(content, view) {
+    if (!content || !catalogSelectedIds[view]) return;
+    const n = catalogSelectedIds[view].size;
+    const btn = content.querySelector(`#btn-${view}-ajustar-precios`);
+    const countEl = content.querySelector(`#${view}-sel-count`);
+    const clearBtn = content.querySelector(`#btn-${view}-sel-clear`);
     if (btn) {
       btn.disabled = n === 0;
       btn.textContent = n === 0 ? 'Modificar precios' : `Modificar precios (${n})`;
@@ -345,63 +393,66 @@
     if (clearBtn) clearBtn.hidden = n === 0;
   }
 
-  function syncProductosTableSelection(content, pageRows) {
-    if (!content) return;
+  function syncCatalogTableSelection(content, view, pageRows) {
+    if (!content || !catalogSelectedIds[view]) return;
+    const sel = catalogSelectedIds[view];
     const pageIds = (pageRows || []).map(r => String(r.id));
-    const allPage = pageIds.length > 0 && pageIds.every(id => productosSelectedIds.has(id));
-    const somePage = pageIds.some(id => productosSelectedIds.has(id));
-    const headCb = content.querySelector('#productos-select-page');
+    const allPage = pageIds.length > 0 && pageIds.every(id => sel.has(id));
+    const somePage = pageIds.some(id => sel.has(id));
+    const headCb = content.querySelector(`#${view}-select-page`);
     if (headCb) {
       headCb.checked = allPage;
       headCb.indeterminate = somePage && !allPage;
     }
-    content.querySelectorAll('tr[data-producto-id]').forEach(tr => {
-      const id = tr.dataset.productoId;
-      const on = productosSelectedIds.has(id);
+    content.querySelectorAll(`tr[data-catalog-view="${view}"][data-catalog-row-id]`).forEach(tr => {
+      const id = tr.dataset.catalogRowId;
+      const on = sel.has(id);
       tr.classList.toggle('tr-selected', on);
-      const cb = tr.querySelector('.producto-row-cb');
+      const cb = tr.querySelector('.catalog-row-cb');
       if (cb) cb.checked = on;
     });
-    updateProductosSelectionUi(content);
+    updateCatalogSelectionUi(content, view);
   }
 
-  function bindProductosSelection(content, pageRows, reload) {
-    const headCb = content.querySelector('#productos-select-page');
+  function bindCatalogPriceSelection(content, view, pageRows, reload) {
+    const sel = catalogSelectedIds[view];
+    if (!sel) return;
+    const headCb = content.querySelector(`#${view}-select-page`);
     if (headCb) {
       headCb.onchange = () => {
         pageRows.forEach(r => {
           const id = String(r.id);
-          if (headCb.checked) productosSelectedIds.add(id);
-          else productosSelectedIds.delete(id);
+          if (headCb.checked) sel.add(id);
+          else sel.delete(id);
         });
-        syncProductosTableSelection(content, pageRows);
+        syncCatalogTableSelection(content, view, pageRows);
       };
     }
-    content.querySelectorAll('.producto-row-cb').forEach(cb => {
+    content.querySelectorAll(`.catalog-row-cb[data-catalog-view="${view}"]`).forEach(cb => {
       cb.onchange = () => {
         const id = cb.dataset.id;
-        if (cb.checked) productosSelectedIds.add(id);
-        else productosSelectedIds.delete(id);
-        syncProductosTableSelection(content, pageRows);
+        if (cb.checked) sel.add(id);
+        else sel.delete(id);
+        syncCatalogTableSelection(content, view, pageRows);
       };
     });
-    content.querySelector('#btn-productos-sel-all-filtered')?.addEventListener('click', () => {
-      getCatalogExportRows('productos').forEach(r => productosSelectedIds.add(String(r.id)));
-      syncProductosTableSelection(content, pageRows);
+    content.querySelector(`#btn-${view}-sel-all-filtered`)?.addEventListener('click', () => {
+      getCatalogPriceExportRows(view).forEach(r => sel.add(String(r.id)));
+      syncCatalogTableSelection(content, view, pageRows);
       showToast('Seleccionados todos los del listado filtrado.', 'info');
     });
-    content.querySelector('#btn-productos-sel-clear')?.addEventListener('click', () => {
-      productosSelectedIds.clear();
-      syncProductosTableSelection(content, pageRows);
+    content.querySelector(`#btn-${view}-sel-clear`)?.addEventListener('click', () => {
+      sel.clear();
+      syncCatalogTableSelection(content, view, pageRows);
     });
-    content.querySelector('#btn-ajustar-precios')?.addEventListener('click', () => {
-      if (productosSelectedIds.size === 0) {
-        showToast('Seleccioná al menos un producto en la tabla.', 'warn');
+    content.querySelector(`#btn-${view}-ajustar-precios`)?.addEventListener('click', () => {
+      if (sel.size === 0) {
+        showToast(`Seleccioná al menos un ${catalogEntityLabel(view, 1)} en la tabla.`, 'warn');
         return;
       }
-      openPriceAdjustModal(reload, Array.from(productosSelectedIds));
+      openPriceAdjustModal(reload, Array.from(sel), view);
     });
-    updateProductosSelectionUi(content);
+    updateCatalogSelectionUi(content, view);
   }
 
   function getCongeladosExportRows() {
@@ -505,7 +556,9 @@
   }
 
   function setView(view) {
-    if (view !== 'productos') productosSelectedIds.clear();
+    Object.keys(catalogSelectedIds).forEach(v => {
+      if (view !== v) catalogSelectedIds[v].clear();
+    });
     currentView = view;
     try {
       if (window.localStorage) localStorage.setItem(STORAGE_VIEW_KEY, view);
@@ -669,11 +722,7 @@
           </div>
           <div class="toolbar-meta">
             <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
-            ${catalogView === 'productos' ? `
-            <span class="tag-selection" id="productos-sel-count" hidden></span>
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-productos-sel-all-filtered" title="Marcar todos los productos del listado (según filtros)">Todos</button>
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-productos-sel-clear" hidden title="Quitar selección">Limpiar</button>
-            <button type="button" class="btn btn-primary btn-sm" id="btn-ajustar-precios" disabled>Modificar precios</button>` : ''}
+            ${CATALOG_PRICE_VIEWS[catalogView] ? catalogPriceToolbarHtml(catalogView) : ''}
             <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="${escapeAttr(catalogView)}"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
           </div>
         </div>
@@ -690,7 +739,7 @@
           <table>
             <thead>
               <tr>
-                ${catalogView === 'productos' ? '<th class="th-check"><input type="checkbox" id="productos-select-page" aria-label="Seleccionar página"></th>' : ''}
+                ${CATALOG_PRICE_VIEWS[catalogView] ? catalogPriceTheadCell(catalogView) : ''}
                 ${thSort('_categoria', 'Categoría')}
                 ${thSort('nombre', 'Nombre')}
                 ${thSort('unidad', 'Unidad')}
@@ -705,10 +754,9 @@
         const modRaw = it.updated_at || '';
         const modRel = formatRelativeDate(modRaw);
         const tagTimeClass = 'tag-time' + (modRel.isToday ? ' tag-today' : '');
-        const pid = String(it.id);
-        const isSel = catalogView === 'productos' && productosSelectedIds.has(pid);
-        html += `<tr class="${catalogView === 'productos' ? 'tr-selectable' : ''}${isSel ? ' tr-selected' : ''}"${catalogView === 'productos' ? ` data-producto-id="${escapeAttr(pid)}"` : ''}>
-          ${catalogView === 'productos' ? `<td class="td-check"><input type="checkbox" class="producto-row-cb" data-id="${escapeAttr(pid)}" aria-label="Seleccionar ${escapeAttr(it.nombre || '')}"${isSel ? ' checked' : ''}></td>` : ''}
+        const rowX = CATALOG_PRICE_VIEWS[catalogView] ? catalogPriceRowExtras(catalogView, it) : { checkTd: '', trClass: '', trAttr: '' };
+        html += `<tr class="${rowX.trClass ? rowX.trClass.trim() : ''}"${rowX.trAttr || ''}>
+          ${rowX.checkTd}
           <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
           <td>${escapeHtml(it.nombre)}</td>
           <td>${escapeHtml(it.unidad)}</td>
@@ -733,8 +781,8 @@
         downloadCSV(buildCSV(rows.map(r => ({ ...r, estado: r.estado ? 'Activo' : 'Inactivo' })), cols), exportFile);
         showToast('Exportado correctamente.', 'success');
       });
-      if (catalogView === 'productos') {
-        bindProductosSelection(content, rows, reload);
+      if (CATALOG_PRICE_VIEWS[catalogView]) {
+        bindCatalogPriceSelection(content, catalogView, rows, reload);
       }
       content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
         th.onclick = function () {
@@ -944,6 +992,7 @@
           </div>
           <div class="toolbar-meta">
             <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
+            ${catalogPriceToolbarHtml('ofertas')}
             <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="ofertas"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
             <button type="button" class="btn btn-secondary btn-sm" id="btn-export-jpg-wa" title="Generar JPG como en la vidriera (1080×1920) para estados de WhatsApp">📲 JPG WhatsApp</button>
           </div>
@@ -953,7 +1002,7 @@
         <div class="table-scroll-wrap">
         <div class="table-wrap table-wrap--ofertas">
           <table>
-            <thead><tr>${thSortOferta('_categoria', 'Categoría')}${thSortOferta('nombre', 'Nombre')}${thSortOferta('unidad', 'Unidad')}${thSortOferta('precio', 'Precio')}${thSortOferta('updated_at', 'Modificado')}<th>Imagen/Vídeo</th>${thSortOferta('estado', 'Estado')}<th class="th-actions">Acciones</th></tr></thead>
+            <thead><tr>${catalogPriceTheadCell('ofertas')}${thSortOferta('_categoria', 'Categoría')}${thSortOferta('nombre', 'Nombre')}${thSortOferta('unidad', 'Unidad')}${thSortOferta('precio', 'Precio')}${thSortOferta('updated_at', 'Modificado')}<th>Imagen/Vídeo</th>${thSortOferta('estado', 'Estado')}<th class="th-actions">Acciones</th></tr></thead>
             <tbody>`;
       rows.forEach(it => {
         const media1 = it.imagen1 || '';
@@ -964,7 +1013,9 @@
         const modRaw = it.updated_at || '';
         const modRel = formatRelativeDate(modRaw);
         const tagTimeClass = 'tag-time' + (modRel.isToday ? ' tag-today' : '');
-        html += `<tr>
+        const rowX = catalogPriceRowExtras('ofertas', it);
+        html += `<tr class="${rowX.trClass.trim()}"${rowX.trAttr}>
+          ${rowX.checkTd}
           <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
           <td>${escapeHtml(it.nombre)}</td>
           <td>${escapeHtml(it.unidad)}</td>
@@ -991,6 +1042,7 @@
         showToast('Exportado correctamente.', 'success');
       });
       content.querySelector('#btn-export-jpg-wa')?.addEventListener('click', () => exportOfertasJpgWhatsApp());
+      bindCatalogPriceSelection(content, 'ofertas', rows, () => loadOfertas(content));
       content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
         th.onclick = function () {
           const key = this.dataset.sort;
@@ -1603,24 +1655,26 @@
     return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  function openPriceAdjustModal(onDone, ids) {
+  function openPriceAdjustModal(onDone, ids, catalogView) {
     const modal = $('#modal');
     const title = $('#modal-title');
     const body = $('#modal-body');
     if (!modal || !title || !body) return;
 
+    const view = catalogView || 'productos';
     const idList = Array.isArray(ids) ? ids.map(String).filter(Boolean) : [];
     if (!idList.length) {
-      showToast('Seleccioná al menos un producto en la tabla.', 'warn');
+      showToast(`Seleccioná al menos un ${catalogEntityLabel(view, 1)} en la tabla.`, 'warn');
       return;
     }
     const n = idList.length;
+    const entityMany = catalogEntityLabel(view, n);
 
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
     title.textContent = 'Modificar precios';
     body.innerHTML = `
-      <p class="price-adj-intro">Ajuste para <strong>${n}</strong> producto${n === 1 ? '' : 's'} seleccionado${n === 1 ? '' : 's'} en la grilla.</p>
+      <p class="price-adj-intro">Ajuste para <strong>${n}</strong> ${entityMany} seleccionado${n === 1 ? '' : 's'} en la grilla.</p>
       <div class="form-grid">
         <div class="field">
           <label for="adj-direction">Operación</label>
@@ -1667,11 +1721,11 @@
       close();
       showConfirmDelete({
         title: 'Confirmar ajuste de precios',
-        message: `¿${dirLabel.charAt(0).toUpperCase() + dirLabel.slice(1)} ${valLabel} en ${n} producto${n === 1 ? '' : 's'}? Los precios no quedarán por debajo de $0.`,
+        message: `¿${dirLabel.charAt(0).toUpperCase() + dirLabel.slice(1)} ${valLabel} en ${n} ${entityMany}? Los precios no quedarán por debajo de $0.`,
         confirmLabel: 'Aplicar',
         cancelLabel: 'Cancelar',
         onConfirm: () => {
-          apiPost('/productos.php', {
+          apiPost(catalogApiPath(view), {
             action: 'adjust_prices',
             direction,
             mode,
@@ -1679,10 +1733,10 @@
             ids: idList,
           })
             .then((res) => {
-              productosSelectedIds.clear();
-              showToast(`Precios actualizados (${res.changed || 0} productos).`, 'success');
+              if (catalogSelectedIds[view]) catalogSelectedIds[view].clear();
+              showToast(`Precios actualizados (${res.changed || 0} ${entityMany}).`, 'success');
               if (onDone) onDone();
-              else setView('productos');
+              else setView(view);
             })
             .catch(err => showToast(err.message || 'Error al ajustar precios', 'error'));
         },

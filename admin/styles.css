@@ -1484,7 +1484,7 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 .table-wrap tr.tr-selectable:hover td.td-check {
   background: rgba(255, 255, 255, 0.04);
 }
-#btn-ajustar-precios:disabled {
+.btn-catalog-ajustar-precios:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
