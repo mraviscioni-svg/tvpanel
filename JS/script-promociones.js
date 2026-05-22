@@ -1,6 +1,7 @@
 const SLIDE_MS = 13000;
 const INTRO_MS = 7000;
-const PLACEHOLDER_IMG = '/IMG/CORTES/placeholder.png';
+const PLACEHOLDER_IMG = '/IMG/Logo.png';
+const PRELOAD_MEDIA_MAX_MS = 18000;
 const PROMOS_JSON = '/JSON/ofertas.json';
 const REFRESH_MIN_MS = 450;
 
@@ -72,29 +73,9 @@ function preloadImageUrl(src) {
   });
 }
 
-function preloadVideoUrl(src) {
-  const url = resolveAssetUrl(src);
-  if (!url) return Promise.resolve();
-  return new Promise(resolve => {
-    const v = document.createElement('video');
-    v.muted = true;
-    v.playsInline = true;
-    v.preload = 'auto';
-    const done = () => {
-      try { v.pause(); } catch (_) {}
-      v.removeAttribute('src');
-      try { v.load(); } catch (_) {}
-      resolve();
-    };
-    v.addEventListener('loadeddata', done, { once: true });
-    v.addEventListener('error', done, { once: true });
-    setTimeout(done, 20000);
-    v.src = url;
-  });
-}
-
 async function preloadPromoMedia(urls, onProgress) {
-  const list = Array.from(new Set((urls || []).map(resolveAssetUrl).filter(Boolean)));
+  const list = Array.from(new Set((urls || []).map(resolveAssetUrl).filter(Boolean)))
+    .filter(src => !isVideo(src));
   const total = list.length;
   let loaded = 0;
   const tick = () => {
@@ -102,10 +83,9 @@ async function preloadPromoMedia(urls, onProgress) {
     if (typeof onProgress === 'function') onProgress(loaded, total);
   };
   if (!total) return;
-  await Promise.all(list.map(src => {
-    const job = isVideo(src) ? preloadVideoUrl(src) : preloadImageUrl(src);
-    return job.finally(tick);
-  }));
+  const work = Promise.all(list.map(src => preloadImageUrl(src).finally(tick)));
+  const cap = new Promise(resolve => setTimeout(resolve, PRELOAD_MEDIA_MAX_MS));
+  await Promise.race([work, cap]);
 }
 
 async function applyPromosUpdate(data, opts = {}) {

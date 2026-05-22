@@ -28,24 +28,20 @@
     return String(j.updated || '');
   }
 
+  const JSON_FETCH_OPTS = { cache: 'no-store', credentials: 'same-origin' };
+
   async function fetchJson(path) {
     const url = resolveJsonUrl(path);
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, JSON_FETCH_OPTS);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
   }
 
+  /** Calienta caché del JSON (solo fetch; sin link preload para evitar mismatch de credentials). */
   function preloadJson(path) {
     const url = resolveJsonUrl(path);
     try {
-      if ('fetch' in global) fetch(url, { cache: 'no-store', priority: 'low' }).catch(() => {});
-    } catch (_) {}
-    try {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'fetch';
-      link.href = url;
-      document.head.appendChild(link);
+      if ('fetch' in global) fetch(url, JSON_FETCH_OPTS).catch(() => {});
     } catch (_) {}
   }
 
@@ -77,8 +73,11 @@
     show(message) {
       this.ensure();
       if (this._msgEl && message) this._msgEl.textContent = message;
-      this._count++;
-      this._el.classList.add('is-visible');
+      const wasVisible = this._el.classList.contains('is-visible');
+      if (!wasVisible) {
+        this._count++;
+        this._el.classList.add('is-visible');
+      }
     },
 
     hide() {
