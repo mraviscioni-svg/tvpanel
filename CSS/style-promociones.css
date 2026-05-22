@@ -5,6 +5,15 @@
   --text:#f2f2f2;
   --muted: rgba(242,242,242,.72);
   --stroke: rgba(216,177,90,.22);
+  --slide-pad-y: clamp(12px, 2vh, 24px);
+  --slide-pad-x: clamp(14px, 3vw, 36px);
+  --logo-max-h: clamp(52px, 8vh, 82px);
+  --name-size: clamp(18px, 2.8vh, 36px);
+  --price-currency: clamp(14px, 2.1vh, 24px);
+  --price-amount: clamp(32px, 4.8vh, 64px);
+  --headline-size: clamp(18px, 2.8vh, 34px);
+  --copy-size: clamp(13px, 1.7vh, 18px);
+  --chip-size: clamp(11px, 1.4vh, 15px);
 }
 
 body{
@@ -23,7 +32,7 @@ body{
 /* ===== TRANSICIÓN GENERAL ===== */
 .slide, .intermediate{
   position:absolute; inset:0;
-  padding: clamp(18px, 4vh, 48px) clamp(16px, 6vw, 56px);
+  padding: var(--slide-pad-y) var(--slide-pad-x);
   opacity:0;
   transform: translateY(18px);
   transition: opacity .65s ease, transform .65s ease;
@@ -36,16 +45,23 @@ body{
 }
 
 /* ===== HEADER (solo logo, sin OFERTAS) ===== */
+.slide{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+}
+
 .header{
+  flex-shrink:0;
   display:flex;
   align-items:center;
   justify-content:center;
-  padding-bottom: 16px;
+  padding-bottom: clamp(8px, 1.2vh, 12px);
 }
 
 .header-logo{
-  width: min(44vw, 420px);
-  max-height: 110px;
+  width: min(36vw, 320px);
+  max-height: var(--logo-max-h);
   object-fit: contain;
   filter: drop-shadow(0 12px 30px rgba(0,0,0,.45));
 }
@@ -56,9 +72,11 @@ body{
 /* ===== STAGE ===== */
 .stage{
   position:relative;
-  margin-top: clamp(10px, 1.6vh, 14px);
-  height: calc(100vh - 18vh);
-  border-radius: clamp(18px, 2.6vh, 26px);
+  flex:1 1 auto;
+  min-height:0;
+  margin-top:0;
+  height:auto;
+  border-radius: clamp(14px, 2vh, 22px);
   overflow:hidden;
 
   background:
@@ -205,16 +223,16 @@ body{
 */
 .overlay{
   position:absolute;
-  left: 6%;
-  right: 6%;
-  bottom: 5.5%;
+  left: 5%;
+  right: 5%;
+  bottom: 4.5%;
   z-index:4;
 
   display:grid;
   grid-template-columns: 1fr auto;
   grid-template-rows: auto auto;
-  column-gap: 22px;
-  row-gap: 14px;
+  column-gap: clamp(12px, 1.8vw, 18px);
+  row-gap: clamp(8px, 1.2vh, 12px);
   align-items:end;
 }
 
@@ -223,15 +241,15 @@ body{
   grid-column: 1 / -1;
   text-align:center;
   text-transform: uppercase;
-  letter-spacing: .12em;
-  font-weight: 1000;
+  letter-spacing: .1em;
+  font-weight: 900;
 
-  font-size: clamp(28px, 4.8vh, 62px);
-  line-height: 1.10;
+  font-size: var(--name-size);
+  line-height: 1.12;
   color:#fff;
 
-  padding: 16px 22px;
-  border-radius: 18px;
+  padding: clamp(10px, 1.4vh, 14px) clamp(14px, 2vw, 18px);
+  border-radius: 14px;
 
   background: rgba(0,0,0,.62);
   border: 1px solid rgba(255,255,255,.12);
