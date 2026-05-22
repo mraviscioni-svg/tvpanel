@@ -354,12 +354,29 @@
     return count === 1 ? pair[0] : pair[1];
   }
 
-  function catalogPriceToolbarHtml(view) {
+  function catalogPriceSelectionBarHtml(view) {
     return `
-            <span class="tag-selection" id="${view}-sel-count" hidden></span>
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-${view}-sel-all-filtered" title="Marcar todos del listado (según filtros)">Todos</button>
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-${view}-sel-clear" hidden title="Quitar selección">Limpiar</button>
-            <button type="button" class="btn btn-primary btn-sm btn-catalog-ajustar-precios" id="btn-${view}-ajustar-precios" disabled>Modificar precios</button>`;
+      <div class="toolbar-price-bar" data-catalog-price-bar="${escapeAttr(view)}">
+        <span class="toolbar-price-bar-label">Precios</span>
+        <span class="tag-selection" id="${view}-sel-count" hidden></span>
+        <div class="toolbar-price-bar-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-${view}-sel-all-filtered" title="Marcar todos del listado filtrado">Marcar todos</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-${view}-sel-clear" hidden title="Quitar selección">Quitar selección</button>
+          <button type="button" class="btn btn-sm btn-price-adjust btn-catalog-ajustar-precios" id="btn-${view}-ajustar-precios" disabled>Modificar precios</button>
+        </div>
+      </div>`;
+  }
+
+  function catalogToolbarFooterHtml(view, updatedLabel, updatedTitle, extraActionsHtml) {
+    const priceBar = CATALOG_PRICE_VIEWS[view] ? catalogPriceSelectionBarHtml(view) : '';
+    return `
+      <div class="toolbar-footer-row">
+        ${priceBar}
+        <div class="toolbar-meta-actions">
+          <span class="tag-updated" title="${escapeAttr(updatedTitle)}">${escapeHtml(updatedLabel)}</span>
+          ${extraActionsHtml || ''}
+        </div>
+      </div>`;
   }
 
   function catalogPriceTheadCell(view) {
@@ -384,7 +401,8 @@
     const clearBtn = content.querySelector(`#btn-${view}-sel-clear`);
     if (btn) {
       btn.disabled = n === 0;
-      btn.textContent = n === 0 ? 'Modificar precios' : `Modificar precios (${n})`;
+      btn.textContent = 'Modificar precios';
+      btn.setAttribute('aria-disabled', n === 0 ? 'true' : 'false');
     }
     if (countEl) {
       countEl.textContent = n === 0 ? '' : (n === 1 ? '1 seleccionado' : `${n} seleccionados`);
@@ -697,8 +715,21 @@
       );
       st.page = page;
 
+      const updatedRel = formatRelativeDate(data.updated || '');
+      const catalogFooter = CATALOG_PRICE_VIEWS[catalogView]
+        ? catalogToolbarFooterHtml(
+          catalogView,
+          updatedRel.label,
+          String(data.updated || ''),
+          `<button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="${escapeAttr(catalogView)}"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>`
+        )
+        : `
+          <div class="toolbar-meta">
+            <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(updatedRel.label)}</span>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="${escapeAttr(catalogView)}"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
+          </div>`;
       const header = `
-        <div class="toolbar">
+        <div class="toolbar${CATALOG_PRICE_VIEWS[catalogView] ? ' toolbar--with-selection' : ''}">
           <div class="toolbar-bar toolbar-productos">
             <div class="search-group">
               <label class="search-label">Buscar</label>
@@ -720,11 +751,7 @@
               </div>
             </div>
           </div>
-          <div class="toolbar-meta">
-            <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
-            ${CATALOG_PRICE_VIEWS[catalogView] ? catalogPriceToolbarHtml(catalogView) : ''}
-            <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="${escapeAttr(catalogView)}"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
-          </div>
+          ${catalogFooter}
         </div>
       `;
 
@@ -978,8 +1005,9 @@
         const dir = isActive ? sortDir : '';
         return `<th class="th-sort ${isActive ? 'th-sort-active' : ''}" data-sort="${escapeAttr(key)}" title="Ordenar por ${escapeAttr(label)}">${escapeHtml(label)} <span class="th-sort-icon">${dir === 'asc' ? '↑' : dir === 'desc' ? '↓' : ''}</span></th>`;
       };
+      const updatedRel = formatRelativeDate(data.updated || '');
       const header = `
-        <div class="toolbar">
+        <div class="toolbar toolbar--with-selection">
           <div class="toolbar-bar toolbar-productos toolbar-search">
             <div class="search-group">
               <label class="search-label">Buscar</label>
@@ -990,12 +1018,13 @@
               </div>
             </div>
           </div>
-          <div class="toolbar-meta">
-            <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
-            ${catalogPriceToolbarHtml('ofertas')}
-            <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="ofertas"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-export-jpg-wa" title="Generar JPG como en la vidriera (1080×1920) para estados de WhatsApp">📲 JPG WhatsApp</button>
-          </div>
+          ${catalogToolbarFooterHtml(
+            'ofertas',
+            updatedRel.label,
+            String(data.updated || ''),
+            `<button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="ofertas"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
+            <button type="button" class="btn btn-ghost btn-sm btn-export-jpg-wa" id="btn-export-jpg-wa" title="Generar JPG 1080×1920 para estados de WhatsApp">📲 JPG WhatsApp</button>`
+          )}
         </div>
       `;
       let html = header + `
