@@ -132,9 +132,20 @@ switch ($action) {
         $mode = trim((string)($input['mode'] ?? ''));
         $value = (float)($input['value'] ?? 0);
         $direction = (($input['direction'] ?? 'up') === 'down') ? 'down' : 'up';
-        $categoriaFilter = trim((string)($input['categoria'] ?? ''));
-        $onlyActive = !empty($input['only_active']);
-        $search = trim((string)($input['search'] ?? ''));
+        $rawIds = $input['ids'] ?? [];
+        if (!is_array($rawIds)) {
+            $rawIds = [];
+        }
+        $idSet = [];
+        foreach ($rawIds as $rid) {
+            $sid = trim((string)$rid);
+            if ($sid !== '') {
+                $idSet[$sid] = true;
+            }
+        }
+        if (count($idSet) === 0) {
+            jsonError('Seleccioná al menos un producto');
+        }
 
         if (!in_array($mode, ['percent', 'fixed'], true)) {
             jsonError('Modo inválido (percent o fixed)');
@@ -146,29 +157,16 @@ switch ($action) {
             jsonError('No se puede reducir más del 100%');
         }
 
-        $searchNorm = $search !== '' ? strtolower($search) : '';
-        $applyAllCats = ($categoriaFilter === '' || strtoupper($categoriaFilter) === 'ALL');
         $changed = 0;
 
         foreach ($data['categorias'] as $ci => &$cat) {
-            $catName = trim((string)($cat['nombre'] ?? ''));
-            if (!$applyAllCats && $catName !== $categoriaFilter) {
-                continue;
-            }
             if (empty($cat['items']) || !is_array($cat['items'])) {
                 continue;
             }
             foreach ($cat['items'] as $ii => &$item) {
-                if ($onlyActive && empty($item['estado'])) {
+                $itemId = isset($item['id']) ? (string)$item['id'] : '';
+                if ($itemId === '' || !isset($idSet[$itemId])) {
                     continue;
-                }
-                if ($searchNorm !== '') {
-                    $hay = strtolower(
-                        $catName . ' ' . ($item['nombre'] ?? '') . ' ' . ($item['unidad'] ?? '') . ' ' . ($item['tag'] ?? '')
-                    );
-                    if (strpos($hay, $searchNorm) === false) {
-                        continue;
-                    }
                 }
                 $precio = (int)($item['precio'] ?? 0);
                 if ($mode === 'percent') {

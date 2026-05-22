@@ -326,6 +326,11 @@
     return getCatalogExportRows('productos');
   }
 
+  function getProductosAdjustCandidates(onlyActive) {
+    const rows = getCatalogExportRows('productos');
+    return onlyActive ? rows.filter(r => r.estado) : rows;
+  }
+
   function getCongeladosExportRows() {
     return getCatalogExportRows('congelados');
   }
@@ -1287,8 +1292,11 @@
   }
 
   function closeModal() {
-    $('#modal').classList.add('hidden');
-    $('#modal').setAttribute('aria-hidden', 'true');
+    const modal = $('#modal');
+    const box = modal && modal.querySelector('.modal-box');
+    if (box) box.classList.remove('modal-wide');
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
   }
 
   function getFormData(ids) {
@@ -1515,6 +1523,7 @@
 
   function openPriceAdjustModal(onDone) {
     const modal = $('#modal');
+    const modalBox = modal && modal.querySelector('.modal-box');
     const title = $('#modal-title');
     const body = $('#modal-body');
     if (!modal || !title || !body) return;
@@ -1522,16 +1531,86 @@
     const st = gridState.productos;
     const catFilter = getCatalogCategoriaFilter('productos');
     const catLabel = catFilter === 'ALL' ? 'Todas las categorías' : catFilter;
-    const searchHint = (st.search || '').trim()
-      ? ` · búsqueda: “${st.search.trim()}”`
-      : '';
+    const gridSearch = (st.search || '').trim();
+    const gridSearchHint = gridSearch ? ` · búsqueda en grilla: “${gridSearch}”` : '';
+
+    let onlyActive = true;
+    let candidates = getProductosAdjustCandidates(onlyActive);
+    const selectedIds = new Set(candidates.map(r => String(r.id)));
 
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
+    if (modalBox) modalBox.classList.add('modal-wide');
     title.textContent = 'Ajustar precios';
+
+    const renderPicker = () => {
+      const listEl = body.querySelector('#adj-product-list');
+      const countEl = body.querySelector('#adj-selected-count');
+      const applyBtn = body.querySelector('#adj-apply');
+      const selectAllEl = body.querySelector('#adj-select-all-visible');
+      const filterInput = body.querySelector('#adj-list-search');
+      if (!listEl) return;
+
+      const q = normalizeText((filterInput && filterInput.value) || '');
+      const visible = q
+        ? candidates.filter(r => normalizeText(
+          `${r._categoria || ''} ${r.nombre || ''} ${r.unidad || ''} ${r.tag || ''}`
+        ).includes(q))
+        : candidates;
+
+      if (visible.length === 0) {
+        listEl.innerHTML = '<p class="price-adj-empty">No hay productos para mostrar con estos filtros.</p>';
+      } else {
+        listEl.innerHTML = visible.map(r => {
+          const id = String(r.id);
+          const checked = selectedIds.has(id);
+          const inactive = !r.estado;
+          return `
+            <label class="price-adj-item${inactive ? ' price-adj-item-inactive' : ''}">
+              <input type="checkbox" class="price-adj-cb" data-id="${escapeAttr(id)}"${checked ? ' checked' : ''}>
+              <span class="price-adj-item-body">
+                <span class="price-adj-item-name">${escapeHtml(r.nombre || '')}</span>
+                <span class="price-adj-item-meta">
+                  <span class="pill">${escapeHtml(r._categoria || '')}</span>
+                  ${r.unidad ? `<span class="price-adj-unit">${escapeHtml(r.unidad)}</span>` : ''}
+                  ${inactive ? '<span class="badge danger">Inactivo</span>' : ''}
+                </span>
+              </span>
+              <code class="precio price-adj-item-price">${escapeHtml(formatPrecio(r.precio))}</code>
+            </label>`;
+        }).join('');
+      }
+
+      const visibleIds = visible.map(r => String(r.id));
+      const allVisibleChecked = visibleIds.length > 0 && visibleIds.every(id => selectedIds.has(id));
+      const someVisibleChecked = visibleIds.some(id => selectedIds.has(id));
+      if (selectAllEl) {
+        selectAllEl.checked = allVisibleChecked;
+        selectAllEl.indeterminate = someVisibleChecked && !allVisibleChecked;
+      }
+
+      const n = selectedIds.size;
+      if (countEl) {
+        countEl.textContent = n === 1 ? '1 producto seleccionado' : `${n} productos seleccionados`;
+      }
+      if (applyBtn) {
+        applyBtn.disabled = n === 0;
+        applyBtn.textContent = n === 0 ? 'Aplicar' : `Aplicar a ${n} producto${n === 1 ? '' : 's'}`;
+      }
+
+      listEl.querySelectorAll('.price-adj-cb').forEach(cb => {
+        cb.onchange = () => {
+          const id = cb.dataset.id;
+          if (cb.checked) selectedIds.add(id);
+          else selectedIds.delete(id);
+          renderPicker();
+        };
+      });
+    };
+
     body.innerHTML = `
-      <p class="help" style="margin:0 0 1rem">Se aplicará a productos visibles según filtros actuales: <strong>${escapeHtml(catLabel)}</strong>${escapeHtml(searchHint)}.</p>
-      <div class="form-grid">
+      <p class="price-adj-intro">Elegí los productos y el ajuste. Lista según filtros del listado: <strong>${escapeHtml(catLabel)}</strong>${escapeHtml(gridSearchHint)}.</p>
+      <div class="form-grid price-adj-form">
         <div class="field">
           <label for="adj-direction">Operación</label>
           <select id="adj-direction" class="select">
@@ -1550,22 +1629,80 @@
           <label for="adj-value">Valor</label>
           <input type="number" id="adj-value" min="0.01" step="0.01" inputmode="decimal" placeholder="Ej: 10" required>
         </div>
-        <div class="field span-2">
-          <label><input type="checkbox" id="adj-only-active" checked> Solo productos activos</label>
-        </div>
       </div>
+      <section class="price-adj-picker" aria-label="Selección de productos">
+        <div class="price-adj-picker-head">
+          <span class="price-adj-picker-title">Productos</span>
+          <span class="price-adj-count" id="adj-selected-count">0 seleccionados</span>
+        </div>
+        <div class="price-adj-picker-toolbar">
+          <input type="search" id="adj-list-search" class="search-input" placeholder="Buscar en la lista…" autocomplete="off">
+          <button type="button" class="btn btn-ghost btn-sm" id="adj-select-all">Todos</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="adj-select-none">Ninguno</button>
+          <label class="price-adj-only-active"><input type="checkbox" id="adj-only-active" checked> Solo activos</label>
+        </div>
+        <label class="price-adj-select-all-row">
+          <input type="checkbox" id="adj-select-all-visible">
+          <span>Marcar todos los que se ven en la lista</span>
+        </label>
+        <div class="price-adj-list" id="adj-product-list"></div>
+      </section>
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
-        <button type="button" class="btn btn-primary" id="adj-apply">Aplicar</button>
+        <button type="button" class="btn btn-primary" id="adj-apply" disabled>Aplicar</button>
       </div>`;
 
     const close = () => closeModal();
     body.querySelector('[data-modal-cancel]')?.addEventListener('click', close);
+
+    body.querySelector('#adj-only-active')?.addEventListener('change', (e) => {
+      onlyActive = !!e.target.checked;
+      const prev = new Set(selectedIds);
+      candidates = getProductosAdjustCandidates(onlyActive);
+      selectedIds.clear();
+      candidates.forEach(r => {
+        const id = String(r.id);
+        if (prev.has(id)) selectedIds.add(id);
+      });
+      if (selectedIds.size === 0 && candidates.length > 0) {
+        candidates.forEach(r => selectedIds.add(String(r.id)));
+      }
+      renderPicker();
+    });
+
+    body.querySelector('#adj-list-search')?.addEventListener('input', renderPicker);
+
+    body.querySelector('#adj-select-all')?.addEventListener('click', () => {
+      candidates.forEach(r => selectedIds.add(String(r.id)));
+      renderPicker();
+    });
+
+    body.querySelector('#adj-select-none')?.addEventListener('click', () => {
+      selectedIds.clear();
+      renderPicker();
+    });
+
+    body.querySelector('#adj-select-all-visible')?.addEventListener('change', (e) => {
+      const filterInput = body.querySelector('#adj-list-search');
+      const q = normalizeText((filterInput && filterInput.value) || '');
+      const visible = q
+        ? candidates.filter(r => normalizeText(
+          `${r._categoria || ''} ${r.nombre || ''} ${r.unidad || ''} ${r.tag || ''}`
+        ).includes(q))
+        : candidates;
+      visible.forEach(r => {
+        const id = String(r.id);
+        if (e.target.checked) selectedIds.add(id);
+        else selectedIds.delete(id);
+      });
+      renderPicker();
+    });
+
     body.querySelector('#adj-apply')?.addEventListener('click', () => {
       const direction = body.querySelector('#adj-direction')?.value === 'down' ? 'down' : 'up';
       const mode = body.querySelector('#adj-mode')?.value === 'fixed' ? 'fixed' : 'percent';
       const value = Number(body.querySelector('#adj-value')?.value);
-      const onlyActive = !!body.querySelector('#adj-only-active')?.checked;
+      const ids = Array.from(selectedIds);
       if (!Number.isFinite(value) || value <= 0) {
         showToast('Ingresá un valor mayor a 0.', 'warn');
         return;
@@ -1574,14 +1711,19 @@
         showToast('No se puede reducir más del 100%.', 'warn');
         return;
       }
+      if (ids.length === 0) {
+        showToast('Seleccioná al menos un producto.', 'warn');
+        return;
+      }
       const dirLabel = direction === 'up' ? 'aumentar' : 'reducir';
       const valLabel = mode === 'percent'
         ? `${value}%`
         : `$ ${value.toLocaleString('es-AR')}`;
+      const n = ids.length;
       close();
       showConfirmDelete({
         title: 'Confirmar ajuste de precios',
-        message: `¿${dirLabel.charAt(0).toUpperCase() + dirLabel.slice(1)} ${valLabel} en ${catLabel}${searchHint}? Los precios no quedarán por debajo de $0.`,
+        message: `¿${dirLabel.charAt(0).toUpperCase() + dirLabel.slice(1)} ${valLabel} en ${n} producto${n === 1 ? '' : 's'}? Los precios no quedarán por debajo de $0.`,
         confirmLabel: 'Aplicar',
         cancelLabel: 'Cancelar',
         onConfirm: () => {
@@ -1590,9 +1732,7 @@
             direction,
             mode,
             value,
-            categoria: catFilter,
-            only_active: onlyActive ? 1 : 0,
-            search: (st.search || '').trim(),
+            ids,
           })
             .then((res) => {
               showToast(`Precios actualizados (${res.changed || 0} productos).`, 'success');
@@ -1603,6 +1743,8 @@
         },
       });
     });
+
+    renderPicker();
   }
 
   // Modals para editar: cargar datos del item
