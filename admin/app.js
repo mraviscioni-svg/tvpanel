@@ -25,6 +25,8 @@
   let mediaConfig = { mediaImagesPath: 'IMG/CORTES', mediaVideosPath: 'IMG/CORTES/VIDEO' };
   let productosCategoriaFilter = 'ALL';
   let congeladosCategoriaFilter = 'ALL';
+  /** IDs de productos marcados en la grilla para ajuste masivo de precios. */
+  const productosSelectedIds = new Set();
   const gridState = {
     productos: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
     congelados: { page: 1, pageSize: 10, search: '', sortKey: '_categoria', sortDir: 'asc' },
@@ -326,9 +328,80 @@
     return getCatalogExportRows('productos');
   }
 
-  function getProductosAdjustCandidates(onlyActive) {
-    const rows = getCatalogExportRows('productos');
-    return onlyActive ? rows.filter(r => r.estado) : rows;
+  function updateProductosSelectionUi(content) {
+    if (!content) return;
+    const n = productosSelectedIds.size;
+    const btn = content.querySelector('#btn-ajustar-precios');
+    const countEl = content.querySelector('#productos-sel-count');
+    const clearBtn = content.querySelector('#btn-productos-sel-clear');
+    if (btn) {
+      btn.disabled = n === 0;
+      btn.textContent = n === 0 ? 'Modificar precios' : `Modificar precios (${n})`;
+    }
+    if (countEl) {
+      countEl.textContent = n === 0 ? '' : (n === 1 ? '1 seleccionado' : `${n} seleccionados`);
+      countEl.hidden = n === 0;
+    }
+    if (clearBtn) clearBtn.hidden = n === 0;
+  }
+
+  function syncProductosTableSelection(content, pageRows) {
+    if (!content) return;
+    const pageIds = (pageRows || []).map(r => String(r.id));
+    const allPage = pageIds.length > 0 && pageIds.every(id => productosSelectedIds.has(id));
+    const somePage = pageIds.some(id => productosSelectedIds.has(id));
+    const headCb = content.querySelector('#productos-select-page');
+    if (headCb) {
+      headCb.checked = allPage;
+      headCb.indeterminate = somePage && !allPage;
+    }
+    content.querySelectorAll('tr[data-producto-id]').forEach(tr => {
+      const id = tr.dataset.productoId;
+      const on = productosSelectedIds.has(id);
+      tr.classList.toggle('tr-selected', on);
+      const cb = tr.querySelector('.producto-row-cb');
+      if (cb) cb.checked = on;
+    });
+    updateProductosSelectionUi(content);
+  }
+
+  function bindProductosSelection(content, pageRows, reload) {
+    const headCb = content.querySelector('#productos-select-page');
+    if (headCb) {
+      headCb.onchange = () => {
+        pageRows.forEach(r => {
+          const id = String(r.id);
+          if (headCb.checked) productosSelectedIds.add(id);
+          else productosSelectedIds.delete(id);
+        });
+        syncProductosTableSelection(content, pageRows);
+      };
+    }
+    content.querySelectorAll('.producto-row-cb').forEach(cb => {
+      cb.onchange = () => {
+        const id = cb.dataset.id;
+        if (cb.checked) productosSelectedIds.add(id);
+        else productosSelectedIds.delete(id);
+        syncProductosTableSelection(content, pageRows);
+      };
+    });
+    content.querySelector('#btn-productos-sel-all-filtered')?.addEventListener('click', () => {
+      getCatalogExportRows('productos').forEach(r => productosSelectedIds.add(String(r.id)));
+      syncProductosTableSelection(content, pageRows);
+      showToast('Seleccionados todos los del listado filtrado.', 'info');
+    });
+    content.querySelector('#btn-productos-sel-clear')?.addEventListener('click', () => {
+      productosSelectedIds.clear();
+      syncProductosTableSelection(content, pageRows);
+    });
+    content.querySelector('#btn-ajustar-precios')?.addEventListener('click', () => {
+      if (productosSelectedIds.size === 0) {
+        showToast('Seleccioná al menos un producto en la tabla.', 'warn');
+        return;
+      }
+      openPriceAdjustModal(reload, Array.from(productosSelectedIds));
+    });
+    updateProductosSelectionUi(content);
   }
 
   function getCongeladosExportRows() {
@@ -432,6 +505,7 @@
   }
 
   function setView(view) {
+    if (view !== 'productos') productosSelectedIds.clear();
     currentView = view;
     try {
       if (window.localStorage) localStorage.setItem(STORAGE_VIEW_KEY, view);
@@ -595,7 +669,11 @@
           </div>
           <div class="toolbar-meta">
             <span class="tag-updated" title="${escapeAttr(String(data.updated || ''))}">${escapeHtml(formatRelativeDate(data.updated || '').label)}</span>
-            ${catalogView === 'productos' ? '<button type="button" class="btn btn-ghost btn-sm" id="btn-ajustar-precios">Ajustar precios</button>' : ''}
+            ${catalogView === 'productos' ? `
+            <span class="tag-selection" id="productos-sel-count" hidden></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-productos-sel-all-filtered" title="Marcar todos los productos del listado (según filtros)">Todos</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-productos-sel-clear" hidden title="Quitar selección">Limpiar</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-ajustar-precios" disabled>Modificar precios</button>` : ''}
             <button type="button" class="btn btn-ghost btn-sm btn-export-excel btn-excel" data-export-view="${escapeAttr(catalogView)}"><span class="btn-excel-icon" aria-hidden="true"></span> Excel</button>
           </div>
         </div>
@@ -612,6 +690,7 @@
           <table>
             <thead>
               <tr>
+                ${catalogView === 'productos' ? '<th class="th-check"><input type="checkbox" id="productos-select-page" aria-label="Seleccionar página"></th>' : ''}
                 ${thSort('_categoria', 'Categoría')}
                 ${thSort('nombre', 'Nombre')}
                 ${thSort('unidad', 'Unidad')}
@@ -626,7 +705,10 @@
         const modRaw = it.updated_at || '';
         const modRel = formatRelativeDate(modRaw);
         const tagTimeClass = 'tag-time' + (modRel.isToday ? ' tag-today' : '');
-        html += `<tr>
+        const pid = String(it.id);
+        const isSel = catalogView === 'productos' && productosSelectedIds.has(pid);
+        html += `<tr class="${catalogView === 'productos' ? 'tr-selectable' : ''}${isSel ? ' tr-selected' : ''}"${catalogView === 'productos' ? ` data-producto-id="${escapeAttr(pid)}"` : ''}>
+          ${catalogView === 'productos' ? `<td class="td-check"><input type="checkbox" class="producto-row-cb" data-id="${escapeAttr(pid)}" aria-label="Seleccionar ${escapeAttr(it.nombre || '')}"${isSel ? ' checked' : ''}></td>` : ''}
           <td><span class="pill">${escapeHtml(it._categoria || '')}</span></td>
           <td>${escapeHtml(it.nombre)}</td>
           <td>${escapeHtml(it.unidad)}</td>
@@ -652,7 +734,7 @@
         showToast('Exportado correctamente.', 'success');
       });
       if (catalogView === 'productos') {
-        content.querySelector('#btn-ajustar-precios')?.addEventListener('click', () => openPriceAdjustModal(reload));
+        bindProductosSelection(content, rows, reload);
       }
       content.querySelectorAll('.th-sort[data-sort]').forEach(th => {
         th.onclick = function () {
@@ -1521,96 +1603,25 @@
     return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  function openPriceAdjustModal(onDone) {
+  function openPriceAdjustModal(onDone, ids) {
     const modal = $('#modal');
-    const modalBox = modal && modal.querySelector('.modal-box');
     const title = $('#modal-title');
     const body = $('#modal-body');
     if (!modal || !title || !body) return;
 
-    const st = gridState.productos;
-    const catFilter = getCatalogCategoriaFilter('productos');
-    const catLabel = catFilter === 'ALL' ? 'Todas las categorías' : catFilter;
-    const gridSearch = (st.search || '').trim();
-    const gridSearchHint = gridSearch ? ` · búsqueda en grilla: “${gridSearch}”` : '';
-
-    let onlyActive = true;
-    let candidates = getProductosAdjustCandidates(onlyActive);
-    const selectedIds = new Set(candidates.map(r => String(r.id)));
+    const idList = Array.isArray(ids) ? ids.map(String).filter(Boolean) : [];
+    if (!idList.length) {
+      showToast('Seleccioná al menos un producto en la tabla.', 'warn');
+      return;
+    }
+    const n = idList.length;
 
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
-    if (modalBox) modalBox.classList.add('modal-wide');
-    title.textContent = 'Ajustar precios';
-
-    const renderPicker = () => {
-      const listEl = body.querySelector('#adj-product-list');
-      const countEl = body.querySelector('#adj-selected-count');
-      const applyBtn = body.querySelector('#adj-apply');
-      const selectAllEl = body.querySelector('#adj-select-all-visible');
-      const filterInput = body.querySelector('#adj-list-search');
-      if (!listEl) return;
-
-      const q = normalizeText((filterInput && filterInput.value) || '');
-      const visible = q
-        ? candidates.filter(r => normalizeText(
-          `${r._categoria || ''} ${r.nombre || ''} ${r.unidad || ''} ${r.tag || ''}`
-        ).includes(q))
-        : candidates;
-
-      if (visible.length === 0) {
-        listEl.innerHTML = '<p class="price-adj-empty">No hay productos para mostrar con estos filtros.</p>';
-      } else {
-        listEl.innerHTML = visible.map(r => {
-          const id = String(r.id);
-          const checked = selectedIds.has(id);
-          const inactive = !r.estado;
-          return `
-            <label class="price-adj-item${inactive ? ' price-adj-item-inactive' : ''}">
-              <input type="checkbox" class="price-adj-cb" data-id="${escapeAttr(id)}"${checked ? ' checked' : ''}>
-              <span class="price-adj-item-body">
-                <span class="price-adj-item-name">${escapeHtml(r.nombre || '')}</span>
-                <span class="price-adj-item-meta">
-                  <span class="pill">${escapeHtml(r._categoria || '')}</span>
-                  ${r.unidad ? `<span class="price-adj-unit">${escapeHtml(r.unidad)}</span>` : ''}
-                  ${inactive ? '<span class="badge danger">Inactivo</span>' : ''}
-                </span>
-              </span>
-              <code class="precio price-adj-item-price">${escapeHtml(formatPrecio(r.precio))}</code>
-            </label>`;
-        }).join('');
-      }
-
-      const visibleIds = visible.map(r => String(r.id));
-      const allVisibleChecked = visibleIds.length > 0 && visibleIds.every(id => selectedIds.has(id));
-      const someVisibleChecked = visibleIds.some(id => selectedIds.has(id));
-      if (selectAllEl) {
-        selectAllEl.checked = allVisibleChecked;
-        selectAllEl.indeterminate = someVisibleChecked && !allVisibleChecked;
-      }
-
-      const n = selectedIds.size;
-      if (countEl) {
-        countEl.textContent = n === 1 ? '1 producto seleccionado' : `${n} productos seleccionados`;
-      }
-      if (applyBtn) {
-        applyBtn.disabled = n === 0;
-        applyBtn.textContent = n === 0 ? 'Aplicar' : `Aplicar a ${n} producto${n === 1 ? '' : 's'}`;
-      }
-
-      listEl.querySelectorAll('.price-adj-cb').forEach(cb => {
-        cb.onchange = () => {
-          const id = cb.dataset.id;
-          if (cb.checked) selectedIds.add(id);
-          else selectedIds.delete(id);
-          renderPicker();
-        };
-      });
-    };
-
+    title.textContent = 'Modificar precios';
     body.innerHTML = `
-      <p class="price-adj-intro">Elegí los productos y el ajuste. Lista según filtros del listado: <strong>${escapeHtml(catLabel)}</strong>${escapeHtml(gridSearchHint)}.</p>
-      <div class="form-grid price-adj-form">
+      <p class="price-adj-intro">Ajuste para <strong>${n}</strong> producto${n === 1 ? '' : 's'} seleccionado${n === 1 ? '' : 's'} en la grilla.</p>
+      <div class="form-grid">
         <div class="field">
           <label for="adj-direction">Operación</label>
           <select id="adj-direction" class="select">
@@ -1630,79 +1641,17 @@
           <input type="number" id="adj-value" min="0.01" step="0.01" inputmode="decimal" placeholder="Ej: 10" required>
         </div>
       </div>
-      <section class="price-adj-picker" aria-label="Selección de productos">
-        <div class="price-adj-picker-head">
-          <span class="price-adj-picker-title">Productos</span>
-          <span class="price-adj-count" id="adj-selected-count">0 seleccionados</span>
-        </div>
-        <div class="price-adj-picker-toolbar">
-          <input type="search" id="adj-list-search" class="search-input" placeholder="Buscar en la lista…" autocomplete="off">
-          <button type="button" class="btn btn-ghost btn-sm" id="adj-select-all">Todos</button>
-          <button type="button" class="btn btn-ghost btn-sm" id="adj-select-none">Ninguno</button>
-          <label class="price-adj-only-active"><input type="checkbox" id="adj-only-active" checked> Solo activos</label>
-        </div>
-        <label class="price-adj-select-all-row">
-          <input type="checkbox" id="adj-select-all-visible">
-          <span>Marcar todos los que se ven en la lista</span>
-        </label>
-        <div class="price-adj-list" id="adj-product-list"></div>
-      </section>
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" data-modal-cancel>Cancelar</button>
-        <button type="button" class="btn btn-primary" id="adj-apply" disabled>Aplicar</button>
+        <button type="button" class="btn btn-primary" id="adj-apply">Aplicar</button>
       </div>`;
 
     const close = () => closeModal();
     body.querySelector('[data-modal-cancel]')?.addEventListener('click', close);
-
-    body.querySelector('#adj-only-active')?.addEventListener('change', (e) => {
-      onlyActive = !!e.target.checked;
-      const prev = new Set(selectedIds);
-      candidates = getProductosAdjustCandidates(onlyActive);
-      selectedIds.clear();
-      candidates.forEach(r => {
-        const id = String(r.id);
-        if (prev.has(id)) selectedIds.add(id);
-      });
-      if (selectedIds.size === 0 && candidates.length > 0) {
-        candidates.forEach(r => selectedIds.add(String(r.id)));
-      }
-      renderPicker();
-    });
-
-    body.querySelector('#adj-list-search')?.addEventListener('input', renderPicker);
-
-    body.querySelector('#adj-select-all')?.addEventListener('click', () => {
-      candidates.forEach(r => selectedIds.add(String(r.id)));
-      renderPicker();
-    });
-
-    body.querySelector('#adj-select-none')?.addEventListener('click', () => {
-      selectedIds.clear();
-      renderPicker();
-    });
-
-    body.querySelector('#adj-select-all-visible')?.addEventListener('change', (e) => {
-      const filterInput = body.querySelector('#adj-list-search');
-      const q = normalizeText((filterInput && filterInput.value) || '');
-      const visible = q
-        ? candidates.filter(r => normalizeText(
-          `${r._categoria || ''} ${r.nombre || ''} ${r.unidad || ''} ${r.tag || ''}`
-        ).includes(q))
-        : candidates;
-      visible.forEach(r => {
-        const id = String(r.id);
-        if (e.target.checked) selectedIds.add(id);
-        else selectedIds.delete(id);
-      });
-      renderPicker();
-    });
-
     body.querySelector('#adj-apply')?.addEventListener('click', () => {
       const direction = body.querySelector('#adj-direction')?.value === 'down' ? 'down' : 'up';
       const mode = body.querySelector('#adj-mode')?.value === 'fixed' ? 'fixed' : 'percent';
       const value = Number(body.querySelector('#adj-value')?.value);
-      const ids = Array.from(selectedIds);
       if (!Number.isFinite(value) || value <= 0) {
         showToast('Ingresá un valor mayor a 0.', 'warn');
         return;
@@ -1711,15 +1660,10 @@
         showToast('No se puede reducir más del 100%.', 'warn');
         return;
       }
-      if (ids.length === 0) {
-        showToast('Seleccioná al menos un producto.', 'warn');
-        return;
-      }
       const dirLabel = direction === 'up' ? 'aumentar' : 'reducir';
       const valLabel = mode === 'percent'
         ? `${value}%`
         : `$ ${value.toLocaleString('es-AR')}`;
-      const n = ids.length;
       close();
       showConfirmDelete({
         title: 'Confirmar ajuste de precios',
@@ -1732,9 +1676,10 @@
             direction,
             mode,
             value,
-            ids,
+            ids: idList,
           })
             .then((res) => {
+              productosSelectedIds.clear();
               showToast(`Precios actualizados (${res.changed || 0} productos).`, 'success');
               if (onDone) onDone();
               else setView('productos');
@@ -1743,8 +1688,6 @@
         },
       });
     });
-
-    renderPicker();
   }
 
   // Modals para editar: cargar datos del item

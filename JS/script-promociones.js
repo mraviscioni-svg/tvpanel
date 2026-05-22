@@ -28,6 +28,86 @@ function itemActivoEnPromo(item) {
   return item.estado !== 0 && item.estado !== false && item.estado !== '0';
 }
 
+function resolveAssetUrl(src) {
+  const u = String(src || '').trim();
+  if (!u) return '';
+  if (/^https?:\/\//i.test(u)) return u;
+  try {
+    const path = u.startsWith('/') ? u : '/' + u.replace(/^\.\//, '');
+    return new URL(path, location.origin).href;
+  } catch (_) {
+    return u;
+  }
+}
+
+function collectPromoMediaUrls(data) {
+  const urls = new Set([
+    '/IMG/Logo.png',
+    '/IMG/qrcode.jpg',
+    '/IMG/promo-descuento-efectivo-10.png',
+    PLACEHOLDER_IMG,
+  ]);
+  const categorias = Array.isArray(data?.categorias) ? data.categorias : [];
+  categorias.forEach(cat => {
+    (Array.isArray(cat?.items) ? cat.items : []).forEach(item => {
+      if (!itemActivoEnPromo(item)) return;
+      getValidMediaList(item?.imagen1, item?.imagen2).forEach(u => urls.add(u));
+    });
+  });
+  return Array.from(urls);
+}
+
+function preloadImageUrl(src) {
+  const url = resolveAssetUrl(src);
+  if (!url) return Promise.resolve();
+  return new Promise(resolve => {
+    const img = new Image();
+    const finish = () => {
+      if (img.decode) img.decode().then(resolve).catch(resolve);
+      else resolve();
+    };
+    img.onload = finish;
+    img.onerror = resolve;
+    img.src = url;
+  });
+}
+
+function preloadVideoUrl(src) {
+  const url = resolveAssetUrl(src);
+  if (!url) return Promise.resolve();
+  return new Promise(resolve => {
+    const v = document.createElement('video');
+    v.muted = true;
+    v.playsInline = true;
+    v.preload = 'auto';
+    const done = () => {
+      try { v.pause(); } catch (_) {}
+      v.removeAttribute('src');
+      try { v.load(); } catch (_) {}
+      resolve();
+    };
+    v.addEventListener('loadeddata', done, { once: true });
+    v.addEventListener('error', done, { once: true });
+    setTimeout(done, 20000);
+    v.src = url;
+  });
+}
+
+async function preloadPromoMedia(urls, onProgress) {
+  const list = Array.from(new Set((urls || []).map(resolveAssetUrl).filter(Boolean)));
+  const total = list.length;
+  let loaded = 0;
+  const tick = () => {
+    loaded += 1;
+    if (typeof onProgress === 'function') onProgress(loaded, total);
+  };
+  if (!total) return;
+  await Promise.all(list.map(src => {
+    const job = isVideo(src) ? preloadVideoUrl(src) : preloadImageUrl(src);
+    return job.finally(tick);
+  }));
+}
+
 async function applyPromosUpdate(data, opts = {}) {
   const ui = promosRefreshUi();
   const showOverlay = !opts.silent && ui;
@@ -36,6 +116,17 @@ async function applyPromosUpdate(data, opts = {}) {
   try {
     if (timer) clearTimeout(timer);
     await yieldToPaint();
+    const mediaUrls = collectPromoMediaUrls(data);
+    if (mediaUrls.length) {
+      if (ui) {
+        ui.show(mediaUrls.length > 1
+          ? `Cargando imágenes (0/${mediaUrls.length})…`
+          : 'Cargando imágenes…');
+      }
+      await preloadPromoMedia(mediaUrls, (n, total) => {
+        if (ui && total > 3) ui.show(`Cargando imágenes (${n}/${total})…`);
+      });
+    }
     init(data);
     await yieldToPaint();
   } finally {
@@ -57,8 +148,6 @@ async function bootPromociones() {
   }
 
   const ui = promosRefreshUi();
-  if (ui) ui.show('Cargando promociones…');
-
   let data;
   try {
     if (window.LiveJsonSync && window.LiveJsonSync.fetchJson) {
@@ -68,7 +157,7 @@ async function bootPromociones() {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       data = await r.json();
     }
-    await applyPromosUpdate(data, { silent: true });
+    await applyPromosUpdate(data, { silent: false, message: 'Cargando promociones…' });
   } catch (err) {
     console.error('[PROMOS] Error cargando JSON:', err);
   } finally {

@@ -382,16 +382,15 @@ async function buildDynamicRightCarousel(){
   stacks.forEach(s => rightPanel.appendChild(s));
 
   const initial = shuffle(images);
-  const urlsToPreload = [];
-  stacks.forEach((stack, i) => {
-    const first = initial[i % initial.length];
-    urlsToPreload.push(first);
-    const rest = shuffle(images.filter(x => x !== first)).slice(0, Math.min(2, Math.max(0, images.length - 1)));
-    rest.forEach(src => urlsToPreload.push(src));
-  });
 
   setStacksLoading(stacks, true);
-  await preloadImageUrls(urlsToPreload);
+  const totalImgs = images.length;
+  if (totalImgs > 0) {
+    cUi.show(totalImgs > 1 ? `Cargando imágenes (0/${totalImgs})…` : 'Cargando imágenes…');
+    await preloadImageUrls(images, (loaded, total) => {
+      if (total > 3) cUi.show(`Cargando imágenes (${loaded}/${total})…`);
+    });
+  }
   setStacksLoading(stacks, false);
 
   // ---- inicial: todos ACTIVO distintos (si hay pool suficiente) ----
@@ -584,11 +583,39 @@ function setStacksLoading(stacks, loading) {
   });
 }
 
-function preloadImageUrls(urls) {
-  const list = Array.from(new Set((urls || []).filter(Boolean)));
+function resolveAssetUrl(src) {
+  const u = String(src || '').trim();
+  if (!u) return '';
+  if (/^https?:\/\//i.test(u)) return u;
+  try {
+    const path = u.startsWith('/') ? u : '/' + u.replace(/^\.\//, '');
+    return new URL(path, location.origin).href;
+  } catch (_) {
+    return u;
+  }
+}
+
+function preloadImageUrls(urls, onProgress) {
+  const list = Array.from(new Set((urls || []).map(resolveAssetUrl).filter(Boolean)));
+  const total = list.length;
+  let loaded = 0;
+  const tick = () => {
+    loaded += 1;
+    if (typeof onProgress === 'function') onProgress(loaded, total);
+  };
+  if (!total) return Promise.resolve();
   return Promise.all(list.map(src => new Promise(resolve => {
     const img = new Image();
-    img.onload = img.onerror = () => resolve();
+    const finish = () => {
+      if (img.decode) {
+        img.decode().then(() => { tick(); resolve(); }).catch(() => { tick(); resolve(); });
+      } else {
+        tick();
+        resolve();
+      }
+    };
+    img.onload = finish;
+    img.onerror = () => { tick(); resolve(); };
     img.src = src;
   })));
 }
