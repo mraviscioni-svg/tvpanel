@@ -2,6 +2,7 @@ const SLIDE_MS = 13000;
 const INTRO_MS = 7000;
 const PLACEHOLDER_IMG = '/IMG/Logo.png';
 const PRELOAD_MEDIA_MAX_MS = 18000;
+const PRELOAD_BATCH_SIZE = 5;
 const PROMOS_JSON = '/JSON/ofertas.json';
 const REFRESH_MIN_MS = 450;
 
@@ -83,7 +84,13 @@ async function preloadPromoMedia(urls, onProgress) {
     if (typeof onProgress === 'function') onProgress(loaded, total);
   };
   if (!total) return;
-  const work = Promise.all(list.map(src => preloadImageUrl(src).finally(tick)));
+  const work = (async () => {
+    for (let i = 0; i < list.length; i += PRELOAD_BATCH_SIZE) {
+      const batch = list.slice(i, i + PRELOAD_BATCH_SIZE);
+      await Promise.all(batch.map(src => preloadImageUrl(src).finally(tick)));
+      await yieldToPaint();
+    }
+  })();
   const cap = new Promise(resolve => setTimeout(resolve, PRELOAD_MEDIA_MAX_MS));
   await Promise.race([work, cap]);
 }
@@ -98,13 +105,12 @@ async function applyPromosUpdate(data, opts = {}) {
     await yieldToPaint();
     const mediaUrls = collectPromoMediaUrls(data);
     if (mediaUrls.length) {
-      if (ui) {
-        ui.show(mediaUrls.length > 1
-          ? `Cargando imágenes (0/${mediaUrls.length})…`
-          : 'Cargando imágenes…');
-      }
+      if (ui) ui.show('Preparando promociones…');
       await preloadPromoMedia(mediaUrls, (n, total) => {
-        if (ui && total > 3) ui.show(`Cargando imágenes (${n}/${total})…`);
+        if (!ui || total <= PRELOAD_BATCH_SIZE) return;
+        if (n % PRELOAD_BATCH_SIZE === 0 || n === total) {
+          ui.show(`Cargando recursos ${n}/${total}…`);
+        }
       });
     }
     init(data);
