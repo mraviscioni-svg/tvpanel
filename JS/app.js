@@ -366,7 +366,7 @@ async function buildDynamicRightCarousel(){
   rightPanel.style.gridTemplateRows = `repeat(${stacksCount}, 1fr)`;
   rightPanel.style.gap = '8px';
   rightPanel.style.padding = '8px';
-  clearRightPanelStacks(rightPanel);
+  const oldStacks = Array.from(rightPanel.querySelectorAll('.stack'));
 
   // ---- pool (único/normalizado) ----
   let images = await loadImgs(carouselJson);
@@ -379,19 +379,21 @@ async function buildDynamicRightCarousel(){
   }
 
   const stacks = Array.from({length: stacksCount}, ()=> makeStack());
-  stacks.forEach(s => rightPanel.appendChild(s));
 
   const initial = shuffle(images);
 
-  setStacksLoading(stacks, true);
+  const hadVisibleStacks = oldStacks.length > 0;
+  if (!hadVisibleStacks) setStacksLoading(stacks, true);
   const totalImgs = images.length;
   if (totalImgs > 0) {
     cUi.show(totalImgs > 1 ? `Cargando imágenes (0/${totalImgs})…` : 'Cargando imágenes…');
     await preloadImageUrls(images, (loaded, total) => {
-      if (total > 3) cUi.show(`Cargando imágenes (${loaded}/${total})…`);
+      if (total > 3 && (!hadVisibleStacks || loaded % 5 === 0 || loaded === total)) {
+        cUi.show(`Cargando imágenes (${loaded}/${total})…`);
+      }
     });
   }
-  setStacksLoading(stacks, false);
+  if (!hadVisibleStacks) setStacksLoading(stacks, false);
 
   // ---- inicial: todos ACTIVO distintos (si hay pool suficiente) ----
   stacks.forEach((stack, i)=>{
@@ -400,6 +402,8 @@ async function buildDynamicRightCarousel(){
     const rest = shuffle(images.filter(x=>x!==first)).slice(0, Math.min(2, Math.max(0, images.length-1)));
     rest.forEach(src => stack.appendChild(makeSlide(src, false)));
   });
+  oldStacks.forEach(s => s.remove());
+  stacks.forEach(s => rightPanel.appendChild(s));
 
   // cooldown por fila (evita volver a poner la misma muy seguido)
   const lastSeen = Array.from({length: stacksCount}, ()=>[]);
@@ -443,22 +447,29 @@ async function buildDynamicRightCarousel(){
     return cand;
   }
 
-  function rotateRow(rowIdx){
+  const rotating = Array.from({ length: stacksCount }, () => false);
+  async function rotateRow(rowIdx){
+    if (rotating[rowIdx]) return;
+    rotating[rowIdx] = true;
     const stack  = stacks[rowIdx];
     const slides = [...stack.querySelectorAll('.slide')];
-    if (!slides.length) return;
+    if (!slides.length) {
+      rotating[rowIdx] = false;
+      return;
+    }
 
     const cur = stack.querySelector('.slide.active');
     let nextIdx = 0;
     if (cur){
       const i = slides.indexOf(cur);
-      cur.classList.remove('active');
       nextIdx = (i + 1) % slides.length;
     }
     const next = slides[nextIdx];
     const src = pickForRow(rowIdx);
+    await preloadImageUrls([src]);
     setCarouselSlideImage(next, src);
     next.classList.add('active');
+    if (cur) cur.classList.remove('active');
 
     // cooldown máx 2
     lastSeen[rowIdx].unshift(src);
@@ -470,9 +481,13 @@ async function buildDynamicRightCarousel(){
       const clash = stacks.some((s,i)=> i!==rowIdx && getActiveCarouselSlideSrc(s) === mySrc);
       if (clash){
         const alt = pickForRow(rowIdx);
-        if (alt && alt !== mySrc) setCarouselSlideImage(next, alt);
+        if (alt && alt !== mySrc) {
+          await preloadImageUrls([alt]);
+          setCarouselSlideImage(next, alt);
+        }
       }
     }
+    rotating[rowIdx] = false;
   }
 
   // ---- scheduler ROUND-ROBIN (1 fila por tick) ----
