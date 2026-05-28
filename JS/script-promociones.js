@@ -136,13 +136,17 @@ async function applyPromosUpdate(data, opts = {}) {
     await yieldToPaint();
     const mediaUrls = collectPromoMediaUrls(data);
     if (mediaUrls.length) {
-      if (ui) ui.show('Preparando promociones…');
-      await preloadPromoMedia(mediaUrls, (n, total) => {
-        if (!ui || total <= PRELOAD_BATCH_SIZE) return;
-        if (n % PRELOAD_BATCH_SIZE === 0 || n === total) {
-          ui.show(`Cargando recursos ${n}/${total}…`);
-        }
-      });
+      if (showOverlay) {
+        ui.show('Preparando promociones…');
+        await preloadPromoMedia(mediaUrls, (n, total) => {
+          if (total <= PRELOAD_BATCH_SIZE) return;
+          if (n % PRELOAD_BATCH_SIZE === 0 || n === total) {
+            ui.show(`Cargando recursos ${n}/${total}…`);
+          }
+        });
+      } else {
+        await preloadPromoMedia(mediaUrls);
+      }
     }
     init(data);
     await yieldToPaint();
@@ -320,7 +324,10 @@ function getValidMediaList(m1, m2) {
 function normalizeMediaPath(value) {
   const v = (value || '').trim();
   if (!v) return '';
-  if (v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/')) return v;
+  if (/^https?:\/\//i.test(v)) return v;
+  if (v.startsWith('/')) return v;
+  // Ruta relativa con carpeta (ej. IMG/CORTES/VIDEO/archivo.mp4 desde config)
+  if (v.includes('/')) return '/' + v.replace(/^\/+/, '');
   return `/IMG/CORTES/${v}`;
 }
 
