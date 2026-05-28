@@ -3,7 +3,7 @@
  * Config pública mínima para frontend (sin login).
  * Devuelve theme por defecto y lista disponible.
  */
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/helpers.php';
 
 $configPath = __DIR__ . '/config.json';
 $themesDir = dirname(__DIR__) . '/CSS/themes';
