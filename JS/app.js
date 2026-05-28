@@ -744,15 +744,7 @@ async function init() {
       path: config.jsonPath,
       intervalMs: window.LiveJsonSync.getPollIntervalMs(),
       initialStamp: window.LiveJsonSync.stampFromJson(listJson),
-      onRefreshStart: () => {
-        const u = tvRefreshUi();
-        if (u) u.show('Actualizando precios…');
-      },
       onUpdate: (fresh) => applyProductListUpdate(fresh, config, { silent: true, message: 'Actualizando precios…' }),
-      onRefreshEnd: () => {
-        const u = tvRefreshUi();
-        if (u) u.hide();
-      },
     });
 
     const cj = config.carouselJson;

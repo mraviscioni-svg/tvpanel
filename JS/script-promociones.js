@@ -189,15 +189,7 @@ async function bootPromociones() {
     path: promosJsonPath,
     intervalMs: window.LiveJsonSync.getPollIntervalMs(),
     initialStamp: window.LiveJsonSync.stampFromJson(data),
-    onRefreshStart: () => {
-      const u = promosRefreshUi();
-      if (u) u.show('Actualizando promociones…');
-    },
     onUpdate: (fresh) => applyPromosUpdate(fresh, { silent: true }),
-    onRefreshEnd: () => {
-      const u = promosRefreshUi();
-      if (u) u.hide();
-    },
   });
 }
 

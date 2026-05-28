@@ -29,12 +29,25 @@
   }
 
   const JSON_FETCH_OPTS = { cache: 'no-store', credentials: 'same-origin' };
+  const JSON_HEAD_OPTS = { method: 'HEAD', cache: 'no-store', credentials: 'same-origin' };
 
   async function fetchJson(path) {
     const url = resolveJsonUrl(path);
     const res = await fetch(url, JSON_FETCH_OPTS);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
+  }
+
+  /** Probe liviano para evitar bajar JSON completo en cada tick. */
+  async function fetchProbeStamp(path) {
+    const url = resolveJsonUrl(path);
+    const res = await fetch(url, JSON_HEAD_OPTS);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const etag = res.headers.get('etag') || '';
+    const lm = res.headers.get('last-modified') || '';
+    const len = res.headers.get('content-length') || '';
+    const token = [etag, lm, len].filter(Boolean).join('|');
+    return token || '';
   }
 
   /** Calienta caché del JSON (solo fetch; sin link preload para evitar mismatch de credentials). */
@@ -101,18 +114,31 @@
     const path = opts.path;
     const intervalMs = opts.intervalMs ?? getPollIntervalMs();
     let lastStamp = opts.initialStamp ?? '';
+    let lastProbeStamp = '';
     let first = true;
     let busy = false;
+    let probeFailed = false;
 
     async function tick() {
       if (busy) return;
       busy = true;
       try {
+        if (!first && !probeFailed) {
+          try {
+            const probeStamp = await fetchProbeStamp(path);
+            if (probeStamp && probeStamp === lastProbeStamp) return;
+            if (probeStamp) lastProbeStamp = probeStamp;
+          } catch (_) {
+            probeFailed = true;
+          }
+        }
+
         const data = await fetchJson(path);
         const stamp = stampFromJson(data);
         if (!first && stamp && stamp === lastStamp) return;
         first = false;
         if (stamp) lastStamp = stamp;
+        probeFailed = false;
 
         if (opts.onRefreshStart) opts.onRefreshStart();
         try {
