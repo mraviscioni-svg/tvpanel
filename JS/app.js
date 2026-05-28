@@ -363,7 +363,6 @@ async function buildDynamicRightCarousel(){
     rightPanel.appendChild(refresh);
   }
   rightPanel.style.display = 'grid';
-  rightPanel.style.gridTemplateRows = `repeat(${stacksCount}, 1fr)`;
   rightPanel.style.gap = '8px';
   rightPanel.style.padding = '8px';
   const oldStacks = Array.from(rightPanel.querySelectorAll('.stack'));
@@ -383,15 +382,21 @@ async function buildDynamicRightCarousel(){
   const initial = shuffle(images);
 
   const hadVisibleStacks = oldStacks.length > 0;
+  if (!hadVisibleStacks) {
+    rightPanel.style.gridTemplateRows = `repeat(${stacksCount}, 1fr)`;
+  }
   if (!hadVisibleStacks) setStacksLoading(stacks, true);
   const totalImgs = images.length;
-  if (totalImgs > 0) {
+  if (totalImgs > 0 && !hadVisibleStacks) {
     cUi.show(totalImgs > 1 ? `Cargando imágenes (0/${totalImgs})…` : 'Cargando imágenes…');
     await preloadImageUrls(images, (loaded, total) => {
-      if (total > 3 && (!hadVisibleStacks || loaded % 5 === 0 || loaded === total)) {
+      if (total > 3 && (loaded % 5 === 0 || loaded === total)) {
         cUi.show(`Cargando imágenes (${loaded}/${total})…`);
       }
     });
+  } else if (totalImgs > 0) {
+    // Con stacks ya visibles: precargamos en segundo plano para no tapar contenido.
+    await preloadImageUrls(images);
   }
   if (!hadVisibleStacks) setStacksLoading(stacks, false);
 
@@ -402,6 +407,7 @@ async function buildDynamicRightCarousel(){
     const rest = shuffle(images.filter(x=>x!==first)).slice(0, Math.min(2, Math.max(0, images.length-1)));
     rest.forEach(src => stack.appendChild(makeSlide(src, false)));
   });
+  rightPanel.style.gridTemplateRows = `repeat(${stacksCount}, 1fr)`;
   oldStacks.forEach(s => s.remove());
   stacks.forEach(s => rightPanel.appendChild(s));
 
