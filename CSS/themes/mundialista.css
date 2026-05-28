@@ -1,0 +1,38 @@
+:root{
+  /* Base app (index / index2) */
+  --bg:#04121f;
+  --accent:#00a6d6;
+  --accent-hover:#0cb7e9;
+  --accent-2:#ffd23f;
+  --text:#eef7ff;
+  --muted:#b4c7d8;
+
+  /* Promociones */
+  --gold:#ffd23f;
+  --stroke:rgba(0,166,214,.35);
+}
+
+html[data-palette="oro"]{
+  --accent:#d4a017;
+  --accent-hover:#e2b548;
+  --accent-2:#f6d46b;
+}
+
+html[data-palette="verde"]{
+  --accent:#17b46d;
+  --accent-hover:#2ec884;
+  --accent-2:#94f4c4;
+}
+
+html[data-palette="rojo"]{
+  --accent:#d9334a;
+  --accent-hover:#e24b61;
+  --accent-2:#ff8b99;
+}
+
+/* Toque mundialista en títulos/categorías */
+.category-title{
+  border-color:rgba(0,166,214,.8) !important;
+  background:linear-gradient(180deg, rgba(0,116,189,.88) 0%, rgba(0,116,189,.88) 50%, rgba(17,174,224,.72) 50%, rgba(17,174,224,.72) 100%) !important;
+}
+

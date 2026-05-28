@@ -11,6 +11,37 @@ let current = 0;
 let timer = null;
 let promosPollTimer = null;
 let promosJsonPath = PROMOS_JSON;
+let __defaultThemePromise = null;
+
+function fetchDefaultThemeFromServer() {
+  if (__defaultThemePromise) return __defaultThemePromise;
+  __defaultThemePromise = fetch('/backend/theme-public.php', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => (data && data.defaultTheme) ? String(data.defaultTheme) : 'default')
+    .catch(() => 'default');
+  return __defaultThemePromise;
+}
+
+async function applyPromosThemeFromConfig() {
+  const link = document.getElementById('theme-css');
+  if (!link) return;
+  const qs = new URL(location.href).searchParams;
+  const qsTheme = (qs.get('theme') || '').trim();
+  const storedTheme = (localStorage.getItem('ec_theme') || '').trim();
+  const backendTheme = await fetchDefaultThemeFromServer();
+  const theme = (qsTheme || storedTheme || backendTheme || 'default').replace(/[^a-z0-9._-]/gi, '');
+  const bust = `?v=${Date.now()}`;
+  link.href = `CSS/themes/${theme}.css${bust}`;
+  link.onerror = () => {
+    if (theme !== 'default') link.href = `CSS/themes/default.css${bust}`;
+  };
+  try { localStorage.setItem('ec_theme', theme); } catch (_) {}
+
+  const paletteRaw = (qs.get('palette') || '').toLowerCase();
+  const allowedPalettes = new Set(['', 'rojo', 'verde', 'oro', 'plata', 'champagne']);
+  const palette = allowedPalettes.has(paletteRaw) ? paletteRaw : '';
+  document.documentElement.setAttribute('data-palette', palette);
+}
 
 function promosRefreshUi() {
   return window.LiveJsonSync && window.LiveJsonSync.TvRefreshUI
@@ -125,6 +156,7 @@ async function applyPromosUpdate(data, opts = {}) {
 }
 
 async function bootPromociones() {
+  await applyPromosThemeFromConfig();
   promosJsonPath = window.LiveJsonSync
     ? window.LiveJsonSync.resolveJsonUrl(PROMOS_JSON)
     : PROMOS_JSON;

@@ -798,7 +798,17 @@ function startSnow(n=160){
 /* =========================
    THEME / PALETTE / SNOW (no pisa al HTML)
    ========================= */
-function applyThemeFromConfig(){
+let __defaultThemePromise = null;
+function fetchDefaultThemeFromServer() {
+  if (__defaultThemePromise) return __defaultThemePromise;
+  __defaultThemePromise = fetch('/backend/theme-public.php', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => (data && data.defaultTheme) ? String(data.defaultTheme) : 'default')
+    .catch(() => 'default');
+  return __defaultThemePromise;
+}
+
+async function applyThemeFromConfig(){
   const link = document.getElementById('theme-css');
   if (!link) return;
 
@@ -806,7 +816,8 @@ function applyThemeFromConfig(){
   const qsTheme  = (qs.get('theme') || '').trim();
   const stored   = (localStorage.getItem('ec_theme') || '').trim();
   const cfgTheme = (window.APP_CONFIG && window.APP_CONFIG.theme) ? String(window.APP_CONFIG.theme) : '';
-  const chosen   = (qsTheme || stored || cfgTheme || 'default').replace(/[^a-z0-9._-]/gi,'');
+  const backendDefault = await fetchDefaultThemeFromServer();
+  const chosen   = (qsTheme || stored || cfgTheme || backendDefault || 'default').replace(/[^a-z0-9._-]/gi,'');
 
   // Si ya apunta al mismo path, no recargues
   const currentPath = new URL(link.href, location.href).pathname;

@@ -611,6 +611,13 @@
       .then(data => {
         const imagesPath = data.mediaImagesPath || 'IMG/CORTES';
         const videosPath = data.mediaVideosPath || 'IMG/CORTES/VIDEO';
+        const defaultTheme = data.defaultTheme || 'default';
+        const availableThemes = Array.isArray(data.availableThemes) && data.availableThemes.length
+          ? data.availableThemes
+          : ['default'];
+        const themeOptions = availableThemes.map(t =>
+          `<option value="${escapeAttr(t)}"${t === defaultTheme ? ' selected' : ''}>${escapeHtml(t)}</option>`
+        ).join('');
         content.innerHTML = `
           <div class="config-panel">
             <p class="config-desc">Rutas donde se guardan las imágenes y videos de ofertas (relativas a la raíz del proyecto).</p>
@@ -623,6 +630,12 @@
                 <label for="config-videos-path">Carpeta de videos</label>
                 <input type="text" id="config-videos-path" class="input" value="${escapeAttr(videosPath)}" placeholder="IMG/CORTES/VIDEO">
               </div>
+              <div class="field">
+                <label for="config-default-theme">Theme por defecto (frontend)</label>
+                <select id="config-default-theme" class="select">
+                  ${themeOptions}
+                </select>
+              </div>
               <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Guardar</button>
               </div>
@@ -634,7 +647,8 @@
             e.preventDefault();
             const images = (document.getElementById('config-images-path') || {}).value.trim() || 'IMG/CORTES';
             const videos = (document.getElementById('config-videos-path') || {}).value.trim() || 'IMG/CORTES/VIDEO';
-            apiPost('/config-media.php', { mediaImagesPath: images, mediaVideosPath: videos })
+            const theme = (document.getElementById('config-default-theme') || {}).value || 'default';
+            apiPost('/config-media.php', { mediaImagesPath: images, mediaVideosPath: videos, defaultTheme: theme })
               .then(() => showToast('Configuración guardada.', 'success'))
               .catch(err => showToast(err.message || 'Error al guardar', 'error'));
           };
