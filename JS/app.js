@@ -311,7 +311,6 @@ async function buildDynamicRightCarousel(){
   window.__tvCarousel = { running:false, timer:null };
 
   const cUi = carouselRefreshUi();
-  cUi.show('Cargando imágenes…');
   try {
   const qs  = new URL(location).searchParams;
   const cfg = window.APP_CONFIG || {};

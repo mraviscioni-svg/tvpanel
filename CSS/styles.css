@@ -183,13 +183,36 @@ footer{padding:0 12px 12px;background:linear-gradient(180deg,#0b0b0b,#0a0a0a)}
 /* Overlay solo en panel de imágenes (carrusel derecha) */
 .tv-data-refresh--panel{
   position:absolute;
-  inset:0;
-  z-index:25;
-  border-radius:16px;
-  background:rgba(6,6,6,.22);
-  -webkit-backdrop-filter:blur(1px);
-  backdrop-filter:blur(1px);
+  top:10px;
+  right:10px;
+  left:auto;
+  bottom:auto;
+  z-index:30;
+  background:transparent;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
   pointer-events:none;
+  display:block;
+  opacity:.96;
+}
+.tv-data-refresh--panel .tv-data-refresh-card{
+  flex-direction:row;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(0,0,0,.48);
+  border:1px solid rgba(255,255,255,.15);
+  box-shadow:0 8px 20px rgba(0,0,0,.35);
+}
+.tv-data-refresh--panel .tv-data-refresh-spinner{
+  width:16px;
+  height:16px;
+  border-width:2px;
+}
+.tv-data-refresh--panel .tv-data-refresh-msg{
+  font-size:calc(var(--fs-scale)*clamp(10px,1.4vh,13px));
+  letter-spacing:.04em;
+  text-transform:none;
 }
 
 /* Spinner por stack mientras precarga cada imagen */
