@@ -1,0 +1,45 @@
+:root{
+  --bg:#0f1511;
+  --accent:#b52635;
+  --accent-hover:#cb3344;
+  --accent-2:#e3c15a;
+  --text:#f9f7f1;
+  --muted:#cbc8bc;
+
+  --gold:#e3c15a;
+  --stroke:rgba(227,193,90,.34);
+}
+
+html[data-palette="oro"]{
+  --accent:#a58423;
+  --accent-hover:#ba972d;
+  --accent-2:#f0d88b;
+}
+
+html[data-palette="verde"]{
+  --accent:#1e8347;
+  --accent-hover:#2b9a58;
+  --accent-2:#b5de8f;
+}
+
+html[data-palette="rojo"]{
+  --accent:#b51f30;
+  --accent-hover:#cc2e40;
+  --accent-2:#f5a581;
+}
+
+.category-title{
+  border-color:rgba(227,193,90,.72) !important;
+  background:linear-gradient(
+    180deg,
+    rgba(126,28,44,.92) 0%,
+    rgba(126,28,44,.92) 50%,
+    rgba(33,109,59,.72) 50%,
+    rgba(33,109,59,.72) 100%
+  ) !important;
+}
+
+/* Si está activada nieve por query/config, se ve mejor en este theme */
+html.snow-enabled .snow i{
+  background:rgba(255,255,255,.92);
+}

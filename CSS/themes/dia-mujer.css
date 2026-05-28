@@ -1,0 +1,40 @@
+:root{
+  --bg:#1a1020;
+  --accent:#a02a8d;
+  --accent-hover:#b63aa3;
+  --accent-2:#f2b6d9;
+  --text:#fff1fb;
+  --muted:#d8bfd4;
+
+  --gold:#f2b6d9;
+  --stroke:rgba(160,42,141,.34);
+}
+
+html[data-palette="oro"]{
+  --accent:#a87327;
+  --accent-hover:#bf8631;
+  --accent-2:#f2c27e;
+}
+
+html[data-palette="verde"]{
+  --accent:#347d58;
+  --accent-hover:#43936a;
+  --accent-2:#a4d8b8;
+}
+
+html[data-palette="rojo"]{
+  --accent:#b53563;
+  --accent-hover:#cd4372;
+  --accent-2:#f0a1bc;
+}
+
+.category-title{
+  border-color:rgba(160,42,141,.74) !important;
+  background:linear-gradient(
+    180deg,
+    rgba(90,26,92,.9) 0%,
+    rgba(90,26,92,.9) 50%,
+    rgba(160,42,141,.68) 50%,
+    rgba(160,42,141,.68) 100%
+  ) !important;
+}
