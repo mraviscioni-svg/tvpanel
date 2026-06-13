@@ -44,6 +44,11 @@
   font-size:clamp(18px,2.8vh,28px);
 }
 
+.promo-v3 .fixtures-heading-mundial{
+  color:#ffe566;
+  text-shadow:0 0 12px rgba(255,210,63,.35);
+}
+
 .promo-v3 .fixtures-heading{
   background:linear-gradient(90deg,rgba(0,80,130,.55),rgba(117,170,219,.35),rgba(0,80,130,.55));
   border-color:rgba(117,170,219,.55);

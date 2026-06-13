@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&display=swap" rel="stylesheet">
   <link rel="icon" href="/IMG/Logo.png">
-  <link rel="stylesheet" href="CSS/style-promociones-mundial.css?v=11">
+  <link rel="stylesheet" href="CSS/style-promociones-mundial.css?v=12">
   <link id="theme-css" rel="stylesheet" href="CSS/themes/mundialista.css?v=1">
 </head>
 <body>
@@ -36,11 +36,14 @@
       <div class="fixtures-bar">
         <div class="fixtures-heading">
           <span class="fixtures-heading-icon" aria-hidden="true">⚽</span>
+          <span class="fixtures-heading-mundial">Mundial 2026</span>
+          <span class="fixtures-heading-sep" aria-hidden="true">·</span>
           <span class="fixtures-heading-text" id="fixtures-heading-text">Partidos de hoy</span>
         </div>
         <div class="fixtures-ticker">
-        <div class="fixtures-track" id="fixtures-track">
-          <span class="fixture-chip fixture-loading">Cargando partidos…</span>
+          <div class="fixtures-track" id="fixtures-track">
+            <span class="fixture-chip fixture-loading">Cargando partidos…</span>
+          </div>
         </div>
       </div>
     </header>
@@ -61,9 +64,6 @@
       </section>
 
       <aside class="side-panel" id="match-panel">
-        <div class="match-panel-meta">
-          <span class="mundial-badge mundial-badge--mini">Mundial 2026</span>
-        </div>
         <div class="side-card match-card">
           <div class="match-card-left">
             <h3 id="match-title">Próximo · Argentina</h3>
@@ -79,6 +79,6 @@
   </div>
 
   <script src="JS/live-json-sync.js?v=4"></script>
-  <script src="JS/script-promociones-mundial.js?v=2"></script>
+  <script src="JS/script-promociones-mundial.js?v=3"></script>
 </body>
 </html>

@@ -345,7 +345,7 @@ function renderFixtures(data) {
   if (headingEl) {
     headingEl.textContent = data.tickerMode === 'today'
       ? 'Partidos de hoy'
-      : 'Próximos partidos del Mundial';
+      : 'Próximos partidos';
   }
 
   const list = Array.isArray(data.ticker) ? data.ticker : [];
