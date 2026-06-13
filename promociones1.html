@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&display=swap" rel="stylesheet">
   <link rel="icon" href="/IMG/Logo.png">
-  <link rel="stylesheet" href="CSS/style-promociones-mundial.css?v=8">
+  <link rel="stylesheet" href="CSS/style-promociones-mundial.css?v=9">
   <link id="theme-css" rel="stylesheet" href="CSS/themes/mundialista.css?v=1">
 </head>
 <body>
@@ -34,6 +34,15 @@
         <span id="ticker-mode-label">Hoy</span>
         <span id="today-date">—</span>
       </div>
+      <div class="arg-bunting" aria-hidden="true">
+        <div class="arg-bunting-rope"></div>
+        <div class="arg-bunting-flags">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
       <div class="fixtures-ticker">
         <div class="fixtures-track" id="fixtures-track">
           <span class="fixture-chip fixture-loading">Cargando partidos…</span>
@@ -43,37 +52,6 @@
 
     <div class="main-area">
       <section class="promo-stage">
-        <div class="arg-flag-drape" aria-hidden="true">
-          <svg viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="">
-            <defs>
-              <clipPath id="argFlagDrapeShape">
-                <path d="M160 0 L160 198 Q 95 145 28 42 L160 0 Z"/>
-              </clipPath>
-              <linearGradient id="flagFold" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#fff" stop-opacity=".22"/>
-                <stop offset="100%" stop-color="#000" stop-opacity=".18"/>
-              </linearGradient>
-            </defs>
-            <g clip-path="url(#argFlagDrapeShape)">
-              <rect width="160" height="66.7" fill="#74ACDF"/>
-              <rect y="66.7" width="160" height="66.6" fill="#FFFFFF"/>
-              <rect y="133.3" width="160" height="66.7" fill="#74ACDF"/>
-              <circle cx="80" cy="100" r="17" fill="#F6B40E" stroke="#85340B" stroke-width="1.2"/>
-              <g fill="#85340B" stroke="#85340B" stroke-width=".8">
-                <path d="M80 78 L82 88 L80 86 L78 88 Z"/>
-                <path d="M80 122 L82 112 L80 114 L78 112 Z"/>
-                <path d="M58 100 L68 98 L66 100 L68 102 Z"/>
-                <path d="M102 100 L92 98 L94 100 L92 102 Z"/>
-                <path d="M65 83 L73 90 L71 91 L69 88 Z"/>
-                <path d="M95 117 L87 110 L89 109 L91 112 Z"/>
-                <path d="M95 83 L87 90 L89 91 L91 88 Z"/>
-                <path d="M65 117 L73 110 L71 109 L69 112 Z"/>
-              </g>
-              <rect width="160" height="200" fill="url(#flagFold)"/>
-            </g>
-            <path d="M160 0 L160 198 Q 95 145 28 42" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
-          </svg>
-        </div>
         <div class="promo-corners" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
         <div id="carousel"></div>
       </section>

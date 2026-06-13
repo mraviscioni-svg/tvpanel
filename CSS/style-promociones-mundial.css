@@ -193,6 +193,47 @@ html,body{
   font-weight:600;
 }
 
+/* Banderines Argentina (celeste · blanco · oro) */
+.arg-bunting{
+  position:relative;
+  padding:0 clamp(4px,1vw,10px);
+  margin:.1rem 0 .05rem;
+  overflow:hidden;
+}
+
+.arg-bunting-rope{
+  height:2px;
+  margin:0 clamp(2px,.5vw,6px) 0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.25) 8%,rgba(255,255,255,.5) 50%,rgba(255,255,255,.25) 92%,transparent);
+  border-radius:999px;
+  transform:translateY(clamp(3px,.6vh,5px));
+}
+
+.arg-bunting-flags{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:clamp(1px,.35vw,3px);
+  padding:0 clamp(1px,.3vw,4px);
+  transform:translateY(clamp(1px,.2vh,2px));
+}
+
+.arg-bunting-flags span{
+  flex:1 1 0;
+  max-width:clamp(9px,2vw,14px);
+  height:clamp(11px,1.8vh,16px);
+  clip-path:polygon(50% 100%,0 0,100% 0);
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));
+  transform-origin:top center;
+}
+
+.arg-bunting-flags span:nth-child(6n+1){background:#74ACDF;transform:rotate(-5deg)}
+.arg-bunting-flags span:nth-child(6n+2){background:#fff;transform:rotate(4deg)}
+.arg-bunting-flags span:nth-child(6n+3){background:#74ACDF;transform:rotate(-3deg)}
+.arg-bunting-flags span:nth-child(6n+4){background:var(--gold);transform:rotate(5deg)}
+.arg-bunting-flags span:nth-child(6n+5){background:#fff;transform:rotate(-4deg)}
+.arg-bunting-flags span:nth-child(6n+6){background:#74ACDF;transform:rotate(3deg)}
+
 .mundial-badge{
   flex-shrink:0;
   display:flex;
@@ -308,29 +349,6 @@ html,body{
     inset 0 0 80px rgba(0,166,214,.1),
     inset 0 -60px 80px rgba(10,61,46,.2);
 }
-
-/* Bandera Argentina: esquina sup. derecha (no tapa producto ni precio) */
-.arg-flag-drape{
-  position:absolute;
-  top:0;
-  right:0;
-  width:clamp(88px,19vw,152px);
-  height:clamp(108px,22vh,188px);
-  z-index:5;
-  pointer-events:none;
-  filter:drop-shadow(-6px 8px 18px rgba(0,0,0,.5));
-  transform-origin:top right;
-  transform:rotate(-1.5deg);
-}
-
-.arg-flag-drape svg{
-  width:100%;
-  height:100%;
-  display:block;
-}
-
-/* Esquina dorada TV: ocultar sup. der. donde va la bandera */
-.promo-corners span:nth-child(2){opacity:0}
 
 .promo-corners{
   position:absolute;
