@@ -124,31 +124,31 @@ html,body{
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:.12rem;
+  gap:.2rem;
   min-width:0;
-  padding:0 .25rem;
+  padding:0 .15rem;
   text-align:center;
 }
 
 .arg-stars{
   display:block;
-  font-size:clamp(10px,1.45vh,14px);
-  letter-spacing:.35em;
+  font-size:clamp(22px,4.2vh,36px);
+  letter-spacing:.42em;
   color:var(--gold);
-  text-shadow:0 0 12px rgba(255,210,63,.45);
+  text-shadow:0 0 16px rgba(255,210,63,.55);
   line-height:1;
 }
 
 .arg-cheer-text{
   display:block;
-  font-size:clamp(10px,1.5vh,13px);
+  font-size:clamp(20px,4vh,34px);
   font-weight:900;
-  letter-spacing:.14em;
+  letter-spacing:.1em;
   text-transform:uppercase;
   color:var(--arg-white);
-  text-shadow:0 1px 10px rgba(117,170,219,.5);
+  text-shadow:0 2px 14px rgba(117,170,219,.55);
   white-space:nowrap;
-  line-height:1.1;
+  line-height:1.05;
 }
 
 .brand-logo{
