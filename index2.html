@@ -17,7 +17,7 @@
   const saved = localStorage.getItem('ec_theme');
   const theme = (p.get('theme') || saved || 'default').replace(/[^a-z0-9._-]/gi,'');
   const paletteParam = (p.get('palette')||"").toLowerCase(); // opcional
-  const allowed = new Set(['','rojo','verde','oro','claro']);
+  const allowed = new Set(['','rojo','verde','oro']);
   const palette = allowed.has(paletteParam) ? paletteParam : '';
 
   const link = document.getElementById('theme-css');
@@ -26,7 +26,6 @@
   link.onerror = () => { if(theme!=='default'){ link.href=`CSS/themes/default.css?${bust}`; } };
 
   document.documentElement.setAttribute('data-palette', palette);
-  document.documentElement.classList.add(`theme-${theme}`);
   localStorage.setItem('ec_theme', theme);
 })();
 </script>
@@ -145,7 +144,7 @@
 
 <!-- Lógica completa en app.js -->
 <script src="JS/live-json-sync.js?v=4"></script>
-<script src="JS/app.js?v=20260530"></script>
+<script src="JS/app.js?v=20260529"></script>
 
 <!-- Capa de nieve (si snow=1, app.js la animará) -->
 <div class="snow" aria-hidden="true"></div>
