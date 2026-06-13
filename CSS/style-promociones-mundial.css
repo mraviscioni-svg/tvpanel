@@ -142,7 +142,7 @@ html,body{
   color:var(--gold);
 }
 
-/* Banderines celeste/blanco — arco en U sobre el video */
+/* Banderines celeste/blanco — arco con panza hacia abajo sobre el video */
 .promo-stage .arg-bunting{
   position:absolute;
   top:0;
@@ -166,10 +166,10 @@ html,body{
   position:absolute;
   left:0;
   right:0;
-  top:0;
+  bottom:0;
   height:220%;
-  border-top:2px solid rgba(255,255,255,.5);
-  border-radius:50% 50% 0 0 / 100% 100% 0 0;
+  border-bottom:2px solid rgba(255,255,255,.5);
+  border-radius:0 0 50% 50% / 0 0 100% 100%;
   box-shadow:0 0 10px rgba(255,255,255,.12);
 }
 
@@ -196,38 +196,38 @@ html,body{
 .arg-bunting-flags span:nth-child(odd){background:#74ACDF}
 .arg-bunting-flags span:nth-child(even){background:#fff}
 
-.arg-bunting-flags span:nth-child(1){transform:translateY(calc(1 * var(--bunting-drop))) rotate(-14deg)}
-.arg-bunting-flags span:nth-child(2){transform:translateY(calc(0.875 * var(--bunting-drop))) rotate(-13.1deg)}
-.arg-bunting-flags span:nth-child(3){transform:translateY(calc(0.759 * var(--bunting-drop))) rotate(-12.2deg)}
-.arg-bunting-flags span:nth-child(4){transform:translateY(calc(0.65 * var(--bunting-drop))) rotate(-11.3deg)}
-.arg-bunting-flags span:nth-child(5){transform:translateY(calc(0.55 * var(--bunting-drop))) rotate(-10.4deg)}
-.arg-bunting-flags span:nth-child(6){transform:translateY(calc(0.459 * var(--bunting-drop))) rotate(-9.5deg)}
-.arg-bunting-flags span:nth-child(7){transform:translateY(calc(0.376 * var(--bunting-drop))) rotate(-8.6deg)}
-.arg-bunting-flags span:nth-child(8){transform:translateY(calc(0.301 * var(--bunting-drop))) rotate(-7.7deg)}
-.arg-bunting-flags span:nth-child(9){transform:translateY(calc(0.234 * var(--bunting-drop))) rotate(-6.8deg)}
-.arg-bunting-flags span:nth-child(10){transform:translateY(calc(0.176 * var(--bunting-drop))) rotate(-5.9deg)}
-.arg-bunting-flags span:nth-child(11){transform:translateY(calc(0.126 * var(--bunting-drop))) rotate(-5deg)}
-.arg-bunting-flags span:nth-child(12){transform:translateY(calc(0.084 * var(--bunting-drop))) rotate(-4.1deg)}
-.arg-bunting-flags span:nth-child(13){transform:translateY(calc(0.051 * var(--bunting-drop))) rotate(-3.2deg)}
-.arg-bunting-flags span:nth-child(14){transform:translateY(calc(0.026 * var(--bunting-drop))) rotate(-2.3deg)}
-.arg-bunting-flags span:nth-child(15){transform:translateY(calc(0.009 * var(--bunting-drop))) rotate(-1.4deg)}
-.arg-bunting-flags span:nth-child(16){transform:translateY(calc(0.001 * var(--bunting-drop))) rotate(-0.5deg)}
-.arg-bunting-flags span:nth-child(17){transform:translateY(calc(0.001 * var(--bunting-drop))) rotate(0.5deg)}
-.arg-bunting-flags span:nth-child(18){transform:translateY(calc(0.009 * var(--bunting-drop))) rotate(1.4deg)}
-.arg-bunting-flags span:nth-child(19){transform:translateY(calc(0.026 * var(--bunting-drop))) rotate(2.3deg)}
-.arg-bunting-flags span:nth-child(20){transform:translateY(calc(0.051 * var(--bunting-drop))) rotate(3.2deg)}
-.arg-bunting-flags span:nth-child(21){transform:translateY(calc(0.084 * var(--bunting-drop))) rotate(4.1deg)}
-.arg-bunting-flags span:nth-child(22){transform:translateY(calc(0.126 * var(--bunting-drop))) rotate(5deg)}
-.arg-bunting-flags span:nth-child(23){transform:translateY(calc(0.176 * var(--bunting-drop))) rotate(5.9deg)}
-.arg-bunting-flags span:nth-child(24){transform:translateY(calc(0.234 * var(--bunting-drop))) rotate(6.8deg)}
-.arg-bunting-flags span:nth-child(25){transform:translateY(calc(0.301 * var(--bunting-drop))) rotate(7.7deg)}
-.arg-bunting-flags span:nth-child(26){transform:translateY(calc(0.376 * var(--bunting-drop))) rotate(8.6deg)}
-.arg-bunting-flags span:nth-child(27){transform:translateY(calc(0.459 * var(--bunting-drop))) rotate(9.5deg)}
-.arg-bunting-flags span:nth-child(28){transform:translateY(calc(0.55 * var(--bunting-drop))) rotate(10.4deg)}
-.arg-bunting-flags span:nth-child(29){transform:translateY(calc(0.65 * var(--bunting-drop))) rotate(11.3deg)}
-.arg-bunting-flags span:nth-child(30){transform:translateY(calc(0.759 * var(--bunting-drop))) rotate(12.2deg)}
-.arg-bunting-flags span:nth-child(31){transform:translateY(calc(0.875 * var(--bunting-drop))) rotate(13.1deg)}
-.arg-bunting-flags span:nth-child(32){transform:translateY(calc(1 * var(--bunting-drop))) rotate(14deg)}
+.arg-bunting-flags span:nth-child(1){transform:translateY(calc(0.001 * var(--bunting-drop))) rotate(-14deg)}
+.arg-bunting-flags span:nth-child(2){transform:translateY(calc(0.125 * var(--bunting-drop))) rotate(-13.1deg)}
+.arg-bunting-flags span:nth-child(3){transform:translateY(calc(0.241 * var(--bunting-drop))) rotate(-12.2deg)}
+.arg-bunting-flags span:nth-child(4){transform:translateY(calc(0.35 * var(--bunting-drop))) rotate(-11.3deg)}
+.arg-bunting-flags span:nth-child(5){transform:translateY(calc(0.45 * var(--bunting-drop))) rotate(-10.4deg)}
+.arg-bunting-flags span:nth-child(6){transform:translateY(calc(0.541 * var(--bunting-drop))) rotate(-9.5deg)}
+.arg-bunting-flags span:nth-child(7){transform:translateY(calc(0.624 * var(--bunting-drop))) rotate(-8.6deg)}
+.arg-bunting-flags span:nth-child(8){transform:translateY(calc(0.699 * var(--bunting-drop))) rotate(-7.7deg)}
+.arg-bunting-flags span:nth-child(9){transform:translateY(calc(0.766 * var(--bunting-drop))) rotate(-6.8deg)}
+.arg-bunting-flags span:nth-child(10){transform:translateY(calc(0.824 * var(--bunting-drop))) rotate(-5.9deg)}
+.arg-bunting-flags span:nth-child(11){transform:translateY(calc(0.874 * var(--bunting-drop))) rotate(-5deg)}
+.arg-bunting-flags span:nth-child(12){transform:translateY(calc(0.916 * var(--bunting-drop))) rotate(-4.1deg)}
+.arg-bunting-flags span:nth-child(13){transform:translateY(calc(0.949 * var(--bunting-drop))) rotate(-3.2deg)}
+.arg-bunting-flags span:nth-child(14){transform:translateY(calc(0.974 * var(--bunting-drop))) rotate(-2.3deg)}
+.arg-bunting-flags span:nth-child(15){transform:translateY(calc(0.991 * var(--bunting-drop))) rotate(-1.4deg)}
+.arg-bunting-flags span:nth-child(16){transform:translateY(calc(1 * var(--bunting-drop))) rotate(-0.5deg)}
+.arg-bunting-flags span:nth-child(17){transform:translateY(calc(1 * var(--bunting-drop))) rotate(0.5deg)}
+.arg-bunting-flags span:nth-child(18){transform:translateY(calc(0.991 * var(--bunting-drop))) rotate(1.4deg)}
+.arg-bunting-flags span:nth-child(19){transform:translateY(calc(0.974 * var(--bunting-drop))) rotate(2.3deg)}
+.arg-bunting-flags span:nth-child(20){transform:translateY(calc(0.949 * var(--bunting-drop))) rotate(3.2deg)}
+.arg-bunting-flags span:nth-child(21){transform:translateY(calc(0.916 * var(--bunting-drop))) rotate(4.1deg)}
+.arg-bunting-flags span:nth-child(22){transform:translateY(calc(0.874 * var(--bunting-drop))) rotate(5deg)}
+.arg-bunting-flags span:nth-child(23){transform:translateY(calc(0.824 * var(--bunting-drop))) rotate(5.9deg)}
+.arg-bunting-flags span:nth-child(24){transform:translateY(calc(0.766 * var(--bunting-drop))) rotate(6.8deg)}
+.arg-bunting-flags span:nth-child(25){transform:translateY(calc(0.699 * var(--bunting-drop))) rotate(7.7deg)}
+.arg-bunting-flags span:nth-child(26){transform:translateY(calc(0.624 * var(--bunting-drop))) rotate(8.6deg)}
+.arg-bunting-flags span:nth-child(27){transform:translateY(calc(0.541 * var(--bunting-drop))) rotate(9.5deg)}
+.arg-bunting-flags span:nth-child(28){transform:translateY(calc(0.45 * var(--bunting-drop))) rotate(10.4deg)}
+.arg-bunting-flags span:nth-child(29){transform:translateY(calc(0.35 * var(--bunting-drop))) rotate(11.3deg)}
+.arg-bunting-flags span:nth-child(30){transform:translateY(calc(0.241 * var(--bunting-drop))) rotate(12.2deg)}
+.arg-bunting-flags span:nth-child(31){transform:translateY(calc(0.125 * var(--bunting-drop))) rotate(13.1deg)}
+.arg-bunting-flags span:nth-child(32){transform:translateY(calc(0.001 * var(--bunting-drop))) rotate(14deg)}
 
 .mundial-badge{
   flex-shrink:0;
@@ -507,7 +507,7 @@ html,body{
 #carousel{
   position:absolute;
   inset:0;
-  z-index:1;
+  z-index:4;
 }
 
 .slide,.intermediate{
@@ -552,8 +552,8 @@ html,body{
   inset:0;
   background:
     radial-gradient(1200px 800px at 50% 35%,transparent 55%,rgba(0,0,0,.45) 100%),
-    linear-gradient(to top,rgba(0,0,0,.75),rgba(0,0,0,.35),transparent 60%);
-  z-index:3;
+    linear-gradient(to top,rgba(0,0,0,.55),rgba(0,0,0,.2),transparent 52%);
+  z-index:1;
   pointer-events:none;
 }
 
@@ -590,12 +590,15 @@ html,body{
   left:5%;
   right:5%;
   bottom:5%;
-  z-index:5;
+  z-index:8;
   display:grid;
   gap:.5rem;
+  pointer-events:none;
 }
 
 .promo-name{
+  position:relative;
+  z-index:2;
   text-align:center;
   font-size:var(--name-size);
   font-weight:900;
@@ -619,6 +622,8 @@ html,body{
 }
 
 .promo-price{
+  position:relative;
+  z-index:2;
   justify-self:end;
   display:flex;
   align-items:baseline;
