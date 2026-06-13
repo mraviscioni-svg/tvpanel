@@ -142,7 +142,7 @@ html,body{
   color:var(--gold);
 }
 
-/* Banderines celeste/blanco sobre el video */
+/* Banderines celeste/blanco — arco en U sobre el video */
 .promo-stage .arg-bunting{
   position:absolute;
   top:0;
@@ -150,42 +150,84 @@ html,body{
   right:0;
   z-index:6;
   flex-shrink:0;
-  padding:clamp(14px,2.2vh,22px) clamp(4px,1vw,8px) 0;
+  padding:clamp(8px,1.2vh,14px) clamp(2px,.8vw,6px) 0;
   pointer-events:none;
 }
 
 .arg-bunting-rope{
-  height:2px;
-  margin:0 clamp(6px,1.2vw,12px) 0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35) 8%,rgba(255,255,255,.6) 50%,rgba(255,255,255,.35) 92%,transparent);
-  border-radius:999px;
-  transform:translateY(clamp(6px,1vh,9px));
+  position:relative;
+  height:clamp(16px,2.4vh,24px);
+  margin:0 clamp(2px,.6vw,8px);
+  background:transparent;
+}
+
+.arg-bunting-rope::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:220%;
+  border-top:2px solid rgba(255,255,255,.5);
+  border-radius:50% 50% 0 0 / 100% 100% 0 0;
+  box-shadow:0 0 10px rgba(255,255,255,.12);
 }
 
 .arg-bunting-flags{
+  --bunting-drop:clamp(20px,3.2vh,32px);
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
-  gap:clamp(2px,.45vw,4px);
-  padding:0 clamp(3px,.5vw,8px);
-  transform:translateY(clamp(4px,.6vh,6px));
+  gap:clamp(1px,.35vw,3px);
+  padding:0 clamp(2px,.5vw,6px);
+  margin-top:clamp(-2px,-.3vh,0);
+  min-height:calc(var(--bunting-drop) + clamp(20px,3.2vh,30px));
 }
 
 .arg-bunting-flags span{
   flex:1 1 0;
-  max-width:clamp(12px,2.6vw,20px);
-  height:clamp(16px,2.6vh,24px);
+  max-width:clamp(14px,3vw,24px);
+  height:clamp(20px,3.2vh,30px);
   clip-path:polygon(50% 100%,0 0,100% 0);
-  filter:drop-shadow(0 2px 5px rgba(0,0,0,.45));
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
   transform-origin:top center;
 }
 
 .arg-bunting-flags span:nth-child(odd){background:#74ACDF}
 .arg-bunting-flags span:nth-child(even){background:#fff}
-.arg-bunting-flags span:nth-child(4n+1){transform:rotate(-5deg)}
-.arg-bunting-flags span:nth-child(4n+2){transform:rotate(4deg)}
-.arg-bunting-flags span:nth-child(4n+3){transform:rotate(-3deg)}
-.arg-bunting-flags span:nth-child(4n+4){transform:rotate(3deg)}
+
+.arg-bunting-flags span:nth-child(1){transform:translateY(calc(1 * var(--bunting-drop))) rotate(-14deg)}
+.arg-bunting-flags span:nth-child(2){transform:translateY(calc(0.875 * var(--bunting-drop))) rotate(-13.1deg)}
+.arg-bunting-flags span:nth-child(3){transform:translateY(calc(0.759 * var(--bunting-drop))) rotate(-12.2deg)}
+.arg-bunting-flags span:nth-child(4){transform:translateY(calc(0.65 * var(--bunting-drop))) rotate(-11.3deg)}
+.arg-bunting-flags span:nth-child(5){transform:translateY(calc(0.55 * var(--bunting-drop))) rotate(-10.4deg)}
+.arg-bunting-flags span:nth-child(6){transform:translateY(calc(0.459 * var(--bunting-drop))) rotate(-9.5deg)}
+.arg-bunting-flags span:nth-child(7){transform:translateY(calc(0.376 * var(--bunting-drop))) rotate(-8.6deg)}
+.arg-bunting-flags span:nth-child(8){transform:translateY(calc(0.301 * var(--bunting-drop))) rotate(-7.7deg)}
+.arg-bunting-flags span:nth-child(9){transform:translateY(calc(0.234 * var(--bunting-drop))) rotate(-6.8deg)}
+.arg-bunting-flags span:nth-child(10){transform:translateY(calc(0.176 * var(--bunting-drop))) rotate(-5.9deg)}
+.arg-bunting-flags span:nth-child(11){transform:translateY(calc(0.126 * var(--bunting-drop))) rotate(-5deg)}
+.arg-bunting-flags span:nth-child(12){transform:translateY(calc(0.084 * var(--bunting-drop))) rotate(-4.1deg)}
+.arg-bunting-flags span:nth-child(13){transform:translateY(calc(0.051 * var(--bunting-drop))) rotate(-3.2deg)}
+.arg-bunting-flags span:nth-child(14){transform:translateY(calc(0.026 * var(--bunting-drop))) rotate(-2.3deg)}
+.arg-bunting-flags span:nth-child(15){transform:translateY(calc(0.009 * var(--bunting-drop))) rotate(-1.4deg)}
+.arg-bunting-flags span:nth-child(16){transform:translateY(calc(0.001 * var(--bunting-drop))) rotate(-0.5deg)}
+.arg-bunting-flags span:nth-child(17){transform:translateY(calc(0.001 * var(--bunting-drop))) rotate(0.5deg)}
+.arg-bunting-flags span:nth-child(18){transform:translateY(calc(0.009 * var(--bunting-drop))) rotate(1.4deg)}
+.arg-bunting-flags span:nth-child(19){transform:translateY(calc(0.026 * var(--bunting-drop))) rotate(2.3deg)}
+.arg-bunting-flags span:nth-child(20){transform:translateY(calc(0.051 * var(--bunting-drop))) rotate(3.2deg)}
+.arg-bunting-flags span:nth-child(21){transform:translateY(calc(0.084 * var(--bunting-drop))) rotate(4.1deg)}
+.arg-bunting-flags span:nth-child(22){transform:translateY(calc(0.126 * var(--bunting-drop))) rotate(5deg)}
+.arg-bunting-flags span:nth-child(23){transform:translateY(calc(0.176 * var(--bunting-drop))) rotate(5.9deg)}
+.arg-bunting-flags span:nth-child(24){transform:translateY(calc(0.234 * var(--bunting-drop))) rotate(6.8deg)}
+.arg-bunting-flags span:nth-child(25){transform:translateY(calc(0.301 * var(--bunting-drop))) rotate(7.7deg)}
+.arg-bunting-flags span:nth-child(26){transform:translateY(calc(0.376 * var(--bunting-drop))) rotate(8.6deg)}
+.arg-bunting-flags span:nth-child(27){transform:translateY(calc(0.459 * var(--bunting-drop))) rotate(9.5deg)}
+.arg-bunting-flags span:nth-child(28){transform:translateY(calc(0.55 * var(--bunting-drop))) rotate(10.4deg)}
+.arg-bunting-flags span:nth-child(29){transform:translateY(calc(0.65 * var(--bunting-drop))) rotate(11.3deg)}
+.arg-bunting-flags span:nth-child(30){transform:translateY(calc(0.759 * var(--bunting-drop))) rotate(12.2deg)}
+.arg-bunting-flags span:nth-child(31){transform:translateY(calc(0.875 * var(--bunting-drop))) rotate(13.1deg)}
+.arg-bunting-flags span:nth-child(32){transform:translateY(calc(1 * var(--bunting-drop))) rotate(14deg)}
 
 .mundial-badge{
   flex-shrink:0;

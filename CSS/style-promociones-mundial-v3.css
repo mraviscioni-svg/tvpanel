@@ -79,12 +79,7 @@
 .promo-v3 .promo-corners{display:none}
 
 .promo-v3 .promo-stage .arg-bunting{
-  padding-top:clamp(10px,1.6vh,16px);
-}
-
-.promo-v3 .arg-bunting-flags span{
-  max-width:clamp(13px,2.8vw,22px);
-  height:clamp(18px,2.8vh,26px);
+  padding-top:clamp(6px,1vh,12px);
 }
 
 .promo-v3 .mediaWrap.one::after{
