@@ -16,7 +16,7 @@ function Download-File($rel) {
 
 $static = @(
     'JSON/congelados.json', 'JSON/congelados-img.json', 'JSON/productos.json', 'JSON/ofertas.json', 'JSON/tvs.json',
-    'index.html', 'index2.html', 'promociones.html',
+    'index.html', 'index2.html', 'index3.html', 'promociones.html',
     'CSS/styles.css', 'CSS/panel.css', 'CSS/themes/default.css', 'CSS/style-promociones.css',
     'JS/app.js', 'JS/panel.js', 'JS/script-promociones.js',
     'IMG/Logo.png', 'IMG/IsoLogo.png', 'IMG/fondo-carniceria.jpg', 'IMG/qrcode.jpg',

@@ -808,7 +808,7 @@ async function applyThemeFromConfig(){
   const stored   = (localStorage.getItem('ec_theme') || '').trim();
   const cfgTheme = (window.APP_CONFIG && window.APP_CONFIG.theme) ? String(window.APP_CONFIG.theme) : '';
   const backendDefault = await fetchDefaultThemeFromServer();
-  const chosen   = (qsTheme || stored || cfgTheme || backendDefault || 'default').replace(/[^a-z0-9._-]/gi,'');
+  const chosen   = (qsTheme || cfgTheme || stored || backendDefault || 'default').replace(/[^a-z0-9._-]/gi,'');
 
   // Si ya apunta al mismo path, no recargues
   const currentPath = new URL(link.href, location.href).pathname;
@@ -823,9 +823,14 @@ async function applyThemeFromConfig(){
 
   // Paletas extendidas (sumo 'plata' y 'champagne' que usa el confetti)
   const paletteRaw = ((qs.get('palette') || (window.APP_CONFIG?.palette) || '') + '').toLowerCase();
-  const allowedPalettes = new Set(['','rojo','verde','oro','plata','champagne']);
+  const allowedPalettes = new Set(['','rojo','verde','oro','plata','champagne','claro']);
   const palette = allowedPalettes.has(paletteRaw) ? paletteRaw : '';
   document.documentElement.setAttribute('data-palette', palette);
+
+  document.documentElement.classList.forEach(cls => {
+    if (cls.startsWith('theme-')) document.documentElement.classList.remove(cls);
+  });
+  document.documentElement.classList.add(`theme-${chosen}`);
 
   // Nieve: solo si se pidió (APP_CONFIG.snow o ?snow=1)
   const snowOn = (qs.get('snow') === '1') || !!(window.APP_CONFIG && window.APP_CONFIG.snow);
