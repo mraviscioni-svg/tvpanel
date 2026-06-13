@@ -337,13 +337,15 @@ function renderFixtureChip(g) {
 
 function renderFixtures(data) {
   const track = document.getElementById('fixtures-track');
-  const modeLabel = document.getElementById('ticker-mode-label');
+  const headingEl = document.getElementById('fixtures-heading-text');
   const dateEl = document.getElementById('today-date');
   if (!track) return;
 
   if (dateEl) dateEl.textContent = data.todayLabelShort || '—';
-  if (modeLabel) {
-    modeLabel.textContent = data.tickerMode === 'today' ? 'Hoy' : 'Próximos';
+  if (headingEl) {
+    headingEl.textContent = data.tickerMode === 'today'
+      ? 'Partidos de hoy'
+      : 'Próximos partidos del Mundial';
   }
 
   const list = Array.isArray(data.ticker) ? data.ticker : [];

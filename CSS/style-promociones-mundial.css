@@ -104,37 +104,164 @@ html,body{
   box-shadow:0 4px 24px rgba(0,166,214,.2);
 }
 
-/* Fila principal: Logo · VAMOS ARGENTINA · Mundial */
+/* Fila principal: Logo · VAMOS ARGENTINA · Fecha */
 .header-hero{
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   gap:clamp(6px,1.2vw,14px);
   min-width:0;
 }
 
-.header-mundial-block{
+.header-date{
   flex-shrink:0;
+  margin-left:auto;
   display:flex;
   flex-direction:column;
-  align-items:center;
+  align-items:flex-end;
   justify-content:center;
-  gap:clamp(3px,.45vh,6px);
-  min-width:0;
+  gap:clamp(2px,.3vh,4px);
+  line-height:1;
+  white-space:nowrap;
+  text-align:right;
 }
 
-.header-date{
+.header-date-day{
+  font-size:clamp(10px,1.4vh,13px);
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  color:var(--cyan-bright);
+}
+
+#today-date{
+  font-size:clamp(16px,2.6vh,24px);
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--gold);
+}
+
+/* Banderines celeste/blanco sobre el video */
+.promo-stage .arg-bunting{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  z-index:6;
+  flex-shrink:0;
+  padding:clamp(14px,2.2vh,22px) clamp(4px,1vw,8px) 0;
+  pointer-events:none;
+}
+
+.arg-bunting-rope{
+  height:2px;
+  margin:0 clamp(6px,1.2vw,12px) 0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35) 8%,rgba(255,255,255,.6) 50%,rgba(255,255,255,.35) 92%,transparent);
+  border-radius:999px;
+  transform:translateY(clamp(6px,1vh,9px));
+}
+
+.arg-bunting-flags{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:clamp(2px,.45vw,4px);
+  padding:0 clamp(3px,.5vw,8px);
+  transform:translateY(clamp(4px,.6vh,6px));
+}
+
+.arg-bunting-flags span{
+  flex:1 1 0;
+  max-width:clamp(12px,2.6vw,20px);
+  height:clamp(16px,2.6vh,24px);
+  clip-path:polygon(50% 100%,0 0,100% 0);
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.45));
+  transform-origin:top center;
+}
+
+.arg-bunting-flags span:nth-child(odd){background:#74ACDF}
+.arg-bunting-flags span:nth-child(even){background:#fff}
+.arg-bunting-flags span:nth-child(4n+1){transform:rotate(-5deg)}
+.arg-bunting-flags span:nth-child(4n+2){transform:rotate(4deg)}
+.arg-bunting-flags span:nth-child(4n+3){transform:rotate(-3deg)}
+.arg-bunting-flags span:nth-child(4n+4){transform:rotate(3deg)}
+
+.mundial-badge{
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  padding:.32rem .75rem;
+  background:linear-gradient(135deg,rgba(255,210,63,.28) 0%,rgba(201,162,39,.12) 100%);
+  border:1px solid rgba(255,210,63,.65);
+  border-radius:999px;
+  font-size:clamp(9px,1.35vh,12px);
+  font-weight:800;
+  letter-spacing:.1em;
+  color:#fff;
+  text-transform:uppercase;
+  text-shadow:0 1px 8px rgba(255,210,63,.4);
+  box-shadow:0 0 20px rgba(255,210,63,.15),inset 0 1px 0 rgba(255,255,255,.25);
+  animation:badge-glow 3s ease-in-out infinite;
+  white-space:nowrap;
+}
+
+.mundial-badge::before{
+  content:"⚽";
+  filter:drop-shadow(0 0 4px rgba(255,210,63,.6));
+}
+
+.mundial-badge--mini{
+  font-size:clamp(7px,1vh,9px);
+  padding:.18rem .45rem;
+  letter-spacing:.08em;
+  animation:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+
+@keyframes badge-glow{
+  0%,100%{box-shadow:0 0 16px rgba(255,210,63,.12),inset 0 1px 0 rgba(255,255,255,.2)}
+  50%{box-shadow:0 0 28px rgba(255,210,63,.28),inset 0 1px 0 rgba(255,255,255,.3)}
+}
+
+.match-panel-meta{
+  display:flex;
+  justify-content:flex-end;
+  margin-bottom:clamp(2px,.35vh,4px);
+}
+
+/* Franja partidos del día — legible en vidriera */
+.fixtures-bar{
+  display:flex;
+  flex-direction:column;
+  gap:clamp(4px,.5vh,6px);
+}
+
+.fixtures-heading{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:.35rem;
-  font-size:clamp(8px,1.15vh,11px);
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  color:var(--arg-white);
+  gap:clamp(5px,.8vw,8px);
+  padding:clamp(4px,.6vh,6px) clamp(8px,1.5vw,12px);
+  background:linear-gradient(90deg,rgba(117,170,219,.22),rgba(117,170,219,.12),rgba(117,170,219,.22));
+  border:1px solid rgba(117,170,219,.45);
+  border-radius:8px;
+  box-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+
+.fixtures-heading-icon{
+  font-size:clamp(12px,1.6vh,15px);
   line-height:1;
-  white-space:nowrap;
+}
+
+.fixtures-heading-text{
+  font-size:clamp(11px,1.55vh,14px);
+  font-weight:900;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--arg-white);
+  text-shadow:0 1px 6px rgba(0,0,0,.35);
 }
 
 .brand-logo{
@@ -188,93 +315,6 @@ html,body{
   text-shadow:0 2px 16px rgba(117,170,219,.55);
   white-space:nowrap;
   line-height:1;
-}
-
-#ticker-mode-label{color:var(--cyan-bright)}
-
-#today-date{
-  color:var(--gold);
-  font-weight:700;
-}
-
-#today-date::before{
-  content:"·";
-  margin-right:.45rem;
-  color:var(--muted);
-  font-weight:600;
-}
-
-/* Banderines Argentina — sobre el video */
-.arg-bunting{
-  position:relative;
-  flex-shrink:0;
-  z-index:4;
-  padding:0 clamp(2px,.5vw,6px);
-  margin:0 0 clamp(-6px,-.8vh,-3px);
-  overflow:visible;
-}
-
-.arg-bunting-rope{
-  height:2px;
-  margin:0 clamp(4px,1vw,10px) 0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3) 8%,rgba(255,255,255,.55) 50%,rgba(255,255,255,.3) 92%,transparent);
-  border-radius:999px;
-  transform:translateY(clamp(4px,.7vh,6px));
-}
-
-.arg-bunting-flags{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:clamp(1px,.4vw,3px);
-  padding:0 clamp(2px,.4vw,6px);
-  transform:translateY(clamp(2px,.3vh,3px));
-}
-
-.arg-bunting-flags span{
-  flex:1 1 0;
-  max-width:clamp(10px,2.2vw,16px);
-  height:clamp(13px,2.1vh,19px);
-  clip-path:polygon(50% 100%,0 0,100% 0);
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));
-  transform-origin:top center;
-}
-
-.arg-bunting-flags span:nth-child(6n+1){background:#74ACDF;transform:rotate(-5deg)}
-.arg-bunting-flags span:nth-child(6n+2){background:#fff;transform:rotate(4deg)}
-.arg-bunting-flags span:nth-child(6n+3){background:#74ACDF;transform:rotate(-3deg)}
-.arg-bunting-flags span:nth-child(6n+4){background:var(--gold);transform:rotate(5deg)}
-.arg-bunting-flags span:nth-child(6n+5){background:#fff;transform:rotate(-4deg)}
-.arg-bunting-flags span:nth-child(6n+6){background:#74ACDF;transform:rotate(3deg)}
-
-.mundial-badge{
-  flex-shrink:0;
-  display:flex;
-  align-items:center;
-  gap:.35rem;
-  padding:.32rem .75rem;
-  background:linear-gradient(135deg,rgba(255,210,63,.28) 0%,rgba(201,162,39,.12) 100%);
-  border:1px solid rgba(255,210,63,.65);
-  border-radius:999px;
-  font-size:clamp(9px,1.35vh,12px);
-  font-weight:800;
-  letter-spacing:.1em;
-  color:#fff;
-  text-transform:uppercase;
-  text-shadow:0 1px 8px rgba(255,210,63,.4);
-  box-shadow:0 0 20px rgba(255,210,63,.15),inset 0 1px 0 rgba(255,255,255,.25);
-  animation:badge-glow 3s ease-in-out infinite;
-  white-space:nowrap;
-}
-
-.mundial-badge::before{
-  content:"⚽";
-  filter:drop-shadow(0 0 4px rgba(255,210,63,.6));
-}
-
-@keyframes badge-glow{
-  0%,100%{box-shadow:0 0 16px rgba(255,210,63,.12),inset 0 1px 0 rgba(255,255,255,.2)}
-  50%{box-shadow:0 0 28px rgba(255,210,63,.28),inset 0 1px 0 rgba(255,255,255,.3)}
 }
 
 .fixtures-ticker{
