@@ -501,12 +501,12 @@ html,body{
     linear-gradient(90deg,rgba(117,170,219,.18) 0%,rgba(117,170,219,.18) 33%,rgba(245,248,252,.08) 33%,rgba(245,248,252,.08) 66%,rgba(117,170,219,.18) 66%),
     linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,40,70,.4) 100%);
   border:1px solid rgba(117,170,219,.4);
-  border-radius:8px;
-  padding:.35rem .55rem;
+  border-radius:10px;
+  padding:.5rem .7rem;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:.5rem;
+  gap:.65rem;
   box-shadow:0 2px 12px rgba(0,0,0,.3);
   position:relative;
   overflow:hidden;
@@ -515,12 +515,12 @@ html,body{
 .match-card-left{
   display:flex;
   flex-direction:column;
-  gap:.1rem;
+  gap:.15rem;
   min-width:0;
 }
 
 .side-card.match-card h3{
-  font-size:clamp(8px,1.1vh,10px);
+  font-size:clamp(9px,1.35vh,12px);
   font-weight:800;
   text-transform:uppercase;
   letter-spacing:.1em;
@@ -531,33 +531,33 @@ html,body{
 .match-teams{
   display:flex;
   align-items:center;
-  gap:.35rem;
-  font-size:clamp(10px,1.35vh,13px);
+  gap:.4rem;
+  font-size:clamp(12px,1.65vh,16px);
   font-weight:800;
   white-space:nowrap;
 }
 
 .match-teams .vs{
   color:var(--gold);
-  font-size:clamp(8px,1vh,10px);
+  font-size:clamp(10px,1.25vh,12px);
 }
 
 .match-meta{
-  font-size:clamp(8px,1vh,10px);
+  font-size:clamp(9px,1.2vh,12px);
   color:var(--muted);
   white-space:nowrap;
 }
 
 .countdown{
   flex-shrink:0;
-  font-size:clamp(11px,1.5vh,14px);
+  font-size:clamp(13px,1.85vh,17px);
   font-weight:900;
   color:#1a1200;
   font-variant-numeric:tabular-nums;
-  padding:.22rem .5rem;
+  padding:.3rem .6rem;
   background:linear-gradient(180deg,var(--gold) 0%,var(--gold-dim) 100%);
   border:1px solid rgba(255,255,255,.35);
-  border-radius:6px;
+  border-radius:7px;
   box-shadow:0 2px 8px rgba(255,210,63,.25);
 }
 
