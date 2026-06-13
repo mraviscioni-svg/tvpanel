@@ -115,9 +115,9 @@ html,body{
 
 .brand-logo{
   flex-shrink:0;
-  height:clamp(38px,6vh,58px);
+  height:clamp(42px,6.5vh,62px);
   width:auto;
-  max-width:min(28vw,140px);
+  max-width:min(32vw,160px);
   object-fit:contain;
 }
 
@@ -148,17 +148,17 @@ html,body{
 
 .arg-star-group{
   flex-shrink:0;
-  font-size:clamp(14px,2.8vh,26px);
-  letter-spacing:.08em;
+  font-size:clamp(10px,1.9vh,17px);
+  letter-spacing:.06em;
   color:var(--gold);
   text-shadow:0 0 14px rgba(255,210,63,.5);
   line-height:1;
 }
 
 .arg-cheer-text{
-  font-size:clamp(28px,5.5vh,52px);
+  font-size:clamp(18px,3.5vh,34px);
   font-weight:900;
-  letter-spacing:.06em;
+  letter-spacing:.05em;
   text-transform:uppercase;
   color:var(--arg-white);
   text-shadow:0 2px 16px rgba(117,170,219,.55);
