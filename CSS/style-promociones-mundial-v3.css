@@ -1,0 +1,190 @@
+/**
+ * Diseño 3 — Mundial + carnicería (promociones2.html)
+ * Overrides sobre style-promociones-mundial.css
+ */
+
+.promo-v3{
+  --bg-deep:#0a1628;
+  --name-size:clamp(17px,3vh,36px);
+  --price-currency:clamp(16px,2.4vh,26px);
+  --price-amount:clamp(32px,5.2vh,64px);
+}
+
+.promo-v3 .tv-frame{
+  background:
+    radial-gradient(ellipse 100% 45% at 50% 0%,rgba(117,170,219,.15) 0%,transparent 55%),
+    radial-gradient(ellipse 80% 35% at 50% 100%,rgba(0,40,80,.5) 0%,transparent 50%),
+    linear-gradient(180deg,#070f1a 0%,#0a1628 45%,#060d16 100%);
+}
+
+.promo-v3 .tv-frame::before{opacity:.025}
+
+.promo-v3 .stadium-lights span:last-child{
+  background:radial-gradient(ellipse at 70% 0%,rgba(117,170,219,.35),transparent 70%);
+}
+
+.promo-v3 .top-bar{
+  background:linear-gradient(180deg,rgba(8,30,55,.95) 0%,rgba(10,22,40,.88) 100%);
+  border-image:linear-gradient(90deg,var(--arg-celeste),var(--arg-white) 50%,var(--arg-celeste)) 1;
+  box-shadow:0 6px 28px rgba(0,0,0,.35);
+}
+
+.promo-v3 .arg-cheer-text{
+  text-shadow:0 2px 20px rgba(117,170,219,.65);
+}
+
+.promo-v3 .header-date{
+  padding:.25rem .55rem;
+  background:rgba(117,170,219,.12);
+  border:1px solid rgba(117,170,219,.35);
+  border-radius:8px;
+}
+
+.promo-v3 #today-date{
+  font-size:clamp(18px,2.8vh,28px);
+}
+
+.promo-v3 .fixtures-heading{
+  background:linear-gradient(90deg,rgba(0,80,130,.55),rgba(117,170,219,.35),rgba(0,80,130,.55));
+  border-color:rgba(117,170,219,.55);
+}
+
+.promo-v3 .main-area{
+  padding:.3rem clamp(8px,2vw,14px) .35rem;
+}
+
+/* Stage tipo mockup: producto hero + franja celeste abajo */
+.promo-v3 .promo-stage{
+  border:2px solid rgba(117,170,219,.55);
+  border-radius:clamp(12px,1.8vh,18px);
+  box-shadow:
+    0 12px 48px rgba(0,0,0,.5),
+    0 0 0 1px rgba(255,255,255,.06),
+    inset 0 0 60px rgba(117,170,219,.08);
+}
+
+.promo-v3 .promo-stage::before{
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 30%,rgba(255,255,255,.04) 0%,transparent 50%),
+    linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.25) 35%,transparent 55%);
+}
+
+.promo-v3 .promo-stage::after{display:none}
+
+.promo-v3 .promo-corners{display:none}
+
+.promo-v3 .promo-stage .arg-bunting{
+  padding-top:clamp(10px,1.6vh,16px);
+}
+
+.promo-v3 .arg-bunting-flags span{
+  max-width:clamp(13px,2.8vw,22px);
+  height:clamp(18px,2.8vh,26px);
+}
+
+.promo-v3 .mediaWrap.one::after{
+  background:
+    linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.45) 28%,transparent 58%);
+}
+
+/* Overlay diseño 3: franja ancha + precio dorado flotante */
+.promo-v3 .promo-overlay{
+  left:0;
+  right:0;
+  bottom:0;
+  padding:0;
+  display:block;
+  z-index:5;
+}
+
+.promo-v3 .promo-name{
+  width:100%;
+  margin:0;
+  border-radius:0;
+  border:none;
+  border-top:2px solid rgba(255,255,255,.18);
+  background:linear-gradient(
+    90deg,
+    rgba(0,72,120,.96) 0%,
+    rgba(117,170,219,.92) 35%,
+    rgba(117,170,219,.92) 65%,
+    rgba(0,72,120,.96) 100%
+  );
+  text-align:center;
+  padding:clamp(.55rem,1.4vh,.85rem) clamp(.75rem,2vw,1.25rem) clamp(.65rem,1.5vh,.95rem);
+  box-shadow:0 -8px 32px rgba(0,0,0,.45);
+  backdrop-filter:blur(10px);
+}
+
+.promo-v3 .promo-name::before{
+  font-size:clamp(9px,1.15vh,12px);
+  letter-spacing:.32em;
+  margin-bottom:.35rem;
+  color:#fff;
+  text-shadow:0 0 12px rgba(255,210,63,.5);
+}
+
+.promo-v3 .promo-price{
+  position:absolute;
+  right:clamp(10px,2.5vw,18px);
+  bottom:calc(100% + clamp(10px,1.5vh,16px));
+  justify-self:unset;
+  padding:clamp(.4rem,1.1vh,.65rem) clamp(.9rem,2.4vw,1.4rem);
+  border-radius:clamp(10px,1.4vh,14px);
+  background:linear-gradient(145deg,#ffe566 0%,#ffd23f 45%,#c9a227 100%);
+  border:2px solid rgba(255,255,255,.45);
+  box-shadow:
+    0 8px 28px rgba(0,0,0,.45),
+    0 0 24px rgba(255,210,63,.35),
+    inset 0 1px 0 rgba(255,255,255,.5);
+}
+
+.promo-v3 .promo-price .cur{
+  color:#5c4a0a;
+  font-weight:800;
+}
+
+.promo-v3 .promo-price .amt{
+  color:#1a1200;
+  text-shadow:0 1px 0 rgba(255,255,255,.35);
+}
+
+.promo-v3 .slide.active .mediaWrap.one .slot-single{
+  animation:promoV3Reveal .9s cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes promoV3Reveal{
+  from{opacity:0;transform:scale(1.04)}
+  to{opacity:1;transform:scale(1)}
+}
+
+/* Intermedios */
+.promo-v3 .intermediate{
+  background:linear-gradient(180deg,rgba(10,22,40,.92),rgba(6,13,22,.95));
+}
+
+.promo-v3 .intermediate .headline{color:var(--arg-white)}
+
+.promo-v3 .side-card.match-card{
+  border-color:rgba(117,170,219,.5);
+  background:
+    linear-gradient(90deg,rgba(117,170,219,.2) 0%,rgba(117,170,219,.2) 33%,rgba(245,248,252,.1) 33%,rgba(245,248,252,.1) 66%,rgba(117,170,219,.2) 66%),
+    linear-gradient(180deg,rgba(0,20,40,.6) 0%,rgba(0,10,25,.75) 100%);
+}
+
+.promo-v3 .bottom-strip{
+  height:clamp(6px,.85vh,10px);
+  box-shadow:0 -4px 20px rgba(117,170,219,.4);
+}
+
+@media (max-height:720px){
+  .promo-v3{
+    --name-size:clamp(15px,2.5vh,28px);
+    --price-amount:clamp(26px,4.2vh,50px);
+  }
+
+  .promo-v3 .promo-price{
+    bottom:calc(100% + clamp(6px,1vh,10px));
+    padding:clamp(.3rem,.9vh,.45rem) clamp(.7rem,2vw,1rem);
+  }
+}
