@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Boceto · Promociones Modo Mundial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="CSS/themes/mundialista.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-deep: #04121f;
+      --cyan: #00a6d6;
+      --cyan-bright: #11aee0;
+      --gold: #ffd23f;
+      --gold-dim: #c9a227;
+      --arg-celeste: #75aadb;
+      --arg-white: #f5f8fc;
+      --pitch: #0a3d2e;
+      --text: #eef7ff;
+      --muted: #b4c7d8;
+    }
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: Montserrat, Arial, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+    .boceto-note,
+    .legend {
+      display: none;
+    }
+
+    /* ===== TV FULL SCREEN (como promociones.html) ===== */
+    .boceto-wrap {
+      width: 100vw;
+      height: 100vh;
+    }
+    .tv-frame {
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      border-radius: 0;
+      overflow: hidden;
+      border: none;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(ellipse 120% 40% at 50% 100%, rgba(10,61,46,.45) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0,166,214,.22) 0%, transparent 60%),
+        radial-gradient(circle at 15% 85%, rgba(117,170,219,.12) 0%, transparent 35%),
+        radial-gradient(circle at 85% 20%, rgba(255,210,63,.08) 0%, transparent 30%),
+        linear-gradient(180deg, #021018 0%, #04121f 42%, #020810 100%);
+      position: relative;
+      isolation: isolate;
+    }
+    /* Patrón hexagonal sutil (pelota) */
+    .tv-frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath fill='%23ffd23f' d='M28 0l14 8v16l-14 8-14-8V8zM0 50l14-8v16l-14 8-14-8V42zm56 0l-14-8v16l14 8 14-8V42zM28 66l14 8v16l-14 8-14-8V74z'/%3E%3C/svg%3E");
+      background-size: 56px 100px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* Viñeta estadio */
+    .tv-frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 120px rgba(0,0,0,.55), inset 0 -80px 100px rgba(10,61,46,.25);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .tv-frame > * { position: relative; z-index: 1; }
+
+    /* Luces de arco (laterales) */
+    .stadium-lights {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .stadium-lights span {
+      position: absolute;
+      top: -5%;
+      width: 45%;
+      height: 55%;
+      opacity: 0.14;
+      filter: blur(40px);
+    }
+    .stadium-lights span:first-child {
+      left: -10%;
+      background: radial-gradient(ellipse at 30% 0%, var(--cyan-bright), transparent 70%);
+    }
+    .stadium-lights span:last-child {
+      right: -10%;
+      background: radial-gradient(ellipse at 70% 0%, var(--gold), transparent 70%);
+    }
+
+    /* Franja superior estilo transmisión */
+    .top-bar {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: clamp(6px, 1vh, 10px) clamp(10px, 2.5vw, 16px);
+      background:
+        linear-gradient(90deg, rgba(117,170,219,.08) 0%, transparent 25%, transparent 75%, rgba(255,210,63,.06) 100%),
+        linear-gradient(180deg, rgba(0,90,150,.75) 0%, rgba(0,116,189,.45) 55%, rgba(0,166,214,.15) 100%);
+      border-bottom: 3px solid transparent;
+      border-image: linear-gradient(90deg, var(--arg-celeste), var(--arg-white) 35%, var(--gold) 65%, var(--arg-celeste)) 1;
+      box-shadow: 0 4px 24px rgba(0,166,214,.2);
+    }
+    .top-bar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .brand-logo {
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+    }
+    .mundial-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.28rem 0.7rem;
+      background: linear-gradient(135deg, rgba(255,210,63,.28) 0%, rgba(201,162,39,.12) 100%);
+      border: 1px solid rgba(255,210,63,.65);
+      border-radius: 999px;
+      font-size: clamp(9px, 1.2vh, 11px);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: #fff;
+      text-transform: uppercase;
+      text-shadow: 0 1px 8px rgba(255,210,63,.4);
+      box-shadow: 0 0 20px rgba(255,210,63,.15), inset 0 1px 0 rgba(255,255,255,.25);
+      animation: badge-glow 3s ease-in-out infinite;
+    }
+    .mundial-badge::before {
+      content: "⚽";
+      filter: drop-shadow(0 0 4px rgba(255,210,63,.6));
+    }
+    @keyframes badge-glow {
+      0%, 100% { box-shadow: 0 0 16px rgba(255,210,63,.12), inset 0 1px 0 rgba(255,255,255,.2); }
+      50% { box-shadow: 0 0 28px rgba(255,210,63,.28), inset 0 1px 0 rgba(255,255,255,.3); }
+    }
+
+    /* Ticker partidos del día */
+    .fixtures-ticker {
+      overflow: hidden;
+      mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    }
+    .fixtures-track {
+      display: flex;
+      gap: 1.5rem;
+      animation: scroll-fixtures 28s linear infinite;
+      white-space: nowrap;
+    }
+    @keyframes scroll-fixtures {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .fixture-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.32rem 0.6rem;
+      background: linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(0,0,0,.4) 100%);
+      border-radius: 999px;
+      border: 1px solid rgba(0,166,214,.35);
+      font-size: clamp(9px, 1.15vh, 11px);
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .fixture-chip .time {
+      color: var(--gold);
+      min-width: 2.5rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .fixture-chip .teams { color: var(--text); }
+    .fixture-chip .group {
+      color: var(--cyan-bright);
+      font-weight: 600;
+      font-size: clamp(8px, 1vh, 10px);
+      padding-left: 0.25rem;
+      border-left: 1px solid rgba(255,255,255,.15);
+    }
+    .fixture-chip.live {
+      border-color: rgba(255,80,80,.75);
+      background: linear-gradient(180deg, rgba(255,80,80,.18) 0%, rgba(0,0,0,.45) 100%);
+      box-shadow: 0 0 16px rgba(255,80,80,.2);
+    }
+    .fixture-chip.live .time::after { content: " ●"; color: #ff5050; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.4; } }
+
+    .today-label {
+      font-size: clamp(9px, 1.15vh, 11px);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--arg-white);
+      text-align: right;
+      line-height: 1.2;
+      white-space: nowrap;
+      padding: 0.2rem 0.5rem;
+      background: rgba(117,170,219,.15);
+      border: 1px solid rgba(117,170,219,.35);
+      border-radius: 6px;
+    }
+    .today-label span { color: var(--gold) !important; font-size: inherit !important; }
+
+    /* Área principal: oferta domina, partido secundario abajo */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-height: 0;
+      padding: 0.35rem clamp(10px, 2.5vw, 18px) 0.4rem;
+    }
+
+    /* Promo: protagonista con marco broadcast */
+    .promo-stage {
+      position: relative;
+      flex: 1 1 0;
+      min-height: 0;
+      border-radius: clamp(10px, 1.5vh, 16px);
+      overflow: hidden;
+      border: 2px solid rgba(0,166,214,.45);
+      box-shadow:
+        0 0 0 1px rgba(255,210,63,.12),
+        0 8px 40px rgba(0,0,0,.45),
+        inset 0 0 80px rgba(0,166,214,.1),
+        inset 0 -60px 80px rgba(10,61,46,.2);
+    }
+    /* Esquinas tipo transmisión TV */
+    .promo-corners {
+      position: absolute;
+      inset: clamp(8px, 1.2vh, 14px);
+      pointer-events: none;
+      z-index: 4;
+    }
+    .promo-corners span {
+      position: absolute;
+      width: clamp(18px, 3vh, 28px);
+      height: clamp(18px, 3vh, 28px);
+      border-color: var(--gold);
+      border-style: solid;
+      opacity: 0.85;
+    }
+    .promo-corners span:nth-child(1) { top: 0; left: 0; border-width: 3px 0 0 3px; }
+    .promo-corners span:nth-child(2) { top: 0; right: 0; border-width: 3px 3px 0 0; }
+    .promo-corners span:nth-child(3) { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+    .promo-corners span:nth-child(4) { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+    .promo-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 55% at 50% 35%, rgba(255,255,255,.06) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 80% at 50% 100%, rgba(10,61,46,.35) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .promo-stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.03) 2px,
+        rgba(0,0,0,.03) 4px
+      );
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0.5;
+    }
+    .promo-media {
+      position: absolute;
+      inset: 0;
+      background:
+        url('/IMG/Logo.png') center/38% no-repeat,
+        repeating-linear-gradient(
+          90deg,
+          rgba(10,61,46,.15) 0px,
+          rgba(10,61,46,.15) 1px,
+          transparent 1px,
+          transparent 48px
+        ),
+        linear-gradient(180deg, rgba(0,166,214,.06) 0%, rgba(10,61,46,.25) 100%);
+      opacity: 0.5;
+    }
+    .promo-media-note {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      z-index: 1;
+    }
+    .promo-overlay {
+      position: absolute;
+      left: 5%;
+      right: 5%;
+      bottom: 5%;
+      z-index: 3;
+      display: grid;
+      gap: 0.5rem;
+    }
+    .promo-name {
+      text-align: center;
+      font-size: clamp(16px, 2.8vh, 34px);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      padding: clamp(0.45rem, 1.2vh, 0.75rem) clamp(0.75rem, 2vw, 1.25rem);
+      background: linear-gradient(180deg, rgba(0,90,140,.85) 0%, rgba(0,0,0,.75) 100%);
+      border: 1px solid rgba(117,170,219,.4);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.1);
+      position: relative;
+    }
+    .promo-name::before {
+      content: "★ OFERTA ★";
+      display: block;
+      font-size: clamp(8px, 1vh, 10px);
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      margin-bottom: 0.25rem;
+      opacity: 0.9;
+    }
+    .promo-price {
+      justify-self: end;
+      display: flex;
+      align-items: baseline;
+      gap: 0.25rem;
+      padding: clamp(0.35rem, 1vh, 0.55rem) clamp(0.85rem, 2.2vw, 1.35rem);
+      background: linear-gradient(135deg, rgba(255,210,63,.35) 0%, rgba(201,162,39,.15) 50%, rgba(255,210,63,.08) 100%);
+      border: 2px solid var(--gold);
+      border-radius: 10px;
+      font-weight: 900;
+      box-shadow: 0 0 24px rgba(255,210,63,.2), inset 0 1px 0 rgba(255,255,255,.3);
+    }
+    .promo-price .cur { font-size: clamp(14px, 2.1vh, 22px); color: var(--gold); }
+    .promo-price .amt { font-size: clamp(28px, 4.5vh, 56px); color: #fff; }
+
+    /* Próximo partido: franja compacta secundaria */
+    .side-panel {
+      flex: 0 0 auto;
+      flex-shrink: 0;
+    }
+    .side-card.match-card {
+      background:
+        linear-gradient(90deg, rgba(117,170,219,.18) 0%, rgba(117,170,219,.18) 33%, rgba(245,248,252,.08) 33%, rgba(245,248,252,.08) 66%, rgba(117,170,219,.18) 66%),
+        linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,40,70,.4) 100%);
+      border: 1px solid rgba(117,170,219,.4);
+      border-radius: 8px;
+      padding: 0.35rem 0.55rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      min-height: 0;
+      box-shadow: 0 2px 12px rgba(0,0,0,.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .side-card.match-card::before {
+      content: "⚽";
+      position: absolute;
+      right: 28%;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: clamp(28px, 4vh, 40px);
+      opacity: 0.04;
+      pointer-events: none;
+    }
+    .match-card-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      min-width: 0;
+    }
+    .side-card.match-card h3 {
+      font-size: clamp(8px, 1.1vh, 10px);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--cyan);
+      white-space: nowrap;
+    }
+    .match-teams {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: clamp(10px, 1.35vh, 13px);
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .match-teams .vs {
+      color: var(--gold);
+      font-size: clamp(8px, 1vh, 10px);
+      font-weight: 700;
+    }
+    .match-meta {
+      font-size: clamp(8px, 1vh, 10px);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .countdown {
+      flex-shrink: 0;
+      font-size: clamp(11px, 1.5vh, 14px);
+      font-weight: 900;
+      color: #1a1200;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      padding: 0.22rem 0.5rem;
+      background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dim) 100%);
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(255,210,63,.25);
+    }
+    .countdown::before {
+      content: "⏱ ";
+      font-size: 0.85em;
+    }
+
+    /* Barra inferior tricolor Argentina + brillo */
+    .bottom-strip {
+      flex-shrink: 0;
+      height: clamp(5px, 0.7vh, 8px);
+      background: linear-gradient(90deg, var(--arg-celeste) 33.33%, var(--arg-white) 33.33% 66.66%, var(--arg-celeste) 66.66%);
+      box-shadow: 0 -2px 16px rgba(117,170,219,.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .bottom-strip::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
+      animation: strip-shine 4s ease-in-out infinite;
+    }
+    @keyframes strip-shine {
+      0%, 100% { transform: translateX(-100%); opacity: 0; }
+      50% { transform: translateX(100%); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <p class="boceto-note">
+    <strong>BOCETO · Modo Mundial · TV VERTICAL 9:16</strong> — Misma orientación que <code>promociones.html</code> (panel portrait).
+    Abrí este archivo en el navegador. No es funcional: es referencia de layout.
+  </p>
+
+  <div class="boceto-wrap">
+  <div class="tv-frame">
+    <div class="stadium-lights" aria-hidden="true"><span></span><span></span></div>
+    <header class="top-bar">
+      <div class="top-bar-row">
+        <div class="brand">
+          <img class="brand-logo" src="/IMG/Logo.png" alt="Logo" onerror="this.style.display='none'">
+          <span class="mundial-badge">Mundial 2026</span>
+        </div>
+        <div class="today-label">Hoy<span style="display:block;font-weight:600;font-size:0.85em;margin-top:0.1rem">16 Jun</span></div>
+      </div>
+      <div class="fixtures-ticker">
+        <div class="fixtures-track">
+          <span class="fixture-chip live"><span class="time">21:00</span><span class="teams">ARG 🇦🇷 1 – 0 🇩🇿 ALG</span><span class="group">Grupo J</span></span>
+          <span class="fixture-chip"><span class="time">18:00</span><span class="teams">BRA 🇧🇷 vs MAR 🇲🇦</span><span class="group">Grupo C</span></span>
+          <span class="fixture-chip"><span class="time">15:00</span><span class="teams">ESP 🇪🇸 vs URU 🇺🇾</span><span class="group">Grupo H</span></span>
+          <span class="fixture-chip"><span class="time">12:00</span><span class="teams">MEX 🇲🇽 vs RSA 🇿🇦</span><span class="group">Grupo A</span></span>
+          <!-- duplicado para scroll infinito -->
+          <span class="fixture-chip live"><span class="time">21:00</span><span class="teams">ARG 🇦🇷 1 – 0 🇩🇿 ALG</span><span class="group">Grupo J</span></span>
+          <span class="fixture-chip"><span class="time">18:00</span><span class="teams">BRA 🇧🇷 vs MAR 🇲🇦</span><span class="group">Grupo C</span></span>
+          <span class="fixture-chip"><span class="time">15:00</span><span class="teams">ESP 🇪🇸 vs URU 🇺🇾</span><span class="group">Grupo H</span></span>
+          <span class="fixture-chip"><span class="time">12:00</span><span class="teams">MEX 🇲🇽 vs RSA 🇿🇦</span><span class="group">Grupo A</span></span>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-area">
+      <section class="promo-stage">
+        <div class="promo-corners" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="promo-media"></div>
+        <p class="promo-media-note">Video / imagen oferta<br>(carrusel actual)</p>
+        <div class="promo-overlay">
+          <div class="promo-name">Suprema 2 kg</div>
+          <div class="promo-price"><span class="cur">$</span><span class="amt">22.000</span></div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <div class="side-card match-card">
+          <div class="match-card-left">
+            <h3>Próximo · Argentina</h3>
+            <div class="match-teams">🇦🇷 ARG <span class="vs">vs</span> 🇩🇿 ALG</div>
+            <div class="match-meta">Grupo J · 21:00 hs</div>
+          </div>
+          <div class="countdown">02:14:35</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="bottom-strip" title="Franja celeste/blanca estilo Argentina"></div>
+  </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><strong>1. Ticker superior</strong>Partidos del día en franja compacta (scroll horizontal).</div>
+    <div class="legend-item"><strong>2. Promo central</strong>Protagonista: ocupa casi todo el alto (video + nombre + precio).</div>
+    <div class="legend-item"><strong>3. Bloque inferior</strong>Próximo partido Argentina en franja compacta secundaria.</div>
+    <div class="legend-item"><strong>4. Pantalla</strong>100vw × 100vh fullscreen, igual que <code>promociones.html</code>.</div>
+  </div>
+</body>
+</html>
