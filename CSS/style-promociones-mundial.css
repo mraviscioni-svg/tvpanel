@@ -94,8 +94,8 @@ html,body{
   flex-shrink:0;
   display:flex;
   flex-direction:column;
-  gap:.4rem;
-  padding:clamp(10px,1.6vh,16px) clamp(12px,2.8vw,20px);
+  gap:.35rem;
+  padding:clamp(10px,1.6vh,16px) clamp(10px,2.5vw,18px);
   background:
     linear-gradient(90deg,rgba(117,170,219,.08) 0%,transparent 25%,transparent 75%,rgba(255,210,63,.06) 100%),
     linear-gradient(180deg,rgba(0,90,150,.75) 0%,rgba(0,116,189,.45) 55%,rgba(0,166,214,.15) 100%);
@@ -104,75 +104,113 @@ html,body{
   box-shadow:0 4px 24px rgba(0,166,214,.2);
 }
 
-.top-bar-row{
+/* Fila principal: Logo · VAMOS ARGENTINA · Mundial */
+.header-hero{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  gap:.45rem;
+  justify-content:center;
+  gap:clamp(6px,1.2vw,14px);
+  min-width:0;
 }
 
-.brand{
-  display:flex;
-  align-items:center;
-  gap:.65rem;
+.brand-logo{
   flex-shrink:0;
+  height:clamp(38px,6vh,58px);
+  width:auto;
+  max-width:min(28vw,140px);
+  object-fit:contain;
+}
+
+.header-sep{
+  flex-shrink:0;
+  color:rgba(255,255,255,.35);
+  font-size:clamp(16px,2.5vh,24px);
+  font-weight:300;
+  line-height:1;
+  user-select:none;
 }
 
 .arg-cheer{
-  flex:1;
+  flex:1 1 auto;
+  min-width:0;
   display:flex;
-  flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:.2rem;
-  min-width:0;
-  padding:0 .15rem;
-  text-align:center;
 }
 
-.arg-stars{
-  display:block;
-  font-size:clamp(22px,4.2vh,36px);
-  letter-spacing:.42em;
+.arg-cheer-line{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(4px,.8vw,10px);
+  min-width:0;
+}
+
+.arg-star-group{
+  flex-shrink:0;
+  font-size:clamp(14px,2.8vh,26px);
+  letter-spacing:.08em;
   color:var(--gold);
-  text-shadow:0 0 16px rgba(255,210,63,.55);
+  text-shadow:0 0 14px rgba(255,210,63,.5);
   line-height:1;
 }
 
 .arg-cheer-text{
-  display:block;
-  font-size:clamp(20px,4vh,34px);
+  font-size:clamp(28px,5.5vh,52px);
   font-weight:900;
-  letter-spacing:.1em;
+  letter-spacing:.06em;
   text-transform:uppercase;
   color:var(--arg-white);
-  text-shadow:0 2px 14px rgba(117,170,219,.55);
+  text-shadow:0 2px 16px rgba(117,170,219,.55);
   white-space:nowrap;
-  line-height:1.05;
+  line-height:1;
 }
 
-.brand-logo{
-  height:clamp(34px,5.5vh,52px);
-  width:auto;
-  object-fit:contain;
+.header-date{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.45rem;
+  font-size:clamp(10px,1.35vh,13px);
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--arg-white);
+  line-height:1;
+}
+
+#ticker-mode-label{color:var(--cyan-bright)}
+
+#today-date{
+  color:var(--gold);
+  font-weight:700;
+}
+
+#today-date::before{
+  content:"·";
+  margin-right:.45rem;
+  color:var(--muted);
+  font-weight:600;
 }
 
 .mundial-badge{
+  flex-shrink:0;
   display:flex;
   align-items:center;
-  gap:.4rem;
-  padding:.38rem .9rem;
+  gap:.35rem;
+  padding:.32rem .75rem;
   background:linear-gradient(135deg,rgba(255,210,63,.28) 0%,rgba(201,162,39,.12) 100%);
   border:1px solid rgba(255,210,63,.65);
   border-radius:999px;
-  font-size:clamp(11px,1.6vh,14px);
+  font-size:clamp(9px,1.35vh,12px);
   font-weight:800;
-  letter-spacing:.12em;
+  letter-spacing:.1em;
   color:#fff;
   text-transform:uppercase;
   text-shadow:0 1px 8px rgba(255,210,63,.4);
   box-shadow:0 0 20px rgba(255,210,63,.15),inset 0 1px 0 rgba(255,255,255,.25);
   animation:badge-glow 3s ease-in-out infinite;
+  white-space:nowrap;
 }
 
 .mundial-badge::before{
@@ -247,30 +285,6 @@ html,body{
 .fixture-loading{color:var(--muted);font-weight:600}
 
 @keyframes pulse{50%{opacity:.4}}
-
-.today-label{
-  font-size:clamp(9px,1.15vh,11px);
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  color:var(--arg-white);
-  text-align:right;
-  line-height:1.2;
-  white-space:nowrap;
-  padding:.2rem .5rem;
-  background:rgba(117,170,219,.15);
-  border:1px solid rgba(117,170,219,.35);
-  border-radius:6px;
-  flex-shrink:0;
-}
-
-#today-date{
-  display:block;
-  color:var(--gold);
-  font-weight:600;
-  font-size:.85em;
-  margin-top:.1rem;
-}
 
 .main-area{
   flex:1;
