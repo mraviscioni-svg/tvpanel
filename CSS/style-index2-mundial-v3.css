@@ -17,14 +17,14 @@
   --bg: var(--bg-deep);
   --accent: var(--cyan);
   --accent-2: var(--gold);
-  --header-h: clamp(118px, 17vh, 158px);
+  --header-h: clamp(92px, 13vh, 120px);
   --footer-h: clamp(64px, 11vh, 92px);
   --fs-scale: 1.28;
 }
 
 @supports (height: 100dvh) {
   .index2-mundial {
-    --header-h: clamp(118px, 17dvh, 158px);
+    --header-h: clamp(92px, 13dvh, 120px);
     --footer-h: clamp(64px, 11dvh, 92px);
   }
 }
@@ -117,7 +117,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: clamp(10px, 1.4vh, 14px) clamp(12px, 2.5vw, 20px) 0;
+  padding: clamp(10px, 1.4vh, 14px) clamp(12px, 2.5vw, 20px);
   background: linear-gradient(180deg, rgba(8, 30, 55, 0.95) 0%, rgba(10, 22, 40, 0.88) 100%);
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(90deg, var(--arg-celeste), var(--arg-white) 50%, var(--arg-celeste)) 1;
@@ -131,7 +131,6 @@
   align-items: center;
   gap: clamp(12px, 2vw, 24px);
   min-width: 0;
-  padding-bottom: clamp(4px, 0.6vh, 8px);
 }
 
 .index2-mundial .brand {
@@ -216,89 +215,6 @@
   color: var(--arg-white);
   opacity: 0.85;
 }
-
-/* Banderines en header */
-.index2-mundial .header-bunting.arg-bunting {
-  position: relative;
-  width: 100%;
-  padding: 0 clamp(4px, 1vw, 10px);
-  margin-top: clamp(2px, 0.4vh, 6px);
-  pointer-events: none;
-}
-
-.index2-mundial .arg-bunting-rope {
-  position: relative;
-  height: clamp(16px, 2.4vh, 24px);
-  margin: 0 clamp(2px, 0.6vw, 8px);
-}
-
-.index2-mundial .arg-bunting-rope::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 220%;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 0 0 50% 50% / 0 0 100% 100%;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.12);
-}
-
-.index2-mundial .arg-bunting-flags {
-  --bunting-drop: clamp(18px, 2.8vh, 28px);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: clamp(1px, 0.35vw, 3px);
-  padding: 0 clamp(2px, 0.5vw, 6px);
-  margin-top: clamp(-2px, -0.3vh, 0);
-  min-height: calc(var(--bunting-drop) + clamp(18px, 2.8vh, 26px));
-}
-
-.index2-mundial .arg-bunting-flags span {
-  flex: 1 1 0;
-  max-width: clamp(12px, 2.6vw, 22px);
-  height: clamp(18px, 2.8vh, 26px);
-  clip-path: polygon(50% 100%, 0 0, 100% 0);
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
-  transform-origin: top center;
-}
-
-.index2-mundial .arg-bunting-flags span:nth-child(odd) { background: #74acdf; }
-.index2-mundial .arg-bunting-flags span:nth-child(even) { background: #fff; }
-
-.index2-mundial .arg-bunting-flags span:nth-child(1){transform:translateY(calc(0.001 * var(--bunting-drop))) rotate(-14deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(2){transform:translateY(calc(0.125 * var(--bunting-drop))) rotate(-13.1deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(3){transform:translateY(calc(0.241 * var(--bunting-drop))) rotate(-12.2deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(4){transform:translateY(calc(0.35 * var(--bunting-drop))) rotate(-11.3deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(5){transform:translateY(calc(0.45 * var(--bunting-drop))) rotate(-10.4deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(6){transform:translateY(calc(0.541 * var(--bunting-drop))) rotate(-9.5deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(7){transform:translateY(calc(0.624 * var(--bunting-drop))) rotate(-8.6deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(8){transform:translateY(calc(0.699 * var(--bunting-drop))) rotate(-7.7deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(9){transform:translateY(calc(0.766 * var(--bunting-drop))) rotate(-6.8deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(10){transform:translateY(calc(0.824 * var(--bunting-drop))) rotate(-5.9deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(11){transform:translateY(calc(0.874 * var(--bunting-drop))) rotate(-5deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(12){transform:translateY(calc(0.916 * var(--bunting-drop))) rotate(-4.1deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(13){transform:translateY(calc(0.949 * var(--bunting-drop))) rotate(-3.2deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(14){transform:translateY(calc(0.974 * var(--bunting-drop))) rotate(-2.3deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(15){transform:translateY(calc(0.991 * var(--bunting-drop))) rotate(-1.4deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(16){transform:translateY(calc(1 * var(--bunting-drop))) rotate(-0.5deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(17){transform:translateY(calc(1 * var(--bunting-drop))) rotate(0.5deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(18){transform:translateY(calc(0.991 * var(--bunting-drop))) rotate(1.4deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(19){transform:translateY(calc(0.974 * var(--bunting-drop))) rotate(2.3deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(20){transform:translateY(calc(0.949 * var(--bunting-drop))) rotate(3.2deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(21){transform:translateY(calc(0.916 * var(--bunting-drop))) rotate(4.1deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(22){transform:translateY(calc(0.874 * var(--bunting-drop))) rotate(5deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(23){transform:translateY(calc(0.824 * var(--bunting-drop))) rotate(5.9deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(24){transform:translateY(calc(0.766 * var(--bunting-drop))) rotate(6.8deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(25){transform:translateY(calc(0.699 * var(--bunting-drop))) rotate(7.7deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(26){transform:translateY(calc(0.624 * var(--bunting-drop))) rotate(8.6deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(27){transform:translateY(calc(0.541 * var(--bunting-drop))) rotate(9.5deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(28){transform:translateY(calc(0.45 * var(--bunting-drop))) rotate(10.4deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(29){transform:translateY(calc(0.35 * var(--bunting-drop))) rotate(11.3deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(30){transform:translateY(calc(0.241 * var(--bunting-drop))) rotate(12.2deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(31){transform:translateY(calc(0.125 * var(--bunting-drop))) rotate(13.1deg)}
-.index2-mundial .arg-bunting-flags span:nth-child(32){transform:translateY(calc(0.001 * var(--bunting-drop))) rotate(14deg)}
 
 /* ===== MAIN LAYOUT ===== */
 .index2-mundial main.layout.main-area {
@@ -541,7 +457,7 @@
 @media (max-height: 720px) {
   .index2-mundial {
     --fs-scale: 1.18;
-    --header-h: clamp(104px, 15vh, 136px);
+    --header-h: clamp(84px, 12vh, 108px);
   }
 
   .index2-mundial .arg-cheer-text {
