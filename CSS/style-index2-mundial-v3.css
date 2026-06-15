@@ -17,14 +17,14 @@
   --bg: var(--bg-deep);
   --accent: var(--cyan);
   --accent-2: var(--gold);
-  --header-h: clamp(108px, 16vh, 148px);
+  --header-h: clamp(118px, 17vh, 158px);
   --footer-h: clamp(64px, 11vh, 92px);
   --fs-scale: 1.28;
 }
 
 @supports (height: 100dvh) {
   .index2-mundial {
-    --header-h: clamp(108px, 16dvh, 148px);
+    --header-h: clamp(118px, 17dvh, 158px);
     --footer-h: clamp(64px, 11dvh, 92px);
   }
 }
@@ -112,73 +112,85 @@
   z-index: 2;
 }
 
-/* ===== HEADER (top-bar promociones2) ===== */
+/* ===== HEADER ===== */
 .index2-mundial header.top-bar {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: clamp(8px, 1.2vh, 12px) clamp(10px, 2.5vw, 18px);
+  gap: 0;
+  padding: clamp(10px, 1.4vh, 14px) clamp(12px, 2.5vw, 20px) 0;
   background: linear-gradient(180deg, rgba(8, 30, 55, 0.95) 0%, rgba(10, 22, 40, 0.88) 100%);
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(90deg, var(--arg-celeste), var(--arg-white) 50%, var(--arg-celeste)) 1;
   box-shadow: 0 6px 28px rgba(0, 0, 0, 0.35);
+  overflow: visible;
 }
 
 .index2-mundial .header-hero {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: clamp(6px, 1.2vw, 14px);
+  gap: clamp(12px, 2vw, 24px);
   min-width: 0;
+  padding-bottom: clamp(4px, 0.6vh, 8px);
+}
+
+.index2-mundial .brand {
+  justify-self: start;
+  flex-shrink: 0;
 }
 
 .index2-mundial .brand img {
-  max-height: clamp(44px, 7.5vh, 68px);
+  max-height: clamp(52px, 8.5vh, 76px);
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
   margin: 0;
 }
 
-.index2-mundial .header-sep {
-  color: rgba(255, 255, 255, 0.25);
-  font-weight: 300;
-  user-select: none;
+.index2-mundial .arg-cheer {
+  justify-self: center;
+  text-align: center;
+  min-width: 0;
 }
 
 .index2-mundial .arg-cheer-line {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: clamp(4px, 0.8vw, 8px);
+  justify-content: center;
+  gap: clamp(8px, 1.4vw, 14px);
   white-space: nowrap;
 }
 
 .index2-mundial .arg-star-group {
   color: var(--gold);
-  font-size: clamp(9px, 1.3vh, 12px);
-  letter-spacing: 0.1em;
+  font-size: clamp(14px, 2.4vh, 22px);
+  letter-spacing: 0.12em;
 }
 
 .index2-mundial .arg-cheer-text {
-  font-size: clamp(11px, 1.7vh, 15px);
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-size: clamp(20px, 3.6vh, 38px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--arg-white);
-  text-shadow: 0 2px 20px rgba(117, 170, 219, 0.65);
+  text-shadow: 0 2px 24px rgba(117, 170, 219, 0.7);
 }
 
-.index2-mundial .header-date {
-  margin-left: auto;
+.index2-mundial .header-date,
+.index2-mundial .clock {
+  justify-self: end;
+  margin-left: 0;
   text-align: right;
   line-height: 1.1;
+  flex-shrink: 0;
 }
 
 .index2-mundial .header-date-day,
 .index2-mundial .clock-date {
-  font-size: clamp(10px, 1.4vh, 13px) !important;
+  font-size: clamp(11px, 1.55vh, 14px) !important;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: var(--cyan-bright) !important;
 }
 
@@ -188,97 +200,29 @@
   align-items: baseline;
   justify-content: flex-end;
   gap: 6px;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .index2-mundial .clock-time .hm {
-  font-size: calc(var(--fs-scale) * clamp(20px, 3.8vh, 36px)) !important;
+  font-size: calc(var(--fs-scale) * clamp(22px, 4.2vh, 40px)) !important;
   font-weight: 900;
   color: var(--gold-bright);
   letter-spacing: 0.04em;
 }
 
 .index2-mundial .clock-time .ampm {
-  font-size: calc(var(--fs-scale) * clamp(10px, 1.6vh, 14px)) !important;
+  font-size: calc(var(--fs-scale) * clamp(11px, 1.7vh, 15px)) !important;
   font-weight: 800;
   color: var(--arg-white);
   opacity: 0.85;
 }
 
-.index2-mundial .fixtures-bar {
-  display: flex;
-  align-items: center;
-  min-height: 0;
-}
-
-.index2-mundial .fixtures-heading {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.28rem 0.65rem;
-  border-radius: 6px;
-  border: 1px solid rgba(117, 170, 219, 0.55);
-  background: linear-gradient(90deg, rgba(0, 80, 130, 0.55), rgba(117, 170, 219, 0.35), rgba(0, 80, 130, 0.55));
-  font-size: clamp(10px, 1.45vh, 13px);
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.index2-mundial .fixtures-heading-mundial {
-  color: var(--gold-bright);
-  text-shadow: 0 0 12px rgba(255, 210, 63, 0.35);
-}
-
-.index2-mundial .fixtures-heading-text {
-  color: var(--arg-white);
-}
-
-/* ===== MAIN LAYOUT ===== */
-.index2-mundial main.layout.main-area {
-  gap: clamp(8px, 1.2vh, 12px);
-  padding: 0.3rem clamp(8px, 2vw, 14px) 0.35rem;
-  min-height: 0;
-}
-
-/* ===== PANEL LISTADO (promo-stage v3) ===== */
-.index2-mundial .menu.promo-stage {
+/* Banderines en header */
+.index2-mundial .header-bunting.arg-bunting {
   position: relative;
-  border: 2px solid rgba(117, 170, 219, 0.55);
-  border-radius: clamp(12px, 1.8vh, 18px);
-  background: #0a1420;
-  box-shadow:
-    0 12px 48px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.06),
-    inset 0 0 60px rgba(117, 170, 219, 0.08);
-  overflow: hidden;
-}
-
-.index2-mundial .menu.promo-stage::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-    linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.35) 30%, rgba(0, 0, 0, 0.55) 100%);
-}
-
-.index2-mundial .menu .bg-video {
-  opacity: 0.12;
-  filter: contrast(1.05) saturate(0.9);
-  z-index: 0;
-}
-
-/* Banderines */
-.index2-mundial .promo-stage .arg-bunting {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 6;
-  padding: clamp(6px, 1vh, 12px) clamp(2px, 0.8vw, 6px) 0;
+  width: 100%;
+  padding: 0 clamp(4px, 1vw, 10px);
+  margin-top: clamp(2px, 0.4vh, 6px);
   pointer-events: none;
 }
 
@@ -356,10 +300,47 @@
 .index2-mundial .arg-bunting-flags span:nth-child(31){transform:translateY(calc(0.125 * var(--bunting-drop))) rotate(13.1deg)}
 .index2-mundial .arg-bunting-flags span:nth-child(32){transform:translateY(calc(0.001 * var(--bunting-drop))) rotate(14deg)}
 
+/* ===== MAIN LAYOUT ===== */
+.index2-mundial main.layout.main-area {
+  gap: clamp(8px, 1.2vh, 12px);
+  padding: 0.3rem clamp(8px, 2vw, 14px) 0.35rem;
+  min-height: 0;
+}
+
+/* ===== PANEL LISTADO (promo-stage v3) ===== */
+.index2-mundial .menu.promo-stage {
+  position: relative;
+  border: 2px solid rgba(117, 170, 219, 0.55);
+  border-radius: clamp(12px, 1.8vh, 18px);
+  background: #0a1420;
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 0 60px rgba(117, 170, 219, 0.08);
+  overflow: hidden;
+}
+
+.index2-mundial .menu.promo-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.35) 30%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.index2-mundial .menu .bg-video {
+  opacity: 0.12;
+  filter: contrast(1.05) saturate(0.9);
+  z-index: 0;
+}
+
 .index2-mundial .menu-header {
   position: relative;
   z-index: 5;
-  padding: clamp(28px, 4vh, 40px) clamp(14px, 2vw, 18px) clamp(8px, 1.2vh, 12px);
+  padding: clamp(10px, 1.4vh, 14px) clamp(14px, 2vw, 18px);
   border-bottom: 1px solid rgba(117, 170, 219, 0.25);
   background: linear-gradient(
     90deg,
@@ -560,11 +541,19 @@
 @media (max-height: 720px) {
   .index2-mundial {
     --fs-scale: 1.18;
-    --header-h: clamp(96px, 14vh, 128px);
+    --header-h: clamp(104px, 15vh, 136px);
   }
 
   .index2-mundial .arg-cheer-text {
-    font-size: clamp(9px, 1.4vh, 12px);
+    font-size: clamp(16px, 2.8vh, 26px);
+  }
+
+  .index2-mundial .arg-star-group {
+    font-size: clamp(11px, 1.8vh, 16px);
+  }
+
+  .index2-mundial .brand img {
+    max-height: clamp(44px, 7vh, 60px);
   }
 
   .index2-mundial .item-price {
