@@ -353,10 +353,13 @@
 }
 
 .index2-mundial .price-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: clamp(6px, 0.8vw, 10px);
   min-width: clamp(110px, 13vw, 150px);
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
 }
 
 /* Precio dorado flotante (estilo promociones2) */
@@ -381,6 +384,9 @@
   font-size: calc(var(--fs-scale) * clamp(10px, 1.5vh, 13px));
   color: var(--muted);
   font-weight: 600;
+  white-space: nowrap;
+  line-height: 1;
+  margin-top: 0;
 }
 
 /* ===== PANEL CARRUSEL ===== */
