@@ -100,7 +100,7 @@
   height: auto;
   background: transparent;
   display: grid;
-  grid-template-rows: var(--header-h) 1fr var(--footer-h);
+  grid-template-rows: var(--header-h) auto 1fr var(--footer-h);
 }
 
 .index2-mundial .bottom-strip {
@@ -228,6 +228,135 @@
   font-weight: 800;
   color: var(--arg-white);
   opacity: 0.85;
+}
+
+/* ===== PARTIDOS DEL DÍA ===== */
+.index2-mundial .mundial-fixtures {
+  flex-shrink: 0;
+  min-height: 0;
+  padding: 0 clamp(8px, 2vw, 14px) clamp(4px, 0.6vh, 8px);
+}
+
+.index2-mundial .fixtures-bar {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.5vh, 6px);
+}
+
+.index2-mundial .fixtures-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: clamp(4px, 0.6vw, 7px);
+  padding: clamp(5px, 0.7vh, 8px) clamp(8px, 1.5vw, 12px);
+  background: linear-gradient(90deg, rgba(0, 80, 130, 0.55), rgba(117, 170, 219, 0.35), rgba(0, 80, 130, 0.55));
+  border: 1px solid rgba(117, 170, 219, 0.55);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.index2-mundial .fixtures-heading-icon {
+  font-size: clamp(12px, 1.6vh, 15px);
+  line-height: 1;
+}
+
+.index2-mundial .fixtures-heading-mundial {
+  font-size: clamp(10px, 1.4vh, 13px);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  text-shadow: 0 0 10px rgba(255, 210, 63, 0.25);
+}
+
+.index2-mundial .fixtures-heading-sep {
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 700;
+  font-size: clamp(11px, 1.4vh, 14px);
+  line-height: 1;
+}
+
+.index2-mundial .fixtures-heading-text {
+  font-size: clamp(11px, 1.55vh, 14px);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--arg-white);
+}
+
+.index2-mundial .fixtures-ticker {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.index2-mundial .fixtures-track {
+  display: flex;
+  gap: 1.5rem;
+  animation: index2-scroll-fixtures 28s linear infinite;
+  white-space: nowrap;
+}
+
+.index2-mundial .fixtures-track.is-static {
+  animation: none;
+  justify-content: center;
+}
+
+@keyframes index2-scroll-fixtures {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.index2-mundial .fixture-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.65rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border-radius: 999px;
+  border: 1px solid rgba(117, 170, 219, 0.35);
+  font-size: clamp(10px, 1.25vh, 12px);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.index2-mundial .fixture-chip .time {
+  color: var(--gold-bright);
+  min-width: 2.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.index2-mundial .fixture-chip .teams {
+  color: var(--text);
+}
+
+.index2-mundial .fixture-chip .group {
+  color: var(--cyan-bright);
+  font-weight: 600;
+  font-size: clamp(8px, 1vh, 10px);
+  padding-left: 0.25rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.index2-mundial .fixture-chip.live {
+  border-color: rgba(255, 80, 80, 0.75);
+  background: linear-gradient(180deg, rgba(255, 80, 80, 0.18) 0%, rgba(0, 0, 0, 0.45) 100%);
+  box-shadow: 0 0 16px rgba(255, 80, 80, 0.2);
+}
+
+.index2-mundial .fixture-chip.live .time::after {
+  content: " ●";
+  color: #ff5050;
+  animation: index2-fixture-pulse 1s infinite;
+}
+
+.index2-mundial .fixture-loading {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+@keyframes index2-fixture-pulse {
+  50% { opacity: 0.4; }
 }
 
 /* ===== MAIN LAYOUT ===== */
