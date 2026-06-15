@@ -171,8 +171,8 @@
 
 .index2-mundial .arg-star-group {
   color: var(--gold);
-  font-size: clamp(14px, 2.4vh, 22px);
-  letter-spacing: 0.12em;
+  font-size: clamp(18px, 3.1vh, 28px);
+  letter-spacing: 0.14em;
 }
 
 .index2-mundial .arg-cheer-text {
@@ -479,7 +479,7 @@
   }
 
   .index2-mundial .arg-star-group {
-    font-size: clamp(11px, 1.8vh, 16px);
+    font-size: clamp(15px, 2.5vh, 22px);
   }
 
   .index2-mundial .brand img {
