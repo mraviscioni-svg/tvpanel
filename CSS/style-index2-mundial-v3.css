@@ -94,6 +94,80 @@
   background: radial-gradient(ellipse at 70% 0%, rgba(117, 170, 219, 0.35), transparent 70%);
 }
 
+/* ===== PAPEL PICADO ARGENTINO ===== */
+.index2-mundial .arg-papel-picado {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  overflow: hidden;
+}
+
+.index2-mundial .arg-papel-picado i {
+  --papel-c: #74acdf;
+  position: absolute;
+  top: -14%;
+  left: var(--x, 50%);
+  width: var(--w, 14px);
+  height: var(--h, 20px);
+  opacity: var(--o, 0.55);
+  background-color: var(--papel-c);
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 2px,
+      rgba(0, 0, 0, 0.07) 2px 3px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 4px,
+      rgba(255, 255, 255, 0.14) 4px 5px
+    );
+  clip-path: polygon(
+    0 0, 100% 0, 100% 72%,
+    92% 82%, 84% 72%, 76% 84%, 68% 72%, 60% 82%,
+    52% 72%, 44% 84%, 36% 72%, 28% 82%, 20% 72%,
+    12% 84%, 4% 72%, 0 80%
+  );
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+  animation: index2-papel-fall var(--d, 16s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform;
+}
+
+.index2-mundial .arg-papel-picado i.is-white {
+  --papel-c: #f5f8fc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.index2-mundial .arg-papel-picado i.is-gold {
+  --papel-c: #ffd23f;
+  clip-path: circle(42% at 50% 50%);
+  background-image:
+    conic-gradient(
+      from 0deg,
+      rgba(255, 255, 255, 0.35) 0deg 18deg,
+      transparent 18deg 36deg
+    );
+  box-shadow: 0 0 10px rgba(255, 210, 63, 0.35);
+}
+
+@keyframes index2-papel-fall {
+  0% {
+    transform: translate3d(0, -12vh, 0) rotate(var(--r0, 0deg));
+  }
+  100% {
+    transform: translate3d(var(--tx, 24px), 112vh, 0) rotate(var(--r1, 280deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .index2-mundial .arg-papel-picado i {
+    animation: none;
+    display: none;
+  }
+}
+
 .index2-mundial .tv-frame > .app {
   position: relative;
   z-index: 1;
