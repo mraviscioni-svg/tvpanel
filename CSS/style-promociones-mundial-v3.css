@@ -5,9 +5,60 @@
 
 .promo-v3{
   --bg-deep:#0a1628;
-  --name-size:clamp(17px,3vh,36px);
-  --price-currency:clamp(16px,2.4vh,26px);
-  --price-amount:clamp(32px,5.2vh,64px);
+  --name-size:clamp(19px,3.35vh,40px);
+  --price-currency:clamp(17px,2.55vh,28px);
+  --price-amount:clamp(36px,5.8vh,72px);
+  --fixtures-bar-h:clamp(60px,7.8vh,80px);
+}
+
+/* ===== PAPEL PICADO ARGENTINO ===== */
+.promo-v3 .arg-papel-picado{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:4;
+  overflow:hidden;
+}
+
+.promo-v3 .arg-papel-picado i{
+  --papel-c:#74acdf;
+  position:absolute;
+  top:-14%;
+  left:var(--x,50%);
+  width:var(--w,14px);
+  height:var(--h,20px);
+  opacity:var(--o,.5);
+  background-color:var(--papel-c);
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0 2px,rgba(0,0,0,.07) 2px 3px),
+    repeating-linear-gradient(0deg,transparent 0 4px,rgba(255,255,255,.14) 4px 5px);
+  clip-path:polygon(
+    0 0,100% 0,100% 72%,
+    92% 82%,84% 72%,76% 84%,68% 72%,60% 82%,
+    52% 72%,44% 84%,36% 72%,28% 82%,20% 72%,
+    12% 84%,4% 72%,0 80%
+  );
+  box-shadow:0 2px 6px rgba(0,0,0,.22);
+  animation:promo-papel-fall var(--d,16s) linear infinite;
+  animation-delay:var(--delay,0s);
+  will-change:transform;
+}
+
+.promo-v3 .arg-papel-picado i.is-white{--papel-c:#f5f8fc;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.promo-v3 .arg-papel-picado i.is-gold{
+  --papel-c:#ffd23f;
+  clip-path:circle(42% at 50% 50%);
+  background-image:conic-gradient(from 0deg,rgba(255,255,255,.35) 0deg 18deg,transparent 18deg 36deg);
+  box-shadow:0 0 10px rgba(255,210,63,.35);
+}
+
+@keyframes promo-papel-fall{
+  0%{transform:translate3d(0,-12vh,0) rotate(var(--r0,0deg))}
+  100%{transform:translate3d(var(--tx,24px),112vh,0) rotate(var(--r1,280deg))}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .promo-v3 .arg-papel-picado i{animation:none;display:none}
 }
 
 .promo-v3 .tv-frame{
@@ -27,10 +78,28 @@
   background:linear-gradient(180deg,rgba(8,30,55,.95) 0%,rgba(10,22,40,.88) 100%);
   border-image:linear-gradient(90deg,var(--arg-celeste),var(--arg-white) 50%,var(--arg-celeste)) 1;
   box-shadow:0 6px 28px rgba(0,0,0,.35);
+  padding:clamp(8px,1.15vh,12px) clamp(10px,2.5vw,18px);
+  gap:clamp(5px,.65vh,8px);
+}
+
+/* Header Argentina — legible en vidriera */
+.promo-v3 .brand-logo{
+  height:clamp(38px,5.6vh,54px);
+}
+
+.promo-v3 .arg-star-group{
+  font-size:clamp(16px,2.75vh,26px);
+  letter-spacing:.1em;
 }
 
 .promo-v3 .arg-cheer-text{
+  font-size:clamp(22px,3.9vh,42px);
+  letter-spacing:.08em;
   text-shadow:0 2px 20px rgba(117,170,219,.65);
+}
+
+.promo-v3 .header-sep{
+  font-size:clamp(14px,2.1vh,20px);
 }
 
 .promo-v3 .header-date{
@@ -41,25 +110,107 @@
 }
 
 .promo-v3 #today-date{
-  font-size:clamp(18px,2.8vh,28px);
+  font-size:clamp(16px,2.4vh,24px);
+}
+
+/* Partidos del día — barra horizontal más grande para vidriera */
+.promo-v3 .fixtures-bar{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:clamp(10px,1.5vw,16px);
+  min-height:var(--fixtures-bar-h);
+  padding:clamp(6px,.85vh,10px) clamp(12px,1.8vw,16px);
+  background:linear-gradient(90deg,rgba(0,80,130,.62),rgba(117,170,219,.38),rgba(0,80,130,.62));
+  border:1px solid rgba(117,170,219,.55);
+  border-radius:10px;
+  box-shadow:0 2px 12px rgba(0,0,0,.28);
+}
+
+.promo-v3 .fixtures-heading{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  grid-template-rows:auto auto;
+  align-items:center;
+  flex:0 0 clamp(124px,17vw,176px);
+  gap:1px 5px;
+  padding:0 clamp(10px,1.5vw,14px) 0 0;
+  margin:0;
+  background:none;
+  border:none;
+  border-right:2px solid rgba(117,170,219,.4);
+  border-radius:0;
+  box-shadow:none;
+}
+
+.promo-v3 .fixtures-heading-icon{
+  grid-row:1;
+  grid-column:1;
+  font-size:clamp(14px,1.9vh,17px);
 }
 
 .promo-v3 .fixtures-heading-mundial{
+  grid-row:1;
+  grid-column:2;
+  font-size:clamp(11px,1.5vh,13px);
   color:#ffe566;
   text-shadow:0 0 12px rgba(255,210,63,.35);
 }
 
-.promo-v3 .fixtures-heading{
-  background:linear-gradient(90deg,rgba(0,80,130,.55),rgba(117,170,219,.35),rgba(0,80,130,.55));
-  border-color:rgba(117,170,219,.55);
+.promo-v3 .fixtures-heading-sep{display:none}
+
+.promo-v3 .fixtures-heading-text{
+  grid-row:2;
+  grid-column:1 / -1;
+  font-size:clamp(12px,1.65vh,14px);
 }
 
+.promo-v3 .fixtures-ticker{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);
+}
+
+.promo-v3 .fixtures-track{
+  gap:clamp(10px,1.5vw,16px);
+  align-items:center;
+}
+
+.promo-v3 .fixtures-track.is-static{
+  width:100%;
+  justify-content:center;
+}
+
+.promo-v3 .fixture-chip{
+  flex-shrink:0;
+  gap:clamp(5px,.6vw,8px);
+  padding:clamp(5px,.75vh,8px) clamp(10px,1.4vw,14px);
+  font-size:clamp(11px,1.45vh,14px);
+  border-color:rgba(117,170,219,.45);
+}
+
+.promo-v3 .fixture-chip .time{
+  min-width:2.8rem;
+  font-size:clamp(12px,1.55vh,15px);
+}
+
+.promo-v3 .fixture-chip .group{
+  font-size:clamp(9px,1.15vh,11px);
+  padding-left:clamp(5px,.6vw,8px);
+}
+
+/* TV vertical: promos dominan el alto útil */
 .promo-v3 .main-area{
-  padding:.3rem clamp(8px,2vw,14px) .35rem;
+  flex:1;
+  min-height:0;
+  padding:clamp(2px,.35vh,4px) clamp(8px,2vw,14px) clamp(4px,.55vh,7px);
+  gap:clamp(4px,.55vh,7px);
 }
 
-/* Stage tipo mockup: producto hero + franja celeste abajo */
 .promo-v3 .promo-stage{
+  flex:1 1 auto;
+  min-height:0;
   border:2px solid rgba(117,170,219,.55);
   border-radius:clamp(12px,1.8vh,18px);
   box-shadow:
@@ -68,6 +219,46 @@
     inset 0 0 60px rgba(117,170,219,.08);
 }
 
+.promo-v3 .side-card.match-card{
+  min-height:clamp(62px,8.2vh,86px);
+  padding:clamp(8px,1.1vh,12px) clamp(10px,1.6vw,14px);
+  gap:clamp(8px,1.1vw,12px);
+  border-radius:12px;
+  border-color:rgba(117,170,219,.5);
+  background:
+    linear-gradient(90deg,rgba(117,170,219,.2) 0%,rgba(117,170,219,.2) 33%,rgba(245,248,252,.1) 33%,rgba(245,248,252,.1) 66%,rgba(117,170,219,.2) 66%),
+    linear-gradient(180deg,rgba(0,20,40,.6) 0%,rgba(0,10,25,.75) 100%);
+}
+
+.promo-v3 .side-card.match-card h3{
+  font-size:clamp(11px,1.55vh,14px);
+  letter-spacing:.12em;
+}
+
+.promo-v3 .match-teams{
+  font-size:clamp(14px,2vh,19px);
+  gap:clamp(5px,.7vw,8px);
+}
+
+.promo-v3 .match-teams .vs{
+  font-size:clamp(11px,1.45vh,13px);
+}
+
+.promo-v3 .match-meta{
+  font-size:clamp(10px,1.35vh,13px);
+}
+
+.promo-v3 .countdown{
+  font-size:clamp(15px,2.1vh,20px);
+  padding:clamp(6px,.85vh,9px) clamp(10px,1.4vw,14px);
+  border-radius:9px;
+}
+
+.promo-v3 .side-panel{
+  flex:0 0 auto;
+}
+
+/* Stage tipo mockup: producto hero + franja celeste abajo */
 .promo-v3 .promo-stage::before{
   background:
     radial-gradient(ellipse 90% 60% at 50% 30%,rgba(255,255,255,.04) 0%,transparent 50%),
@@ -119,7 +310,7 @@
 }
 
 .promo-v3 .promo-name::before{
-  font-size:clamp(9px,1.15vh,12px);
+  font-size:clamp(10px,1.25vh,13px);
   letter-spacing:.32em;
   margin-bottom:.35rem;
   color:#fff;
@@ -168,13 +359,6 @@
 
 .promo-v3 .intermediate .headline{color:var(--arg-white)}
 
-.promo-v3 .side-card.match-card{
-  border-color:rgba(117,170,219,.5);
-  background:
-    linear-gradient(90deg,rgba(117,170,219,.2) 0%,rgba(117,170,219,.2) 33%,rgba(245,248,252,.1) 33%,rgba(245,248,252,.1) 66%,rgba(117,170,219,.2) 66%),
-    linear-gradient(180deg,rgba(0,20,40,.6) 0%,rgba(0,10,25,.75) 100%);
-}
-
 .promo-v3 .bottom-strip{
   height:clamp(6px,.85vh,10px);
   box-shadow:0 -4px 20px rgba(117,170,219,.4);
@@ -182,8 +366,21 @@
 
 @media (max-height:720px){
   .promo-v3{
-    --name-size:clamp(15px,2.5vh,28px);
-    --price-amount:clamp(26px,4.2vh,50px);
+    --name-size:clamp(17px,2.85vh,32px);
+    --price-amount:clamp(30px,4.8vh,56px);
+    --fixtures-bar-h:clamp(54px,7vh,72px);
+  }
+
+  .promo-v3 .arg-cheer-text{
+    font-size:clamp(19px,3.4vh,34px);
+  }
+
+  .promo-v3 .arg-star-group{
+    font-size:clamp(14px,2.4vh,22px);
+  }
+
+  .promo-v3 .side-card.match-card{
+    min-height:clamp(56px,7.4vh,76px);
   }
 
   .promo-v3 .promo-price{

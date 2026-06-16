@@ -4,12 +4,13 @@
 (function () {
   const COLORS = ['#74ACDF', '#75aadb', '#5f9fd4'];
 
-  function startPapelPicado(count = 40) {
+  function startPapelPicado(count) {
     const layer = document.querySelector('.arg-papel-picado');
     if (!layer) return;
 
+    const total = count ?? (document.body.classList.contains('promo-v3') ? 34 : 40);
     layer.innerHTML = '';
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < total; i++) {
       const piece = document.createElement('i');
       const isGold = Math.random() < 0.12;
       const isWhite = !isGold && Math.random() < 0.38;

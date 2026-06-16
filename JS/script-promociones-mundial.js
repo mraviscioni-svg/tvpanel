@@ -356,7 +356,7 @@ function renderFixtures(data) {
   }
 
   const html = list.map(renderFixtureChip).join('');
-  if (list.length <= 2) {
+  if (list.length <= 4) {
     track.classList.add('is-static');
     track.innerHTML = html;
   } else {
