@@ -11,7 +11,6 @@ header('Pragma: no-cache');
 const MUNDIAL_API_URL = 'https://worldcup26.ir/get/games';
 const MUNDIAL_CACHE_FILE = __DIR__ . '/cache/mundial-games.raw.json';
 const MUNDIAL_CACHE_TTL = 600; // 10 min
-const MUNDIAL_VENUE_TZ = 'America/New_York';
 const MUNDIAL_DISPLAY_TZ = 'America/Argentina/Buenos_Aires';
 const MUNDIAL_FAVORITE = 'Argentina';
 
@@ -123,8 +122,31 @@ function mundialFetchGamesRaw() {
     return $decoded;
 }
 
-function mundialParseKickoff($localDate) {
-    $tzVenue = new DateTimeZone(MUNDIAL_VENUE_TZ);
+function mundialVenueTimezone($stadiumId) {
+    static $map = [
+        '1' => 'America/Mexico_City',   // Estadio Azteca
+        '2' => 'America/Mexico_City',   // Estadio Akron
+        '3' => 'America/Monterrey',     // Estadio BBVA
+        '4' => 'America/Chicago',       // AT&T Stadium (Dallas)
+        '5' => 'America/Chicago',       // NRG Stadium (Houston)
+        '6' => 'America/Chicago',       // Arrowhead (Kansas City)
+        '7' => 'America/New_York',      // Mercedes-Benz (Atlanta)
+        '8' => 'America/New_York',      // Hard Rock (Miami)
+        '9' => 'America/New_York',      // Gillette (Boston)
+        '10' => 'America/New_York',     // Lincoln Financial (Philadelphia)
+        '11' => 'America/New_York',     // MetLife (NY/NJ)
+        '12' => 'America/Toronto',      // Toronto
+        '13' => 'America/Vancouver',    // Vancouver
+        '14' => 'America/Los_Angeles',  // Seattle
+        '15' => 'America/Los_Angeles',  // Levi's (SF Bay)
+        '16' => 'America/Los_Angeles',  // SoFi (Los Angeles)
+    ];
+    $id = trim((string)$stadiumId);
+    return $map[$id] ?? 'America/New_York';
+}
+
+function mundialParseKickoff($localDate, $stadiumId = '') {
+    $tzVenue = new DateTimeZone(mundialVenueTimezone($stadiumId));
     $dt = DateTimeImmutable::createFromFormat('m/d/Y H:i', trim((string)$localDate), $tzVenue);
     if (!$dt) return null;
     return $dt->setTimezone(new DateTimeZone(MUNDIAL_DISPLAY_TZ));
@@ -189,7 +211,7 @@ function mundialBuildPayload($raw) {
 
     $normalized = [];
     foreach ($raw['games'] as $game) {
-        $kickoff = mundialParseKickoff($game['local_date'] ?? '');
+        $kickoff = mundialParseKickoff($game['local_date'] ?? '', $game['stadium_id'] ?? '');
         if (!$kickoff) continue;
         $normalized[] = mundialNormalizeGame($game, $kickoff);
     }
